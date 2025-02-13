@@ -1,0 +1,11 @@
+[package]
+name = "pelican_ui"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "pelican_ui"
+path = "src/lib.rs"
+
+[dependencies]
+rust_on_rails = {path = "../rust_on_rails"}
