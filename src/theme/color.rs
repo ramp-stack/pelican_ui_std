@@ -9,6 +9,7 @@ pub struct ColorResources {
     pub status: StatusColor,
     pub text: TextColor,
     pub button: ButtonColors,
+    pub brand: BrandColor,
 }
 
 impl Default for ColorResources {
@@ -18,6 +19,7 @@ impl Default for ColorResources {
             outline: OutlineColor::default(),
             status: StatusColor::default(),
             text: TextColor::default(),
+            brand: BrandColor::default(),
             button: ButtonColors::new(
                 ButtonSchemes::default(),
             ),
@@ -31,9 +33,10 @@ impl ColorResources {
         outline: OutlineColor,
         status: StatusColor,
         text: TextColor,
+        brand: BrandColor,
         button: ButtonColors,
     ) -> Self {
-        ColorResources { background, outline, status, text, button }
+        ColorResources { background, outline, status, text, brand, button }
     }
 }
 
@@ -51,6 +54,24 @@ impl Default for BackgroundColor {
         }
     }
 }
+
+#[derive(Copy, Clone)]
+pub struct BrandColor {
+    pub primary: &'static str,
+    pub secondary: &'static str,
+    pub text: &'static str,
+}
+
+impl Default for BrandColor {
+    fn default() -> Self {
+        BrandColor {
+            primary: "3598fc",
+            secondary: "3598fc",
+            text: "ffffff"
+        }
+    }
+}
+
 
 #[derive(Copy, Clone)]
 pub struct OutlineColor {
@@ -132,12 +153,12 @@ impl Default for ButtonSchemes {
     fn default() -> Self {
         ButtonSchemes {
             primary_default: ButtonColorScheme {
-                background: "3598FC",
+                background: "3598fc",
                 label: "ffffff",
                 outline: transparent(),
             },
             primary_disabled: ButtonColorScheme {
-                background: "443F3F",
+                background: "443f3f",
                 label: "000000",
                 outline: transparent(),
             },

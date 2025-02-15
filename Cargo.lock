@@ -1750,8 +1750,6 @@ checksum = "6c20b6793b5c2fa6553b250154b78d6d0db37e72700ae35fad9387a46f487c97"
 [[package]]
 name = "rust_on_rails"
 version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86a44ef3055d4accc38d745f0806d40f146fb9200c07986fbd09f2999a5e97ae"
 dependencies = [
  "android_logger",
  "console_error_panic_hook",
