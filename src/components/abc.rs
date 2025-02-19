@@ -1,6 +1,7 @@
 use rust_on_rails::prelude::*;
 use crate::theme;
-use crate::{Row, Column, Stack, Text, Alignment, Square, Padding};
+use crate::{Row, Column, Stack, Text, Padding, ConstrainedBox};
+use crate::layout::Align;
 use crate::components::button::*;
 
 #[derive(Clone, Copy)]
@@ -14,140 +15,28 @@ impl ComponentBuilder for CircleIcon {
     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         ctx.include_assets(include_assets!("./resources")); // Move this to theme startup
         let colors = theme::color::palette();
-        let image = ctx.load_image("images/profile.png").unwrap(); // Get self.0 images
+        let image = ctx.load_image("images/profile.png").unwrap(); // Get individual path images
 
         match self {
             CircleIcon::Photo(p, s) => {
-                Stack!(
-                    Image(ShapeType::Circle(*s / 2), image),
-                    Shape(ShapeType::Circle(*s / 2), colors.background.primary, Some(100))
+                Stack!(Vec2::new(0, 0), Align::Center,
+                    (Shape(ShapeType::Circle(*s / 2), colors.background.primary, Some(100)), Vec2::new(0, 0)),
+                    (Image(ShapeType::Circle(*s / 2), image.clone()), Vec2::new(0, 0))
                 ).build_children(ctx, max_size)
             },
             CircleIcon::Icon(p, s) => {
-                Stack!(
-                    Shape(ShapeType::Circle(*s / 2), colors.background.secondary, None),
-                    Image(ShapeType::Rectangle((*s as f32 * 0.75).round() as u32, (*s as f32 * 0.75).round() as u32), image)
+                Stack!(Vec2::new(0, 0), Align::Center,
+                    (Shape(ShapeType::Circle(*s / 2), colors.background.secondary, None), Vec2::new(0, 0)),
+                    (Image(ShapeType::Rectangle((*s as f32 * 0.75).round() as u32, (*s as f32 * 0.75).round() as u32), image.clone()), Vec2::new(0, 0))
                 ).build_children(ctx, max_size)
             },
             CircleIcon::Brand(p, s) => {
-                Stack!(
-                    Shape(ShapeType::Circle(*s / 2), colors.brand.primary, None),
-                    Image(ShapeType::Rectangle((*s as f32 * 0.75).round() as u32, (*s as f32 * 0.75).round() as u32), image)
+                Stack!(Vec2::new(0, 0), Align::Center,
+                    (Shape(ShapeType::Circle(*s / 2), colors.brand.primary, None), Vec2::new(0, 0)),
+                    (Image(ShapeType::Rectangle((*s as f32 * 0.75).round() as u32, (*s as f32 * 0.75).round() as u32), image.clone()), Vec2::new(0, 0))
                 ).build_children(ctx, max_size)
             }
         }
-    }
-
-    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-}
-
-#[derive(Clone)]
-pub enum MessageBubble {
-    You(&'static str),
-    ContactGroup(&'static str),
-    Rooms(&'static str)
-}
-
-impl ComponentBuilder for MessageBubble {
-    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        ctx.include_assets(include_assets!("./resources")); // Move this to theme startup
-        let font = ctx.load_font("fonts/outfit_regular.ttf").unwrap(); // GET TEXT FONT
-        let colors = theme::color::palette();
-
-        let (background, text_color, text, pad) = match self {
-            MessageBubble::You(a) 
-                => (colors.brand.primary, colors.text.heading, *a, 24),
-            MessageBubble::ContactGroup(a) 
-                => (colors.background.secondary, colors.text.primary, *a, 24),
-            MessageBubble::Rooms(a) 
-                => (colors.background.primary, colors.text.primary, *a, 0)
-        };
-
-        let mut bound = Rect::new(0, 0, max_size.x, max_size.y);
-        let mut content = Text::new(text, text_color, 16, font.clone()).build(ctx, bound);
-
-        let (width, height) = (content.size(ctx).x + pad, content.size(ctx).y + pad);
-
-        content.1 = Rect::new((width - content.size(ctx).x) / 2, (width - content.size(ctx).x) / 2, max_size.x, max_size.y);
-
-        vec![
-            Box::new(Shape(ShapeType::Rectangle(width, height), background, None).build(ctx, bound)),
-            Box::new(content)
-        ]
-    }
-
-    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-}
-
-pub struct TextMessage(pub MessageType, pub Vec<&'static str>);
-
-pub enum MessageType {
-    You,
-    Contact,
-    Group,
-    Rooms,
-}
-
-impl ComponentBuilder for TextMessage {
-    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        let heading = ctx.load_font("fonts/outfit_bold.ttf").unwrap();
-        let font = ctx.load_font("fonts/outfit_regular.ttf").unwrap();
-        let colors = theme::color::palette();
-
-        let boxed_messages = self.1.iter()
-            .map(|msg| {
-                let bubble = match self.0 {
-                    MessageType::You => MessageBubble::You(msg),
-                    MessageType::Contact | MessageType::Group => MessageBubble::ContactGroup(msg),
-                    MessageType::Rooms => MessageBubble::Rooms(msg),
-                };
-
-                Box::new(bubble) as Box<dyn ComponentBuilder>
-            }).collect();
-    
-        match self.0 {
-            MessageType::You => {
-                Column!(8, Alignment::Right,
-                    Column(boxed_messages, 8, Alignment::Left),
-                    Text::new("11:48 AM", colors.text.secondary, 14, font.clone())
-                ).build_children(ctx, max_size)
-            },
-            MessageType::Contact => {
-                Column!(8, Alignment::Left,
-                    Column(boxed_messages, 8, Alignment::Left),
-                    Text::new("11:48 AM", colors.text.secondary, 14, font.clone())
-                ).build_children(ctx, max_size)
-            },
-            MessageType::Group => {
-                Row!(8, Alignment::Bottom,
-                    CircleIcon::Photo("profile.png", 24),
-                    Column!(8, Alignment::Left,
-                        Column(boxed_messages, 8, Alignment::Left),
-                        Row!(4, Alignment::Bottom,
-                            Text::new("Ella Couch", colors.text.secondary, 14, font.clone()),
-                            Text::new("·", colors.text.secondary, 14, font.clone()),
-                            Text::new("11:48 AM", colors.text.secondary, 14, font.clone())
-                        )
-                    )
-                ).build_children(ctx, max_size)
-            },
-            MessageType::Rooms => {
-                Row!(8, Alignment::Top,
-                    CircleIcon::Photo("profile.png", 24),
-                    Column!(8, Alignment::Left,
-                        Row!(4, Alignment::Bottom,
-                            Text::new("Ella Couch", colors.text.heading, 16, heading.clone()),
-                            Text::new("·", colors.text.secondary, 14, font.clone()),
-                            Text::new("11:48 AM", colors.text.secondary, 14, font.clone())
-                        ),
-                        Column(boxed_messages, 8, Alignment::Left)
-                    )
-                ).build_children(ctx, max_size)
-            }
-        }
-
     }
 
     fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
@@ -165,32 +54,66 @@ pub struct Card {
 impl Card {
     pub fn room(n: &'static str, st: &'static str, d: &'static str) -> Self {
         Self {
-            circle_icon: CircleIcon::Photo("profile", 48), // get user pfp
+            circle_icon: CircleIcon::Photo("profile", 64), // get user pfp
             title: n,
             subtitle: st,
             description: d,
-            button: Button::Secondary("Join Room", Size::Medium, Width::Hug, None),
+            button: Button::Secondary("Join Room", Size::Medium, Width::Hug, None, Align::Center),
         }
     }
 }
-
 
 impl ComponentBuilder for Card {
     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         let heading = ctx.load_font("fonts/outfit_bold.ttf").unwrap();
         let font = ctx.load_font("fonts/outfit_regular.ttf").unwrap();
         let colors = theme::color::palette();
-        Stack!(
-            // Shape(ShapeType::Rectangle(270, 250), colors.outline.secondary, Some(100)),
-            Column!(8, Alignment::Center, 
-                self.circle_icon,
-                Text::new(self.title, colors.text.heading, 24, heading.clone()),
-                Text::new(self.subtitle, colors.text.primary, 12, font.clone()),
-                Padding(1, 6),
-                Shape(ShapeType::Rectangle(230, 1), colors.outline.secondary, None),
-                Padding(1, 6),
-                Text::new(self.description, colors.text.primary, 14, font.clone()),
-                self.button
+        Column!(8, Vec2::new(0, 0), Align::Center, false,
+            self.circle_icon,
+            Text::new(self.title, colors.text.heading, 24, heading.clone()),
+            Text::new(self.subtitle, colors.text.primary, 12, font.clone()),
+            Padding(1, 6),
+            Shape(ShapeType::Rectangle(230, 1), colors.outline.secondary, None),
+            Padding(1, 6),
+            Text::new(self.description, colors.text.primary, 14, font.clone()),
+            self.button
+        ).build_children(ctx, max_size)
+    }
+
+    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+}
+
+pub struct Navigator (Vec<(&'static str, &'static str)>, u16, bool);
+
+impl Navigator {
+    pub fn new(tabs: Vec<(&'static str, &'static str)>, default_i: u16, is_desktop: bool) -> Self {
+        Self(tabs, default_i, is_desktop)
+    }
+}
+
+impl ComponentBuilder for Navigator {
+    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+        let heading = ctx.load_font("fonts/outfit_bold.ttf").unwrap();
+        let font = ctx.load_font("fonts/outfit_regular.ttf").unwrap();
+        let colors = theme::color::palette();
+
+        let image = ctx.load_image("images/logomark.png").unwrap(); // Default logomark
+
+        // Image(ShapeType::Rectangle(icon_size, 8), image),
+
+        let buttons = self.0.iter().enumerate().map(|(index, (name, _))| {
+            Box::new(if index as u16 == self.1 {
+                Button::Secondary(*name, Size::Large, Width::Expand, None, Align::Left) // Hover not Secondary
+            } else {
+                Button::Ghost(*name, Size::Large, Width::Expand, None, Align::Left)
+            }) as Box<dyn ComponentBuilder>
+        }).collect();
+
+        ConstrainedBox!(300, 
+            Column!(32, Vec2::new(0, 0), Align::Center, false,
+                Image(ShapeType::Rectangle(150, 24), image),
+                Column!(8, Vec2::new(0, 0), Align::Center, true, buttons)
             )
         ).build_children(ctx, max_size)
     }

@@ -1,9 +1,8 @@
 use rust_on_rails::prelude::*;
 use crate::theme;
-use crate::{Row, Column, Stack, Text, Alignment, Square};
-use crate::components::abc::{
-    CircleIcon,
-};
+use crate::{Row, Column, Stack, Text};
+use crate::layout::Align;
+use crate::components::abc::CircleIcon;
 
 pub struct ListItem {
     icon: Option<&'static str>,
@@ -86,7 +85,7 @@ impl ComponentBuilder for ListItem {
             if let Some(_t_flair) = &self.title_flair {
                 title_row.push(Box::new(Image(ShapeType::Rectangle(20, 20), title_flair)));
             }
-            left_column.push(Box::new(Row(title_row, 8, Alignment::Center)));
+            left_column.push(Box::new(Row!(8, Vec2::new(0, 0), Align::Center, true, title_row)));
         }
 
         if let Some(subtitle) = &self.subtitle {
@@ -109,16 +108,18 @@ impl ComponentBuilder for ListItem {
             row_items.push(Box::new(circle_icon));
         }
 
-        row_items.push(Box::new(Row(vec![
-            Box::new(Column(left_column, 4, Alignment::Left)),
-            Box::new(Column(right_column, 4, Alignment::Right))
-        ], 16, Alignment::Top)));
+        row_items.push(Box::new(
+            Row!(16, Vec2::new(0, 0), Align::Top, true, vec![
+                Box::new(Column!(4, Vec2::new(0, 0), Align::Left, true, left_column)),
+                Box::new(Column!(4, Vec2::new(0, 0), Align::Right, true, right_column))
+            ])
+        ));
 
         if let Some(i) = self.icon {
             row_items.push(Box::new(Image(ShapeType::Rectangle(24, 24), icon)));
         }
 
-        Row(row_items, 16, Alignment::Center).build_children(ctx, max_size)
+        Row!(16, Vec2::new(0, 0), Align::Center, true, row_items).build_children(ctx, max_size)
     }
 
     fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
