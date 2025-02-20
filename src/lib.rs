@@ -6,12 +6,25 @@ pub mod layout;
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 use crate::layout::{Column, Row, Stack};
+use once_cell::sync::Lazy;
+use crate::theme::color::ColorResources;
+
+static COLORS: Lazy<ColorResources> = Lazy::new(|| ColorResources::default());
 
 #[macro_export]
 macro_rules! Column {
+    ($s:expr, $p:expr, $a:expr, false, $(($i:expr, $b:expr)),*) => {{
+        Column {
+            children: vec![$((Box::new($i) as Box<dyn ComponentBuilder>, $b)),*],
+            spacing: $s,
+            align: $a,
+            padding: $p,
+        }
+    }};
+
     ($s:expr, $p:expr, $a:expr, false, $($i:expr),*) => {{
         Column {
-            children: vec![$(Box::new($i) as Box<dyn ComponentBuilder>),*],
+            children: vec![$((Box::new($i) as Box<dyn ComponentBuilder>, false)),*],
             spacing: $s,
             align: $a,
             padding: $p,
@@ -20,7 +33,10 @@ macro_rules! Column {
     
     ($s:expr, $p:expr, $a:expr, true, $children:expr) => {{
         Column {
-            children: $children,
+            children: $children
+                .into_iter()
+                .map(|child| (child as Box<dyn ComponentBuilder>, false))
+                .collect(),
             spacing: $s,
             align: $a,
             padding: $p,
@@ -37,13 +53,31 @@ macro_rules! Stack {
             padding: $p,
         }
     }};
+
+    ($p:expr, $a:expr, true, $children:expr) => {{
+        Stack {
+            children: $children,
+            align: $a,
+            padding: $p,
+        }
+    }};
 }
 
 #[macro_export]
 macro_rules! Row {
+
+    ($s:expr, $p:expr, $a:expr, false, $(($i:expr, $b:expr)),*) => {{
+        Row {
+            children: vec![$((Box::new($i) as Box<dyn ComponentBuilder>, $b)),*],
+            spacing: $s,
+            align: $a,
+            padding: $p,
+        }
+    }};
+
     ($s:expr, $p:expr, $a:expr, false, $($i:expr),*) => {{
         Row {
-            children: vec![$(Box::new($i) as Box<dyn ComponentBuilder>),*],
+            children: vec![$((Box::new($i) as Box<dyn ComponentBuilder>, false)),*],
             spacing: $s,
             align: $a,
             padding: $p,
@@ -52,14 +86,16 @@ macro_rules! Row {
     
     ($s:expr, $p:expr, $a:expr, true, $children:expr) => {{
         Row {
-            children: $children,
+            children: $children
+                .into_iter()
+                .map(|child| (child as Box<dyn ComponentBuilder>, false))
+                .collect(),
             spacing: $s,
             align: $a,
             padding: $p,
         }
     }};
 }
-
 
 pub struct Text(pub BasicText);
 impl Text {
@@ -81,7 +117,7 @@ pub struct Padding(pub u32, pub u32);
 
 impl ComponentBuilder for Padding {
     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        Shape(ShapeType::Rectangle(self.0, self.1), theme::color::palette().background.primary, None).build_children(ctx, max_size)
+        Shape(ShapeType::Rectangle(self.0, self.1), COLORS.background.primary, None).build_children(ctx, max_size)
     }
 
     fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}

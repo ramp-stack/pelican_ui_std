@@ -254,7 +254,3 @@ impl ButtonColors {
 pub fn transparent() -> &'static str {
     "000000"
 }
-
-pub fn palette() -> ColorResources {
-    ColorResources::default()
-}

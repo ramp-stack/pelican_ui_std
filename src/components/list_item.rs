@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use crate::theme;
-use crate::{Row, Column, Stack, Text};
+use crate::{Row, Column, Stack, Text, COLORS};
 use crate::layout::Align;
 use crate::components::abc::CircleIcon;
 
@@ -71,7 +71,6 @@ impl ComponentBuilder for ListItem {
     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         let heading = ctx.load_font("fonts/outfit_bold.ttf").unwrap(); // Get Heading
         let font = ctx.load_font("fonts/outfit_regular.ttf").unwrap(); // Get Text
-        let colors = theme::color::palette();
         let title_flair = ctx.load_image("images/profile.png").unwrap(); // Get self.title_flair image
         let icon = ctx.load_image("images/profile.png").unwrap(); // Get self.icon image
         
@@ -81,7 +80,7 @@ impl ComponentBuilder for ListItem {
         let mut title_row: Vec<Box< dyn ComponentBuilder>> = vec![];
 
         if let Some(title) = &self.title {
-            title_row.push(Box::new(Text::new(title.clone(), colors.text.heading, 16, heading.clone())));
+            title_row.push(Box::new(Text::new(title.clone(), COLORS.text.heading, 16, heading.clone())));
             if let Some(_t_flair) = &self.title_flair {
                 title_row.push(Box::new(Image(ShapeType::Rectangle(20, 20), title_flair)));
             }
@@ -89,19 +88,19 @@ impl ComponentBuilder for ListItem {
         }
 
         if let Some(subtitle) = &self.subtitle {
-            left_column.push(Box::new(Text::new(subtitle.clone(), colors.text.primary, 14, font.clone())));
+            left_column.push(Box::new(Text::new(subtitle.clone(), COLORS.text.primary, 14, font.clone())));
         }
 
         if let Some(description) = &self.description {
-            left_column.push(Box::new(Text::new(description.clone(), colors.text.secondary, 12, font.clone())));
+            left_column.push(Box::new(Text::new(description.clone(), COLORS.text.secondary, 12, font.clone())));
         }
 
         if let Some(title_right) = &self.title_right {
-            right_column.push(Box::new(Text::new(title_right.clone(), colors.text.heading, 16, heading.clone())));
+            right_column.push(Box::new(Text::new(title_right.clone(), COLORS.text.heading, 16, heading.clone())));
         }
 
         if let Some(subtitle_right) = &self.subtitle_right {
-            right_column.push(Box::new(Text::new(subtitle_right.clone(), colors.text.primary, 14, font.clone())));
+            right_column.push(Box::new(Text::new(subtitle_right.clone(), COLORS.text.primary, 14, font.clone())));
         }
 
         if let Some(circle_icon) = self.circle_icon {
@@ -109,10 +108,10 @@ impl ComponentBuilder for ListItem {
         }
 
         row_items.push(Box::new(
-            Row!(16, Vec2::new(0, 0), Align::Top, true, vec![
-                Box::new(Column!(4, Vec2::new(0, 0), Align::Left, true, left_column)),
-                Box::new(Column!(4, Vec2::new(0, 0), Align::Right, true, right_column))
-            ])
+            Row!(16, Vec2::new(0, 0), Align::Top, false,
+                Column!(4, Vec2::new(0, 0), Align::Left, true, left_column),
+                Column!(4, Vec2::new(0, 0), Align::Right, true, right_column)
+            )
         ));
 
         if let Some(i) = self.icon {
