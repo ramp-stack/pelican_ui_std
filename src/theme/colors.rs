@@ -1,6 +1,6 @@
 #![allow(unused)]
 use std::collections::HashMap;
-use crate::components::button::{ButtonState, ButtonStyle};
+use crate::components::inputs::{ButtonState, ButtonStyle};
 
 #[derive(Clone)]
 pub struct ColorResources { 

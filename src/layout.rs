@@ -1,5 +1,4 @@
 use rust_on_rails::prelude::*;
-
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Align {
     Left,
@@ -53,62 +52,79 @@ pub struct Column {
 impl ComponentBuilder for Column {
     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         let mut bound = Rect::new(0, 0, max_size.x, max_size.y);
-
-        bound.w -= self.padding.x * 2;
-        bound.h -= self.padding.y * 2;
+    
+        bound.w -= self.padding.x;
+        bound.h -= self.padding.y;
         bound.x += self.padding.x;
         bound.y += self.padding.y;
-
-        let mut total_fixed_height = 0;
-        let mut expands_y_count = 0;
-        let mut fixed_heights = vec![];
-
+    
+        let mut total_fixed_height: u32 = 0;
+        let mut expands_y_count: u32 = 0;
+        let mut fixed_heights: Vec<u32> = vec![];
+        let mut child_widths: Vec<u32> = vec![];
+    
+        // First pass: determine heights and track widths
         for (child, is_expands) in &self.children {
             if *is_expands {
                 expands_y_count += 1;
-                total_fixed_height += self.spacing;
+                total_fixed_height += self.spacing as u32;
+                child_widths.push(0); // Placeholder for expands case
             } else {
                 let size = child.build(ctx, bound).size(ctx);
-                fixed_heights.push(size.y);
-                total_fixed_height += size.y + self.spacing;
+                let width = size.x as u32;
+                let height = size.y as u32;
+                fixed_heights.push(height);
+                child_widths.push(width);
+                total_fixed_height += height + self.spacing as u32;
             }
         }
-
-        let available_height = if expands_y_count > 0 {
-            (bound.h - total_fixed_height).max(0) / expands_y_count
+    
+        // Determine widest child
+        let widest_child: u32 = *child_widths.iter().max().unwrap_or(&0);
+    
+        let available_height: u32 = if expands_y_count > 0 {
+            ((bound.h as u32).saturating_sub(total_fixed_height)) / expands_y_count
         } else {
             0
         };
-
-        let mut current_x = bound.x;
+    
+        let current_x = bound.x;
         let mut current_y = bound.y;
         let mut fixed_index = 0;
-
+    
         self.children
             .iter()
             .enumerate()
-            .map(|(index, (child, is_expands))| {
+            .map(|(_index, (child, is_expands))| {
                 let mut size_bound = bound;
                 size_bound.x = current_x;
                 size_bound.y = current_y;
-
+    
                 if *is_expands {
                     size_bound.h = available_height;
                 } else {
                     size_bound.h = fixed_heights[fixed_index];
                     fixed_index += 1;
                 }
-
-                let built_child = child.build(ctx, size_bound);
-                let height = built_child.size(ctx).y;
-                current_y += height + self.spacing;
-
-                Box::new(built_child) as Box<dyn Drawable>
+    
+                let mut child = child.build(ctx, size_bound);
+                let (width, height) = (child.size(ctx).x, child.size(ctx).y);
+    
+                if self.align == Align::Center {
+                    let x_offset = (widest_child - width) / 2;
+                    child.1.w -= x_offset;
+                    child.1.x += x_offset;
+                }
+    
+                current_y += height + self.spacing as u32;
+    
+                Box::new(child) as Box<dyn Drawable>
             })
             .collect()
     }
+    
 
-    fn on_click(&mut self, ctx: &mut ComponentContext, max_size: Vec2, position: Vec2) {}
+    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
     fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
 }
 
@@ -123,32 +139,36 @@ impl ComponentBuilder for Stack {
     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         let mut bound = Rect::new(0, 0, max_size.x, max_size.y);
 
+        // Get height/width of tallest/widest object
         let (max_width, max_height) = self.children.iter()
             .map(|(builder, _)| builder.build(ctx, bound).size(ctx))
             .fold((0, 0), |(max_x, max_y), size| (
                 max_x.max(size.x), max_y.max(size.y)
             ));
 
+        // Adjust bounds for paddings
         bound.h -= self.padding.y;
         bound.y += self.padding.y;
         bound.w -= self.padding.x;
         bound.x += self.padding.x;
 
         self.children.iter().map(|(builder, offset)| {
+            // Build child and grab width/height
             let mut child = builder.build(ctx, bound);
             let (width, height) = (child.size(ctx).x, child.size(ctx).y);
             
+            // Calculate offsets from alignment
             let (x_offset, y_offset) = match self.align {
                 Align::Center => align_center(max_width, width, max_height, height),
                 Align::Left => (align_left(offset.x + self.padding.x), vert_center(max_height, height)),
                 Align::Right => (align_right(max_width, width, offset.x + self.padding.x), 0),
                 Align::Top => (horz_center(max_width, width), align_top(offset.y + self.padding.y)),
-                Align::Bottom => (0, align_bottom(max_height, height, offset.y + self.padding.y))
+                Align::Bottom => (horz_center(max_width, width), align_bottom(max_height, height, offset.y + self.padding.y))
             };
 
+            // Adjust for offsets
             child.1.h -= y_offset;
             child.1.y += y_offset;
-            
             child.1.w -= x_offset;
             child.1.x += x_offset;
 
@@ -157,7 +177,7 @@ impl ComponentBuilder for Stack {
 
     }
 
-    fn on_click(&mut self, ctx: &mut ComponentContext, max_size: Vec2, position: Vec2) {}
+    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
     fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
 }
 
@@ -172,70 +192,68 @@ impl ComponentBuilder for Row {
 
     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         let mut bound = Rect::new(0, 0, max_size.x, max_size.y);
-    
-        bound.w -= self.padding.x * 2;
-        bound.h -= self.padding.y * 2;
+        
+        // Adjust for padding
+        bound.w -= self.padding.x;
         bound.x += self.padding.x;
+        bound.h += self.padding.y;
         bound.y += self.padding.y;
     
-        let mut total_fixed_width = 0;
-        let mut expands_x_count = 0;
+        let mut total_fixed_width = 0; // Keep track of unavailable space
+        let mut expands_x_count = 0; // Keep track of how many objects will need to expand
         let mut fixed_widths = vec![];
     
         for (child, is_expands) in &self.children {
             if *is_expands {
-                expands_x_count += 1;
-                total_fixed_width += self.spacing;
+                expands_x_count += 1; // Account for another expansive child
+                total_fixed_width += self.spacing; // Account for the spacing
             } else {
-                let size = child.build(ctx, bound).size(ctx);
-                fixed_widths.push(size.x);
-                total_fixed_width += size.x + self.spacing;
+                let size = child.build(ctx, bound).size(ctx); // Build the object to get size
+                fixed_widths.push(size.x); // Remember size for later
+                total_fixed_width += size.x + self.spacing; // Account for size and spacing
             }
         }
+
+        if expands_x_count == 0 && self.align == Align::Center {
+            let x = bound.w - total_fixed_width;
+            bound.w -= x / 2;
+            bound.x += x / 2;
+        }
     
-        let available_width = if expands_x_count > 0 {
-            (bound.w - total_fixed_width).max(0) / expands_x_count
-        } else {
-            0
+        // Subtract fixed_width from available space, then divide by expansive objects
+        let available_width = match expands_x_count > 0 {
+            true => (bound.w - total_fixed_width).max(0) / expands_x_count,
+            false => 0 // Match cause expands_x_count is 0 crashed
         };
     
         let mut current_x = bound.x;
-        let mut current_y = bound.y;
+        let current_y = bound.y;
         let mut fixed_index = 0;
     
         self.children
             .iter()
             .enumerate()
-            .map(|(index, (child, is_expands))| {
+            .map(|(_index, (child, is_expands))| {
                 let mut size_bound = bound;
                 size_bound.x = current_x;
                 size_bound.y = current_y;
     
                 if *is_expands {
-                    size_bound.w = available_width;
+                    size_bound.w = available_width; // Space allocated for expansive
                 } else {
-                    size_bound.w = fixed_widths[fixed_index];
-                    fixed_index += 1;
+                    size_bound.w = fixed_widths[fixed_index]; // Space previously remembered
+                    fixed_index += 1; // Up the count of fixed objects
                 }
     
-                let built_child = child.build(ctx, size_bound);
-                let width = built_child.size(ctx).x;
-                current_x += width + self.spacing;
+                let child = child.build(ctx, size_bound); // Build object with new bounds
+                let width = child.size(ctx).x; // Get final width
+                current_x += width + self.spacing; // Update current_x to make row
     
-                Box::new(built_child) as Box<dyn Drawable>
+                Box::new(child) as Box<dyn Drawable>
             })
             .collect()
     }    
 
-    fn on_click(&mut self, ctx: &mut ComponentContext, max_size: Vec2, position: Vec2) {}
+    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
     fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
 }
-
-
-// Expandable can have children that are wrapped in Expands and regular ComponentBuilders
-// Take all the regular ComponentBuilder children and calculate individual width/heights
-// Subtract all regular ComponentBuilder width/heights from the max_size.x/y
-// Subtract padding from max_size.x/y
-// Now divide the remaining number and give each chunk to a remaining Expands child
-// Keep in mind the Expands has a x_axis boolean meaning to only change the math for widths/x
-// If it is false, only change the math for heights/y
