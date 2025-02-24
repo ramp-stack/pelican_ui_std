@@ -1,12 +1,6 @@
 use rust_on_rails::prelude::*;
-use crate::{
-    Row, 
-    Column, 
-    Stack, 
-    Text, 
-    COLORS
-};
-use crate::layout::Align;
+use crate::{ Child, ConstrainedBox, Row, Column, COLORS, ZERO, Align };
+use crate::theme::fonts::{Text, TextSize};
 use qrcode::{QrCode, Color};
 
 
@@ -52,13 +46,13 @@ impl ComponentBuilder for QRCode {
                 row_cells.push(Box::new(Shape(ShapeType::Circle(radius), color, None)));
             }
             
-            rows.push(Box::new(Row!(1, Vec2::new(0, 0), Align::Left, true, row_cells)));
+            rows.push(Box::new(Row!(1, ZERO, Align::Left, true, row_cells)));
         }
 
-        Stack!(Vec2::new(0, 0), Align::Center,
-            (Shape(ShapeType::Rectangle(280, 280), light_color, None), Vec2::new(0, 0)),
-            (Column!(1, Vec2::new(0, 0), Align::Left, true, rows), Vec2::new(0, 0)),
-            (Image(ShapeType::Rectangle(logo_size, logo_size), image.clone()), Vec2::new(0, 0))
+        Stack!(ZERO, Align::Center,
+            (Shape(ShapeType::Rectangle(280, 280), light_color, None), ZERO),
+            (Column!(1, ZERO, Align::Left, true, rows), ZERO),
+            (Image(ShapeType::Rectangle(logo_size, logo_size), image.clone()), ZERO)
         ).build_children(ctx, max_size)
     }
 
@@ -72,35 +66,34 @@ pub struct QRCodeScanner();
 
 impl ComponentBuilder for QRCodeScanner {
     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        let text = ctx.load_font("fonts/outfit_regular.ttf").unwrap();
         let camera_disabled = true;
 
         let mut container: Vec<(Box<dyn ComponentBuilder>, Vec2)> = vec![];
 
         container.push((
             Box::new(Shape(ShapeType::Rectangle(236, 236), COLORS.background.secondary, None)), 
-            Vec2::new(0, 0)
+            ZERO
         ));
 
         container.push((
             Box::new(Shape(ShapeType::Rectangle(236, 236), COLORS.text.secondary, Some(1000))), 
-            Vec2::new(0, 0)
+            ZERO
         ));
 
         if camera_disabled {
-            container.push((Box::new(Column!(4, Vec2::new(0, 0), Align::Center, false,
-                Row!(0, Vec2::new(0, 0), Align::Center, false,
+            container.push((Box::new(Column!(4, ZERO, Align::Center, false,
+                Row!(0, ZERO, Align::Center, false,
                     (Shape(ShapeType::Rectangle(32, 32), "ffffff", None), true)
                 ), 
-                Row!(0, Vec2::new(0, 0), Align::Center, false,
-                    (Text::new("Enable camera in settings.", COLORS.text.secondary, 14, text.clone()), true)
+                Row!(0, ZERO, Align::Center, false,
+                    (Text::secondary(ctx, "Enable camera in settings.", TextSize::sm()), true)
                 )
-            )), Vec2::new(0, 0)));
+            )), ZERO));
         }
 
 
 
-        Stack!(Vec2::new(0, 0), Align::Center, true, container).build_children(ctx, max_size)
+        Stack!(ZERO, Align::Center, true, container).build_children(ctx, max_size)
     }
 
     fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}

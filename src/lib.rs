@@ -4,128 +4,38 @@ pub mod theme;
 pub mod layout;
 
 use rust_on_rails::prelude::*;
-use rust_on_rails::prelude::Text as BasicText;
+
 use crate::layout::{Column, Row, Stack};
 use once_cell::sync::Lazy;
 use crate::theme::colors::ColorResources;
 
+const ZERO: Vec2 = Vec2{x: 0, y:0};
 static COLORS: Lazy<ColorResources> = Lazy::new(|| ColorResources::default());
 
 #[macro_export]
-macro_rules! Column {
-    ($s:expr, $p:expr, $a:expr, false, $(($i:expr, $b:expr)),*) => {{
-        Column {
-            children: vec![$((Box::new($i) as Box<dyn ComponentBuilder>, $b)),*],
-            spacing: $s,
-            align: $a,
-            padding: $p,
-        }
-    }};
-
-    ($s:expr, $p:expr, $a:expr, false, $($i:expr),*) => {{
-        Column {
-            children: vec![$((Box::new($i) as Box<dyn ComponentBuilder>, false)),*],
-            spacing: $s,
-            align: $a,
-            padding: $p,
-        }
-    }};
-    
-    ($s:expr, $p:expr, $a:expr, true, $children:expr) => {{
-        Column {
-            children: $children
-                .into_iter()
-                .map(|child| (child as Box<dyn ComponentBuilder>, false))
-                .collect(),
-            spacing: $s,
-            align: $a,
-            padding: $p,
-        }
+macro_rules! Child {
+    ($x:expr) => {{
+        (Box::new($x) as Box<dyn ComponentBuilder>)
     }};
 }
 
-#[macro_export]
-macro_rules! Stack {
-    ($p:expr, $a:expr, $(($comp:expr, $num:expr)),*) => {{
-        Stack {
-            children: vec![$( (Box::new($comp) as Box<dyn ComponentBuilder>, $num) ),*],
-            align: $a,
-            padding: $p,
-        }
-    }};
-
-    ($p:expr, $a:expr, true, $children:expr) => {{
-        Stack {
-            children: $children,
-            align: $a,
-            padding: $p,
-        }
-    }};
+fn icon(ctx: &mut ComponentContext) -> Handle {
+    ctx.load_image("images/profile.png").unwrap()
 }
 
-#[macro_export]
-macro_rules! Row {
-
-    ($s:expr, $p:expr, $a:expr, false, $(($i:expr, $b:expr)),*) => {{
-        Row {
-            children: vec![$((Box::new($i) as Box<dyn ComponentBuilder>, $b)),*],
-            spacing: $s,
-            align: $a,
-            padding: $p,
-        }
-    }};
-
-    ($s:expr, $p:expr, $a:expr, false, $($i:expr),*) => {{
-        Row {
-            children: vec![$((Box::new($i) as Box<dyn ComponentBuilder>, false)),*],
-            spacing: $s,
-            align: $a,
-            padding: $p,
-        }
-    }};
-
-    
-    ($s:expr, $p:expr, $a:expr, true, $children:expr) => {{
-        Row {
-            children: $children
-                .into_iter()
-                .map(|child| (child as Box<dyn ComponentBuilder>, false))
-                .collect(),
-            spacing: $s,
-            align: $a,
-            padding: $p,
-        }
-    }};
-
-    ($s:expr, $p:expr, $a:expr, true, true, $children:expr) => {{
-        Row {
-            children: $children
-                .into_iter()
-                .map(|child| (child as Box<dyn ComponentBuilder>, true))
-                .collect(),
-            spacing: $s,
-            align: $a,
-            padding: $p,
-        }
-    }};
-    
+pub fn pelican_startup(ctx: &mut ComponentContext) {
+    ctx.include_assets(include_assets!("./resources")); 
 }
 
-pub struct Text(pub BasicText);
-impl Text {
-    pub fn new(text: &'static str, color: &'static str, size: u32, font: Handle) -> Self {
-        Text(BasicText(text, color, size, (size as f32*1.25) as u32, font))
-    }
+#[derive(Clone, Copy)]
+pub enum Align {
+    Left,
+    Right,
+    Center,
+    Bottom,
+    Top,
 }
 
-impl ComponentBuilder for Text {
-    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        self.0.build_children(ctx, max_size)
-    }
-
-    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-}
 
 pub struct Padding(pub Vec2, pub &'static str);
 
