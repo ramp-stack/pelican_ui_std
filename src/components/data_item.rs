@@ -6,41 +6,85 @@ use crate::components::{Button};
 pub struct DataItem {
     number: Option<&'static str>,
     label: &'static str,
-    text: &'static str,
-    description: Option<&'static str>,
-    buttons: (Option<Button>, Option<Button>, Option<Button>)
+    table: Option<Vec<(&'static str, &'static str)>>,
+    text: Option<&'static str>,
+    secondary_text: Option<&'static str>,
+    quick_actions: Option<Vec<&'static str>>,
 }
 
 impl ComponentBuilder for DataItem {
     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        let mut data_item: Vec<(Box<dyn ComponentBuilder>, bool)> = vec![];
-        let mut contents: Vec<(Box<dyn ComponentBuilder>, bool)> = vec![];
-        let mut quick_actions: Vec<(Box<dyn ComponentBuilder>, bool)> = vec![];
+        let mut children: Vec<Box<dyn ComponentBuilder>> = vec![];
+        let mut contents: Vec<Box<dyn ComponentBuilder>> = vec![];
 
-        if let Some(number) = &self.number { 
-            data_item.push((Child!(Stack { padding: ZERO, align: Align::Center, children: vec![
-                (Child!(Shape(ShapeType::Circle(32 / 2), COLORS.background.secondary, None)), ZERO),
-                (Child!(Text::heading(ctx, number, TextSize::h5())), ZERO)
-            ]}), false)); 
+        contents.push(Text::heading(ctx, self.label, TextSize::h5()));
+
+        if let Some(text) = &self.text { 
+            contents.push(Text::primary(ctx, self.text, TextSize::md())); 
         }
 
-        contents.push((Child!(Text::heading(ctx, self.label, TextSize::h5())), false));
-        contents.push((Child!(Text::primary(ctx, self.text, TextSize::md())), false));
-
-        if let Some(desc) = &self.description { 
-            contents.push((Child!(Text::secondary(ctx, desc, TextSize::sm())), false)); 
+        if let Some(secondary_text) = &self.secondary_text { 
+            contents.push(Text::secondary(ctx, self.secondary_text, TextSize::sm())); 
         }
 
-        if let Some(button) = &self.buttons.0 { quick_actions.push((Child!(*button), false)); }
-        if let Some(button) = &self.buttons.1 { quick_actions.push((Child!(*button), false)); }
-        if let Some(button) = &self.buttons.2 { quick_actions.push((Child!(*button), false)); }
+        if !self.table.is_empty() { 
+            let tabulars = &self.table
+                .into_iter()
+                .map(|row| {
+                    Row(ZERO, AUTO, Align::Center, vec![
+                        Text::primary(ctx, row.0, TextSize::sm()),
+                        Text::primary(ctx, row.1, TextSize::sm())
+                    ])
+                }).collect();
 
-        contents.push((Child!(Row { children: quick_actions, align: Align::Left, spacing: 8, padding: ZERO }), false));
-        data_item.push((Child!(Column {children: contents, align: Align::Left, spacing: 16, padding: ZERO }), false));
+            contents.push(Column(ZERO, 0, Align::Left, tabulars));
+        }
 
-        Row { children: data_item, align: Align::Left, spacing: 16, padding: ZERO }.build_children(ctx, max_size)
+        if !self.quick_actions.is_empty() { 
+            let buttons = &self.quick_actions
+                .into_iter()
+                .map(|label| {
+                    Button::secondary(label, Icon::Edit, Size::Medium, Width::Hug)
+                }).collect();
+
+            contents.push(Row(ZERO, 8, Align::Left, buttons));
+        }
+
+        if let Some(num) = self.number { 
+            children.push(
+                Stack(ZERO, Align::Center, vec![
+                    Circle(32, COLORS.background.secondary, None),
+                    Text::heading(ctx, num, TextSize::h5())
+                ])
+            ); 
+        }
+
+        children.push(Column(ZERO, 16, Align::Left, contents));
+
+        Row(ZERO, 16, Align::Left, children).build_children(ctx, max_size)
     }
 
     fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
     fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
 }
+
+// let confirm_amount = DataItem {
+//     number: Some("2"),
+//     label: "Confirm amount",
+//     table: vec![
+//         ("date", "12/25/20"),
+//         ("time", "11:45 PM")
+//     ],
+//     text: None,
+//     secondary_text: None,
+//     quick_actions: vec!["Edit amount", "Edit speed"]
+// }
+
+// let confirm_address = DataItem {
+//     number: Some("1"),
+//     label: "Confirm adress",
+//     table: Vec::new(),
+//     text: Some("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"),
+//     secondary_text: Some("Bitcoin sent to the wrong address can never be recovered."),
+//     quick_actions: vec!["Edit address"]
+// }

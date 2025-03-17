@@ -1,63 +1,71 @@
 use rust_on_rails::prelude::*;
-use crate::{ Child, COLORS, Align, Stack, ZERO, icon};
+use crate::{COLORS, Align, Stack, ZERO};
 
+// CircleIcon(Some(Icon::Door), None, Option<IconStyle::Secondary>, Some((Icon::Edit, IconStyle::Secondary)), false, 128);
 
-#[derive(Clone, Copy)]
-pub enum CircleIcon {
-    Default(&'static str, u32),
-    Brand(&'static str, u32)
+// CircleIcon(CircleIconData::Photo(img), None, false, 32);
+
+pub struct CircleIcon(CircleIconData, Option<(Icon, IconStyle)>, bool, u32);
+
+pub enum CircleIconData { 
+    Photo(RgbaImage),
+    Icon(Icon, IconStyle)
 }
+
 
 impl ComponentBuilder for CircleIcon {
     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        let (background, _icon_color, size) = match self {
-            CircleIcon::Default(_, size) => (COLORS.background.secondary, COLORS.text.secondary, size),
-            CircleIcon::Brand(_, size) => (COLORS.brand.primary, COLORS.brand.text, size)
-        };
+        let mut children: Vec<Box<dyn ComponentBuilder>> = vec![];
 
-        let icon_s = (*size as f32 * 0.75).round() as u32;
+        let outline = if self.3 { Some(((self.2 * 13 / 12).ceil() - self.2, COLORS.shades.black)) } else { None };
 
-        Stack {padding: ZERO, align: Align::Center, children: vec![
-            (Child!(Shape(ShapeType::Circle(*size / 2), background, None)), ZERO),
-            (Child!(Image(ShapeType::Rectangle(icon_s, icon_s), icon(ctx).clone())), ZERO)
-        ]}.build_children(ctx, max_size)
+        children.push(match self.0 {
+            CircleIconData::Photo(img) => Image::Circle(*img, outline, self.3),
+            CircleIconData::Icon(i, s) => _CircleIcon(*i, *s, outline, self.3)
+        });
+
+        if let Some((icon, variant)) = self.2 { children.push(_CircleIcon(icon, variant, true, 14)); }  // Flair
+
+        Stack(ZERO, Align::BottomRight, children).build_children(ctx, max_size)
     }
 
     fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
     fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
 }
 
-#[derive(Clone, Copy)]
-pub struct UserIcon(pub &'static str, pub u32, pub Option<u16>);
+struct _CircleIcon(Icon, IconStyle, Option<(u8, &'static str)>, u32); // Icon, Style, Size, Outline (thickness, color)
 
-impl ComponentBuilder for UserIcon {
+impl ComponentBuilder for _CircleIcon {
     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        Stack { padding: ZERO, align: Align::Center, children: vec![
-            (Child!(Shape(ShapeType::Circle(self.1 / 2), COLORS.background.primary, self.2)), ZERO),
-            (Child!(Image(ShapeType::Circle(self.1 / 2), icon(ctx).clone())), ZERO)
-        ]}.build_children(ctx, max_size)
+
+        let (background, icon_color) = self.1.to_hex();
+
+        let mut children: Vec<Box<dyn ComponentBuilder>> = vec![];
+
+        children.push(Circle(self.2, background, outline)); // Background Circle
+        
+        children.push(self.0.build(round(self.2 / 0.75), icon_color)); // Icon
+
+        Icon(IconName::Profile, "ffffff", 38);
+
+        Stack(ZERO, Align::Center, children).build_children(ctx, max_size)
     }
 
     fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
     fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
 }
 
+pub enum IconStyle { Primary, Secondary, Brand, Success, Warning, Danger }
 
-pub struct ProfilePictures(pub Vec<&'static str>);
-
-impl ComponentBuilder for ProfilePictures {
-    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-
-        let pfps: Vec<(Box<dyn ComponentBuilder>, Vec2)> = self.0
-            .iter().take(5).enumerate()
-            .map(|(index, _)| (
-                Child!(UserIcon("profile", 32, Some(400))),
-                Vec2::new(index as u32 * 20, 0)
-            )).collect();
-
-        Stack { padding: ZERO, align: Align::Left, children: pfps }.build_children(ctx, max_size)
+impl IconStyle {
+    pub fn to_hex(&self) -> (&'static str, &'static str) {
+        match self {
+            IconStyle::Primary => (COLORS.text.heading, COLORS.background.primary),
+            IconStyle::Secondary => (COLORS.background.secondary, COLORS.text.secondary),
+            IconStyle::Brand => (COLORS.brand.primary, COLORS.brand.secondary),
+            IconStyle::Success => (COLORS.status.success, COLORS.text.heading),
+            IconStyle::Warning => (COLORS.status.warning, COLORS.text.heading),
+            IconStyle::Danger => (COLORS.status.danger, COLORS.text.heading),
+        }
     }
-
-    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
 }

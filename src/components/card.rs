@@ -4,42 +4,41 @@ use crate::{ Child, Column, Padding, COLORS, Align };
 use crate::components::{UserIcon, Button, Size, Width};
 
 pub struct Card {
-    user_icon: UserIcon,
+    circle_icon: CircleIconData,
     title: &'static str,
     subtitle: &'static str,
-    description: &'static str,
-    button: Button
-}
-
-impl Card {
-    pub fn room(n: &'static str, st: &'static str, d: &'static str) -> Self {
-        Self {
-            user_icon: UserIcon("profile", 64, None), // get user pfp
-            title: n,
-            subtitle: st,
-            description: d,
-            button: Button::secondary("Join Room", Size::Medium, Width::Hug, None, Align::Center),
-        }
-    }
+    description: &'static str>
 }
 
 impl ComponentBuilder for Card {
     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        Column {
-            padding: Vec2::new(14, 16), spacing: 8, align: Align::Center,
-            children: vec![
-                (Child!(self.user_icon), false),
-                (Child!(Text::heading(ctx, self.title, TextSize::h3())), false),
-                (Child!(Text::primary(ctx, self.subtitle, TextSize::xs())), false),
-                (Child!(Padding(Vec2::new(1, 6), COLORS.background.primary)), false),
-                (Child!(Shape(ShapeType::Rectangle(230, 1), COLORS.outline.secondary, None)), false),
-                (Child!(Padding(Vec2::new(1, 6), COLORS.background.primary)), false),
-                (Child!(Text::primary(ctx, self.description, TextSize::sm())), false),
-                (Child!(self.button), false)
-            ]
-        }.build_children(ctx, max_size)
+        let content = Column(Vec2::new(14, 16), 8, Align::Center, vec![
+            CircleIcon(self.circle_icon, None, None, 64),
+            Text::heading(ctx, self.title, TextSize::h3()),
+            Text::primary(ctx, self.subtitle, TextSize::xs()),
+            _SeparationLine(AUTO, 1, 6),
+            Text::primary(ctx, self.description, TextSize::sm())
+        ]);
+
+        let bound = Rect::new(0, 0, max_size.x, max_size.y);
+        let mut built_content = content.build(ctx, bound);
+        let (width, height) = (built_content.size(ctx).x + pad, built_content.size(ctx).y + pad);
+
+        Stack(ZERO, Align::Center, vec![
+            RoundedRectangle(width, height, 8, background, None),
+            content
+        ]).build(ctx, max_size)
     }
 
     fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
     fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+}
+
+struct _SeparationLine(u32, u32, u32); // width, height, vertical padding
+
+let card = Card {
+    circle_icon: CircleIconData::Photo(Image("../photos/chicken_on_a_donkey.png")),
+    title: "Donkey Farmers",
+    subtitle: "101 members",
+    description: "A place for donkey farmers to converse.",
 }
