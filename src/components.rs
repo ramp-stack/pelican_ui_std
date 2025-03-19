@@ -2,7 +2,7 @@
 // pub mod bumper;
 // pub mod button;
 // pub mod card;
-// pub mod circle_icon;
+pub mod circle_icon;
 pub mod shapes;
 // pub mod data_item;
 // pub mod header;
@@ -16,7 +16,7 @@ pub mod shapes;
 // pub use crate::components::bumper::*;
 // pub use crate::components::button::*;
 // pub use crate::components::card::*;
-// pub use crate::components::circle_icon::*;
+pub use crate::components::circle_icon::*;
 pub use crate::components::shapes::*;
 // pub use crate::components::data_item::*;
 // pub use crate::components::header::*;

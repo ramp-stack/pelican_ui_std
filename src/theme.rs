@@ -1,4 +1,4 @@
-// pub mod colors;
+pub mod colors;
 // pub mod fonts;
 pub mod icons;
 
@@ -10,7 +10,7 @@ pub mod icons;
 // }
 
 // impl Theme {
-//     pub fn new(ctx: &mut rust_on_rails::prelude::ComponentContext) -> Self {
+//     pub fn new(ctx: &mut rust_on_rails::prelude::Context) -> Self {
 //         Theme {
 //             colors: colors::ColorResources::default(),
 //             // fonts: fonts::FontResources::new(ctx),

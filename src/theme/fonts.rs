@@ -7,7 +7,7 @@ use rust_on_rails::prelude::Text as BasicText;
 // }
 
 // impl FontResources {
-//     pub fn new(ctx: &mut ComponentContext) -> Self {
+//     pub fn new(ctx: &mut Context) -> Self {
 //         FontResources{
 //             style: TextStyle::new(ctx),
 //             size: TextSize::default()
@@ -22,38 +22,38 @@ impl Text {
         Self(BasicText(text, color, size, (size as f32*1.25) as u32, font))
     }
 
-    pub fn heading(ctx: &mut ComponentContext, text: &'static str, size: TextSize) -> Self {
+    pub fn heading(ctx: &mut Context, text: &'static str, size: TextSize) -> Self {
         Self::new(text, crate::COLORS.text.heading, size.0, TextStyle::new(ctx).heading)
     }
 
-    pub fn primary(ctx: &mut ComponentContext, text: &'static str, size: TextSize) -> Self {
+    pub fn primary(ctx: &mut Context, text: &'static str, size: TextSize) -> Self {
         Self::new(text, crate::COLORS.text.primary, size.0, TextStyle::new(ctx).text)
     }
 
-    pub fn primary_white(ctx: &mut ComponentContext, text: &'static str, size: TextSize) -> Self {
+    pub fn primary_white(ctx: &mut Context, text: &'static str, size: TextSize) -> Self {
         Self::new(text, crate::COLORS.text.heading, size.0, TextStyle::new(ctx).text)
     }
 
-    pub fn secondary(ctx: &mut ComponentContext, text: &'static str, size: TextSize) -> Self {
+    pub fn secondary(ctx: &mut Context, text: &'static str, size: TextSize) -> Self {
         Self::new(text, crate::COLORS.text.secondary, size.0, TextStyle::new(ctx).text)
     }
 
-    pub fn error(ctx: &mut ComponentContext, text: &'static str, size: TextSize) -> Self {
+    pub fn error(ctx: &mut Context, text: &'static str, size: TextSize) -> Self {
         Self::new(text, crate::COLORS.status.danger, size.0, TextStyle::new(ctx).text)
     }
 
-    pub fn label(ctx: &mut ComponentContext, text: &'static str, size: TextSize) -> Self {
+    pub fn label(ctx: &mut Context, text: &'static str, size: TextSize) -> Self {
         Self::new(text, crate::COLORS.text.heading, size.0, TextStyle::new(ctx).label)
     }
 }
 
 impl ComponentBuilder for Text {
-    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         self.0.build_children(ctx, max_size)
     }
 
-    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 }
 
 #[derive(Copy, Clone)]
@@ -81,7 +81,7 @@ pub struct TextStyle {
 }
 
 impl TextStyle {
-    pub fn new(ctx: &mut ComponentContext) -> Self {
+    pub fn new(ctx: &mut Context) -> Self {
         let bold = ctx.load_font("fonts/outfit_bold.ttf").unwrap();
         let regular = ctx.load_font("fonts/outfit_regular.ttf").unwrap();
         Self {

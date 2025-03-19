@@ -1,71 +1,110 @@
 use rust_on_rails::prelude::*;
-use crate::{COLORS, Align, Stack, ZERO};
+use rust_on_rails::prelude::Image as RailsImage;
+use crate::{COLORS, Align, ZERO, Stack};
+use crate::theme::icons::{Icon, IconName};
+use crate::components::shapes::{Circle, Outline, Image};
+use crate::{StackOption, StackDirect};
 
-// CircleIcon(Some(Icon::Door), None, Option<IconStyle::Secondary>, Some((Icon::Edit, IconStyle::Secondary)), false, 128);
+// pub struct CircleIcon(pub CircleIconData, pub Option<(IconName, IconStyle)>, pub bool, pub u32);
 
-// CircleIcon(CircleIconData::Photo(img), None, false, 32);
+pub struct CircleIcon(pub bool, pub u32, Box<dyn ComponentBuilder>, Option<Icon>);
 
-pub struct CircleIcon(CircleIconData, Option<(Icon, IconStyle)>, bool, u32);
+// Image or icon, flair, outline, size
 
-pub enum CircleIconData { 
-    Photo(RgbaImage),
-    Icon(Icon, IconStyle)
+pub enum CircleIcon { 
+    Photo(Image, Option<(IconName, CircleIconStyle)>, bool, u32),
+    Icon(Icon, Option<(IconName, CircleIconStyle)>, bool, u32)
 }
 
+pub struct CircleIconData(IconName, CircleIconStyle);
+
+impl CircleIconData {
+    pub fn new_photo(image: Image) -> Self {
+        Self::Photo(image)
+    }
+
+    pub fn new_icon(icon: IconName, style: CircleIconStyle) -> Self {
+        Self::Icon(icon)
+    }
+}
+
+impl CircleIcon {
+    fn _new(data: Box<dyn ComponentBuilder>, flair: Option<Icon>, outline: bool, size: u32) -> Self {
+
+    }
+
+    pub fn new(icon: IconName, style: CircleIconStyle, flair: Option<(IconName, CircleIconStyle)>, outline: bool, size: u32) -> Self {
+        
+    }
+}
 
 impl ComponentBuilder for CircleIcon {
-    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        let mut children: Vec<Box<dyn ComponentBuilder>> = vec![];
+    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+        let mut children: Vec<Box<dyn ComponentBuilder>>  = vec![];
 
-        let outline = if self.3 { Some(((self.2 * 13 / 12).ceil() - self.2, COLORS.shades.black)) } else { None };
+        let outline = if self.2 { 
+            Some(Outline((self.3 as f32 * 0.3).round() as u32, COLORS.shades.black)) // Calculate and create outline
+        } else { None };
 
-        children.push(match self.0 {
-            CircleIconData::Photo(img) => Image::Circle(*img, outline, self.3),
-            CircleIconData::Icon(i, s) => _CircleIcon(*i, *s, outline, self.3)
+        children.push(match &self.0 {
+            CircleIconData::Photo(img) => Box::new(Image::Circle(img.clone(), outline, self.3)), // Create circle image
+            CircleIconData::Icon(i, s) => Box::new(_CircleIcon(*i, *s, outline, self.3)) // Create circle icon
         });
 
-        if let Some((icon, variant)) = self.2 { children.push(_CircleIcon(icon, variant, true, 14)); }  // Flair
+        if let Some((icon, variant)) = &self.1 { // Add FLAIR
+            let size = (self.3 as f32 * 0.3).round() as u32;
+            children.push(Box::new(
+                _CircleIcon(
+                    *icon, 
+                    *variant,
+                    Some(Outline((size as f32 * 0.06).ceil() as u32, COLORS.shades.black)), 
+                    size
+                )
+            ));
+        } 
 
         Stack(ZERO, Align::BottomRight, children).build_children(ctx, max_size)
     }
 
-    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 }
 
-struct _CircleIcon(Icon, IconStyle, Option<(u8, &'static str)>, u32); // Icon, Style, Size, Outline (thickness, color)
+struct _CircleIcon(IconName, CircleIconStyle, Option<Outline>, u32); // Icon, Style, Outline (thickness, color), Size
 
 impl ComponentBuilder for _CircleIcon {
-    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-
+    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         let (background, icon_color) = self.1.to_hex();
 
-        let mut children: Vec<Box<dyn ComponentBuilder>> = vec![];
-
-        children.push(Circle(self.2, background, outline)); // Background Circle
-        
-        children.push(self.0.build(round(self.2 / 0.75), icon_color)); // Icon
-
-        Icon(IconName::Profile, "ffffff", 38);
-
-        Stack(ZERO, Align::Center, children).build_children(ctx, max_size)
+        Stack(ZERO, Align::Center, vec![
+            Box::new(Circle(self.3, background, self.2)), // Circle
+            Box::new(Icon::new(ctx, self.0, icon_color, (self.3 as f32 * 0.75).round() as u32)) // Icon
+        ]).build_children(ctx, max_size)
     }
 
-    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 }
 
-pub enum IconStyle { Primary, Secondary, Brand, Success, Warning, Danger }
+#[derive(Clone, Copy)]
+pub enum CircleIconStyle { 
+    Primary, 
+    Secondary,
+    Brand, 
+    Success, 
+    Warning, 
+    Danger 
+}
 
-impl IconStyle {
+impl CircleIconStyle {
     pub fn to_hex(&self) -> (&'static str, &'static str) {
         match self {
-            IconStyle::Primary => (COLORS.text.heading, COLORS.background.primary),
-            IconStyle::Secondary => (COLORS.background.secondary, COLORS.text.secondary),
-            IconStyle::Brand => (COLORS.brand.primary, COLORS.brand.secondary),
-            IconStyle::Success => (COLORS.status.success, COLORS.text.heading),
-            IconStyle::Warning => (COLORS.status.warning, COLORS.text.heading),
-            IconStyle::Danger => (COLORS.status.danger, COLORS.text.heading),
+            CircleIconStyle::Primary => (COLORS.text.heading, COLORS.background.primary),
+            CircleIconStyle::Secondary => (COLORS.background.secondary, COLORS.text.secondary),
+            CircleIconStyle::Brand => (COLORS.brand.primary, COLORS.brand.secondary),
+            CircleIconStyle::Success => (COLORS.status.success, COLORS.text.heading),
+            CircleIconStyle::Warning => (COLORS.status.warning, COLORS.text.heading),
+            CircleIconStyle::Danger => (COLORS.status.danger, COLORS.text.heading),
         }
     }
 }

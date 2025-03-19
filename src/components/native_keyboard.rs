@@ -5,7 +5,7 @@
 // pub struct NativeKeyboard();
 
 // impl ComponentBuilder for NativeKeyboard {
-//     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+//     fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
 //         let page_index = 1;
 //         let caps = false;
 
@@ -45,22 +45,22 @@
 //         ]}.build_children(ctx, max_size)
 //     }
 
-//     fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-//     fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+//     fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+//     fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 // }
 
 // pub struct Key(&'static str);
 
 // impl ComponentBuilder for Key {
-//     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+//     fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
 
-//         let lg_key_text = |c: &'static str, ctx: &mut ComponentContext| 
+//         let lg_key_text = |c: &'static str, ctx: &mut Context| 
 //             Child!(Text::primary_white(ctx, c, TextSize::xl()));
 
-//         let dk_key_text = |c: &'static str, ctx: &mut ComponentContext| 
+//         let dk_key_text = |c: &'static str, ctx: &mut Context| 
 //             Child!(Text::secondary(ctx, c, TextSize::xl()));
 
-//         let sm_key_text = |c: &'static str, ctx: &mut ComponentContext| 
+//         let sm_key_text = |c: &'static str, ctx: &mut Context| 
 //             Child!(Text::primary_white(ctx, c, TextSize::md()));
     
 //         let mut paginator_key = |main_index: usize| {
@@ -97,8 +97,8 @@
 //     }
     
 
-//     fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-//     fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+//     fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+//     fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 // }
 
 

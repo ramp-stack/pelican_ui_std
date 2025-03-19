@@ -11,7 +11,7 @@ pub struct Card {
 }
 
 impl ComponentBuilder for Card {
-    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         let content = Column(Vec2::new(14, 16), 8, Align::Center, vec![
             CircleIcon(self.circle_icon, None, None, 64),
             Text::heading(ctx, self.title, TextSize::h3()),
@@ -30,8 +30,8 @@ impl ComponentBuilder for Card {
         ]).build(ctx, max_size)
     }
 
-    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 }
 
 struct _SeparationLine(u32, u32, u32); // width, height, vertical padding

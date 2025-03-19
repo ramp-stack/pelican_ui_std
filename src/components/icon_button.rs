@@ -6,7 +6,7 @@ use crate::theme::fonts::{Text, TextSize};
 pub struct IconButton(Icon, IconButtonStyle, Size);
 
 impl ComponentBuilder for Button {
-    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         let (size, icon_size) = match (self.2, self.1) {
             (IconButtonStyle::Secondary, Size::Large) => (48, 32),
             (IconButtonStyle::Secondary, Size::Medium) => (32, 20),
@@ -22,8 +22,8 @@ impl ComponentBuilder for Button {
         ]).build_children(ctx, max_size)
     }
 
-    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 }
 
 #[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]

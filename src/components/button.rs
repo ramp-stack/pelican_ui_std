@@ -14,7 +14,7 @@ pub struct Button {
 }
 
 impl ComponentBuilder for Button {
-    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         let mut children: Vec<Box<dyn ComponentBuilder>>  = vec![];
 
         let (text_size, height, size, x_padding, spacing, radius) = match self.1 {
@@ -46,8 +46,8 @@ impl ComponentBuilder for Button {
         ]).build_children(ctx, max_size)
     }
 
-    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 }
 
 #[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]

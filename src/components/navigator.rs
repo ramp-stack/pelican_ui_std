@@ -11,7 +11,7 @@
 // }
 
 // impl ComponentBuilder for DesktopNav {
-//     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+//     fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
 //         let image = ctx.load_image("images/logomark.png").unwrap(); // Default logomark
 
 //         // Image(ShapeType::Rectangle(icon_size, 8), image),
@@ -31,14 +31,14 @@
 //         }).build_children(ctx, max_size)
 //     }
 
-//     fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-//     fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+//     fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+//     fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 // }
 
 // pub struct MobileNav();
 
 // impl ComponentBuilder for MobileNav {
-//     fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+//     fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
 //         let image = ctx.load_image("images/profile.png").unwrap(); // Default logomark
 
 //         ConstrainedBox!(300, 
@@ -52,6 +52,6 @@
 //         ).build_children(ctx, max_size)
 //     }
 
-//     fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-//     fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+//     fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+//     fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 // }

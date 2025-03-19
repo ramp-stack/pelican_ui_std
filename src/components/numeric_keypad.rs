@@ -5,7 +5,7 @@ use crate::components::button::*;
 pub struct NumericKeypad();
 
 impl ComponentBuilder for NumericKeypad {
-    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         let row = |a: &'static str, b: &'static str, c: &'static str| {
             Row(ZERO, 16, Align::Center, vec![
                 Button::keypad(a),
@@ -22,6 +22,6 @@ impl ComponentBuilder for NumericKeypad {
         ]).build_children(ctx, max_size)
     }
 
-    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 }

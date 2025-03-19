@@ -6,7 +6,7 @@ use qrcode::{QrCode, Color};
 pub struct QRCodeScanner();
 
 impl ComponentBuilder for QRCodeScanner {
-    fn build_children(&self, ctx: &mut ComponentContext, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         let mut children: Vec<(Box<dyn ComponentBuilder>, Vec2)> = vec![];
 
         let camera_disabled = true; // User needs to enable camera access
@@ -31,6 +31,6 @@ impl ComponentBuilder for QRCodeScanner {
         Stack(ZERO, Align::Center, children).build_children(ctx, max_size)
     }
 
-    fn on_click(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut ComponentContext, _max_size: Vec2, _position: Vec2) {}
+    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 }
