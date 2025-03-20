@@ -28,12 +28,14 @@ pub struct Fonts {
 
 impl Fonts {
     pub fn new(heading: resources::Font, text: resources::Font, label: resources::Font) -> Self {
+        // let emoji = resources::Font::new(ctx, ctx.load_file("fonts/noto_color_emoji.ttf").unwrap());
         Self { heading, text, label }
     }
-    
+
     pub fn default(ctx: &mut Context) -> Self {
         let bold = resources::Font::new(ctx, ctx.load_file("fonts/outfit_bold.ttf").unwrap());
         let regular = resources::Font::new(ctx, ctx.load_file("fonts/outfit_regular.ttf").unwrap());
+        // let emoji = resources::Font::new(ctx, ctx.load_file("fonts/noto_color_emoji.ttf").unwrap());
         Self {
             heading: bold.clone(),
             text: regular.clone(),

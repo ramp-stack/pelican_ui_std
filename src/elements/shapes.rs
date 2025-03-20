@@ -1,7 +1,7 @@
 use rust_on_rails::prelude::*;
-use crate::{ZERO, Stack};
-use crate::layout::Align;
-use crate::elements::text::{Text, TextStyle};
+// use crate::{ZERO, Stack};
+// use crate::layout::Align;
+// use crate::elements::text::{Text, TextStyle};
 
 // pub struct Circle(pub u32, pub Color);
 
@@ -27,49 +27,34 @@ use crate::elements::text::{Text, TextStyle};
 //     }
 // }
 
-pub struct Circle(Box<dyn ComponentBuilder>);
+#[derive(Clone)]
+pub struct Circle(pub u32, pub Color);
 
-impl Circle {
-    pub fn new(s: u32, c: Color) -> Self {
-        Self(Box::new(Shape(ShapeType::Ellipse(0, (s, s)), c)))
-    }
-
-    pub fn outlined(s: u32, c: Color, oc: Color) -> Self {
-        let o = (s as f32 * 0.06).round() as u32;
-        Self(Box::new(
-            Stack!(Align::Center, 
-                Shape(ShapeType::Ellipse(0, (s, s)), c),
-                Shape(ShapeType::Ellipse(o, (s + o, s + o)), oc)
-            )
-        ))
+impl Component for Circle {
+    fn build(&self, ctx: &mut Context, max_size: (u32, u32)) -> Vec<((u32, u32), Box<dyn Component>)> {
+        vec![Shape(ShapeType::Ellipse(0, (self.0, self.0)), self.1).stack()]
     }
 }
 
-impl ComponentBuilder for Circle {
-    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        self.0.build_children(ctx, max_size)
-    }
-}
+// pub struct RoundedRectangle(Box<dyn ComponentBuilder>);
 
-pub struct RoundedRectangle(Box<dyn ComponentBuilder>);
+// impl RoundedRectangle {
+//     pub fn new(s: (u32, u32), r: u32, c: Color) -> Self {
+//         Self(Box::new(Shape(ShapeType::RoundedRectangle(0, s, r), c)))
+//     }
 
-impl RoundedRectangle {
-    pub fn new(s: (u32, u32), r: u32, c: Color) -> Self {
-        Self(Box::new(Shape(ShapeType::RoundedRectangle(0, s, r), c)))
-    }
+//     pub fn outlined(s: (u32, u32), r: u32, c: Color, o: u32, oc: Color) -> Self {
+//         Self(Box::new(
+//             Stack!(Align::Center, 
+//                 Shape(ShapeType::RoundedRectangle(0, s, r), c),
+//                 Shape(ShapeType::RoundedRectangle(o, s, r), oc)
+//             )
+//         ))
+//     }
+// }
 
-    pub fn outlined(s: (u32, u32), r: u32, c: Color, o: u32, oc: Color) -> Self {
-        Self(Box::new(
-            Stack!(Align::Center, 
-                Shape(ShapeType::RoundedRectangle(0, s, r), c),
-                Shape(ShapeType::RoundedRectangle(o, s, r), oc)
-            )
-        ))
-    }
-}
-
-impl ComponentBuilder for RoundedRectangle {
-    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        self.0.build_children(ctx, max_size)
-    }
-}
+// impl ComponentBuilder for RoundedRectangle {
+//     fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
+//         self.0.build_children(ctx, max_size)
+//     }
+// }

@@ -1,18 +1,11 @@
 pub mod components;
 pub mod theme;
-pub mod layout;
+// pub mod layout;
 pub mod elements;
 
 use rust_on_rails::prelude::*;
 
 use crate::theme::Theme;
-
-use crate::layout::{ Stack};
-use once_cell::sync::Lazy;
-use crate::theme::colors::ColorResources;
-
-pub const ZERO: Vec2 = Vec2{x:0,y:0};
-static COLORS: Lazy<ColorResources> = Lazy::new(|| ColorResources::default());
 
 // // fn icon(ctx: &mut Context) -> Handle {
 // //     ctx.load_image("images/profile.png").unwrap()
@@ -96,11 +89,12 @@ pub mod prelude {
     // pub use crate::layout::*;
     // pub use crate::*;
     // pub use rust_on_rails::prelude::*;
-    pub use crate::elements::shapes::{RoundedRectangle, Circle};
-    pub use crate::elements::image::Image as ProfileImage;
-    pub use crate::ZERO;
-    pub use crate::layout::{Row, Column, Align};
-    pub use crate::elements::text::{Text, TextStyle};
+    // pub use crate::elements::shapes::{RoundedRectangle, Circle};
+    // pub use crate::elements::image::Image as ProfileImage;
+    // pub use crate::ZERO;
+    // pub use crate::layout::{Row, Column, Align};
+    // pub use crate::elements::text::{Text, TextStyle};
+    pub use crate::components::circle_icon::{CircleIcon, CircleIconData, CircleIconStyle, ProfileImage};
     pub use crate::theme::Theme;
     pub use crate::PelicanUI;
 }
