@@ -1,5 +1,5 @@
-use rust_on_rails::prelude::Text as BasicText;
-use rust_on_rails::prelude::*;
+// use rust_on_rails::prelude::Text as BasicText;
+// use rust_on_rails::prelude::*;
 
 // pub struct Text(pub BasicText);
 

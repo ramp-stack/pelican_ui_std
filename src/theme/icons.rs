@@ -1,5 +1,4 @@
 use rust_on_rails::prelude::*;
-use rust_on_rails::canvas::CanvasItem;
 
 use std::collections::HashMap;
 

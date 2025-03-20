@@ -1,12 +1,10 @@
 use rust_on_rails::prelude::*;
-use rust_on_rails::prelude::Image as RImage;
-use crate::Stack;
 
 pub struct Image(Box<dyn ComponentBuilder>);
 
 impl Image {
     pub fn circle(s: u32, i: resources::Image) -> Self {
-        Self(Box::new(RImage(ShapeType::Ellipse(0, (s, s)), i, None)))
+        Self(Box::new(rust_on_rails::prelude::Image(ShapeType::Ellipse(0, (s, s)), i, None)))
     }
 
     // pub fn circle_outlined(s: u32, i: resources::Image, oc: Color) -> Self {

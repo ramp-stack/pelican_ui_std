@@ -18,13 +18,13 @@ impl Align {
         match self {
             Align::TopLeft => Vec2::new(0, 0),
             Align::TopCenter => Vec2::new((max_size.x - min_size.x) / 2, 0),
-            Align::TopRight => Vec2::new((max_size.x - min_size.x), 0),
+            Align::TopRight => Vec2::new(max_size.x - min_size.x, 0),
             Align::Left => Vec2::new(0, (max_size.y - min_size.y) / 2),
             Align::Center => Vec2::new((max_size.x - min_size.x) / 2, (max_size.y - min_size.y) / 2),
-            Align::Right => Vec2::new((max_size.x - min_size.x), (max_size.y - min_size.y) / 2),
-            Align::BottomLeft => Vec2::new(0, (max_size.y - min_size.y)),
-            Align::BottomCenter => Vec2::new((max_size.x - min_size.x) / 2, (max_size.y - min_size.y)),
-            Align::BottomRight => Vec2::new((max_size.x - min_size.x), (max_size.y - min_size.y))
+            Align::Right => Vec2::new(max_size.x - min_size.x, (max_size.y - min_size.y) / 2),
+            Align::BottomLeft => Vec2::new(0, max_size.y - min_size.y),
+            Align::BottomCenter => Vec2::new((max_size.x - min_size.x) / 2, max_size.y - min_size.y),
+            Align::BottomRight => Vec2::new(max_size.x - min_size.x, max_size.y - min_size.y)
         }
     }
 }
@@ -225,7 +225,7 @@ pub struct Stack(pub Align, pub Vec<Box<dyn ComponentBuilder>>);
 
 impl ComponentBuilder for Stack {
     fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        let mut bound = Rect::new(0, 0, max_size.x, max_size.y);
+        let bound = Rect::new(0, 0, max_size.x, max_size.y);
 
         // Get height/width of tallest/widest object
         let (max_width, max_height, built) = self.1.iter()
@@ -285,7 +285,7 @@ pub struct Container(pub Align, pub Box<dyn ComponentBuilder>);
 
 impl ComponentBuilder for Container {
     fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        let mut bound = Rect::new(0, 0, max_size.x, max_size.y);
+        let bound = Rect::new(0, 0, max_size.x, max_size.y);
         let mut component = self.1.build(ctx, bound);
         let size = component.size(ctx);
 
