@@ -1,4 +1,5 @@
 #![allow(unused)]
+use rust_on_rails::prelude::*;
 use std::collections::HashMap;
 // use crate::components::button::{ButtonState, ButtonStyle};
 
@@ -8,9 +9,9 @@ pub struct ColorResources {
     pub outline: OutlineColor, 
     pub status: StatusColor,
     pub text: TextColor,
-    pub shades: Shades,
     // pub button: ButtonColors,
     pub brand: BrandColor,
+    pub shades: ShadesColor,
 }
 
 impl Default for ColorResources {
@@ -21,7 +22,7 @@ impl Default for ColorResources {
             status: StatusColor::default(),
             text: TextColor::default(),
             brand: BrandColor::default(),
-            shades: Shades::default(),
+            shades: ShadesColor::default(),
             // button: ButtonColors::new(
             //     ButtonSchemes::default(),
             // ),
@@ -32,11 +33,11 @@ impl Default for ColorResources {
 impl ColorResources {
     fn new(
         background: BackgroundColor,
-        shades: Shades,
         outline: OutlineColor,
         status: StatusColor,
         text: TextColor,
         brand: BrandColor,
+        shades: ShadesColor
         // button: ButtonColors,
     ) -> Self {
         ColorResources { background, outline, status, text, brand, shades }
@@ -44,48 +45,54 @@ impl ColorResources {
 }
 
 #[derive(Copy, Clone)]
-pub struct Shades {
-    pub black: &'static str,
-    pub white: &'static str,
+pub struct ShadesColor {
+    pub black: Color,
+    pub white: Color,
+    pub lighten: Color,
+    pub lighten2: Color,
+    pub darken: Color,
+    pub darken2: Color
 }
 
-impl Default for Shades {
+impl Default for ShadesColor {
     fn default() -> Self {
-        Shades {
-            black: "000000",
-            white: "ffffff",
+        ShadesColor {
+            black: Color::from_hex("000000", 255),
+            white: Color::from_hex("ffffff", 255),
+            lighten: Color::from_hex("ffffff", 20),
+            lighten2: Color::from_hex("ffffff", 40),
+            darken: Color::from_hex("000000", 20),
+            darken2: Color::from_hex("ffffff", 40)
         }
     }
 }
 
 #[derive(Copy, Clone)]
 pub struct BackgroundColor {
-    pub primary: &'static str,
-    pub secondary: &'static str,
+    pub primary: Color,
+    pub secondary: Color
 }
 
 impl Default for BackgroundColor {
     fn default() -> Self {
         BackgroundColor {
-            primary: "000000",
-            secondary: "262322",
+            primary: Color::from_hex("000000", 255),
+            secondary: Color::from_hex("262322", 255),
         }
     }
 }
 
 #[derive(Copy, Clone)]
 pub struct BrandColor {
-    pub primary: &'static str,
-    pub secondary: &'static str,
-    pub text: &'static str,
+    pub primary: Color,
+    pub secondary: Color
 }
 
 impl Default for BrandColor {
     fn default() -> Self {
         BrandColor {
-            primary: "3598fc",
-            secondary: "ffffff",
-            text: "ffffff"
+            primary: Color::from_hex("eb343a", 255),
+            secondary: Color::from_hex("ffffff", 255)
         }
     }
 }
@@ -93,51 +100,49 @@ impl Default for BrandColor {
 
 #[derive(Copy, Clone)]
 pub struct OutlineColor {
-    pub primary: &'static str,
-    pub secondary: &'static str,
-    pub tint: &'static str,
+    pub primary: Color,
+    pub secondary: Color
 }
 
 impl Default for OutlineColor {
     fn default() -> Self {
         OutlineColor {
-            primary: "ffffff",
-            secondary: "585250",
-            tint: "585250",
+            primary: Color::from_hex("ffffff", 255),
+            secondary: Color::from_hex("585250", 255),
         }
     }
 }
 
 #[derive(Copy, Clone)]
 pub struct TextColor {
-    pub heading: &'static str,
-    pub primary: &'static str,
-    pub secondary: &'static str,
+    pub heading: Color,
+    pub primary: Color,
+    pub secondary: Color
 }
 
 impl Default for TextColor {
     fn default() -> Self {
         TextColor{
-            heading: "ffffff",
-            primary: "e2e1df",
-            secondary: "a7a29d",
+            heading: Color::from_hex("ffffff", 255),
+            primary: Color::from_hex("e2e1df", 255),
+            secondary: Color::from_hex("a7a29d", 255),
         }
     }
 }
 
 #[derive(Copy, Clone)]
 pub struct StatusColor {
-    pub success: &'static str,
-    pub warning: &'static str,
-    pub danger: &'static str,
+    pub success: Color,
+    pub warning: Color,
+    pub danger: Color
 }
 
 impl Default for StatusColor {
     fn default() -> Self {
         StatusColor{
-            success: "3ccb5a",
-            warning: "f5bd14",
-            danger: "eb343a",
+            success: Color::from_hex("3ccb5a", 255),
+            warning: Color::from_hex("f5bd14", 255),
+            danger: Color::from_hex("ff330a", 255),
         }
     }
 }
@@ -267,8 +272,3 @@ impl Default for StatusColor {
 //         self.color_map.get(&(state, style)).copied().expect("ColorScheme Not Found")
 //     }
 // }
-
-// TEMP
-pub fn transparent() -> &'static str {
-    "000000"
-}
