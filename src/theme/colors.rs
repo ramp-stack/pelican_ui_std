@@ -3,7 +3,7 @@ use rust_on_rails::prelude::*;
 use std::collections::HashMap;
 // use crate::components::button::{ButtonState, ButtonStyle};
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct ColorResources { 
     pub background: BackgroundColor, 
     pub outline: OutlineColor, 
@@ -31,7 +31,7 @@ impl Default for ColorResources {
 }
 
 impl ColorResources {
-    fn new(
+    pub fn new(
         background: BackgroundColor,
         outline: OutlineColor,
         status: StatusColor,

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 pub struct IconResources(HashMap<&'static str, resources::Image>);
 
 impl IconResources {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn default(ctx: &mut Context) -> Self {
         let mut icons = HashMap::new();
         let quality = 8.0;
 
@@ -65,6 +65,22 @@ impl IconResources {
     }
 
     pub fn get(&self, name: &'static str) -> resources::Image {
-        self.0.get(name).unwrap().clone()
+        self.0.get(name).expect(&format!("Could not find icon {:?}", name)).clone()
+    }
+
+    pub fn add_icon(&mut self, icon_name: &'static str, icon: resources::Image) {
+        if let Some(existing) = self.0.get(&icon_name) {
+            println!("add_icon(): Icon with name {:?} already exists. Use 'set_icon()' instead.", icon_name);
+        } else {
+            self.0.insert(icon_name, icon);
+        }
+    }
+
+    pub fn set_icon(&mut self, icon_name: &'static str, icon: resources::Image) {
+        if let Some(existing) = self.0.get_mut(&icon_name) {
+            *existing = icon; 
+        } else {
+            println!("set_icon(): Icon with name {:?} doesn't exist. Use 'add_icon()' instead.", icon_name);
+        }
     }
 }

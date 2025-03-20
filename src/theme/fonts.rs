@@ -1,19 +1,25 @@
 use rust_on_rails::prelude::*;
 
+#[derive(Clone)]
 pub struct FontResources {
     pub fonts: Fonts,
     pub size: FontSize,
 }
 
 impl FontResources {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(fonts: Fonts, size: FontSize) -> Self {
+        Self { fonts, size }
+    }
+
+    pub fn default(ctx: &mut Context) -> Self {
         FontResources{
-            fonts: Fonts::new(ctx),
+            fonts: Fonts::default(ctx),
             size: FontSize::default()
         }
     }
 } 
 
+#[derive(Clone)]
 pub struct Fonts {
     pub heading: resources::Font,
     pub text: resources::Font,
@@ -21,7 +27,11 @@ pub struct Fonts {
 }
 
 impl Fonts {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(heading: resources::Font, text: resources::Font, label: resources::Font) -> Self {
+        Self { heading, text, label }
+    }
+    
+    pub fn default(ctx: &mut Context) -> Self {
         let bold = resources::Font::new(ctx, ctx.load_file("fonts/outfit_bold.ttf").unwrap());
         let regular = resources::Font::new(ctx, ctx.load_file("fonts/outfit_regular.ttf").unwrap());
         Self {

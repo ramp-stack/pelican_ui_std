@@ -1,4 +1,6 @@
 use rust_on_rails::prelude::*;
+use crate::layout::Align;
+use crate::Stack;
 
 pub struct Image(Box<dyn ComponentBuilder>);
 
@@ -7,15 +9,15 @@ impl Image {
         Self(Box::new(rust_on_rails::prelude::Image(ShapeType::Ellipse(0, (s, s)), i, None)))
     }
 
-    // pub fn circle_outlined(s: u32, i: resources::Image, oc: Color) -> Self {
-    //     let o = (s as f32 * 0.06).round() as u32;
-    //     Self(Box::new(
-    //         Stack!(Align::Center, 
-    //             RImage(ShapeType::Ellipse(0, (s, s)), i, None),
-    //             Shape(ShapeType::Ellipse(o, (s + o, s + o)), oc)
-    //         )
-    //     ))
-    // }
+    pub fn circle_outlined(s: u32, i: resources::Image, oc: Color) -> Self {
+        let o = (s as f32 * 0.06).round() as u32;
+        Self(Box::new(
+            Stack!(Align::Center, 
+                rust_on_rails::prelude::Image(ShapeType::Ellipse(0, (s, s)), i, None),
+                Shape(ShapeType::Ellipse(o, (s + o, s + o)), oc)
+            )
+        ))
+    }
 }
 
 impl ComponentBuilder for Image {

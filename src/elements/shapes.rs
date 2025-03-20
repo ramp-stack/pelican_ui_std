@@ -1,6 +1,7 @@
 use rust_on_rails::prelude::*;
 use crate::{ZERO, Stack};
 use crate::layout::Align;
+use crate::elements::text::{Text, TextStyle};
 
 // pub struct Circle(pub u32, pub Color);
 
