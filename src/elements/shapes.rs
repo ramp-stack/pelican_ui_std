@@ -17,24 +17,31 @@ use rust_on_rails::prelude::*;
 //     }
 // }
 
-// pub struct Outline(pub Color);
-
-// impl ComponentBuilder for Outline {
-//     fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-//         let s = max_size.x.min(max_size.y);
-//         let o = (s as f32 * 0.06).round() as u32;
-//         vec![Box::new(Shape(ShapeType::Ellipse(o, (s, s)), self.0))]
-//     }
-// }
 
 #[derive(Clone)]
 pub struct Circle(pub u32, pub Color);
 
 impl Component for Circle {
-    fn build(&self, ctx: &mut Context, max_size: (u32, u32)) -> Vec<((u32, u32), Box<dyn Component>)> {
-        vec![Shape(ShapeType::Ellipse(0, (self.0, self.0)), self.1).stack()]
+    fn build(&self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
+        Container(Offset::default(), Size::Static(self.0, self.0), vec![
+            Box::new(Shape(ShapeType::Ellipse(0), self.1))
+        ])
     }
 }
+
+#[derive(Clone)]
+pub struct RoundedRectangle(pub Color, pub Color, pub u32, pub u32);
+// background color, stroke color, stroke width, corner radius
+
+impl Component for RoundedRectangle {
+    fn build(&self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
+        Container(Offset::default(), Size::Fill, vec![
+            Box::new(Shape(ShapeType::RoundedRectangle(0, self.3), self.0)),
+            Box::new(Shape(ShapeType::RoundedRectangle(self.2, self.3), self.1))
+        ])
+    }
+}
+
 
 // pub struct RoundedRectangle(Box<dyn ComponentBuilder>);
 

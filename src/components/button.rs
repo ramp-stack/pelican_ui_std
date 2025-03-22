@@ -1,53 +1,67 @@
-use rust_on_rails::prelude::*;
-use crate::{ Child, Row, COLORS, ZERO, Align, Stack };
-use crate::theme::fonts::{Text, TextSize};
+use crate::elements::icon::Icon;
+use crate::elements::shapes::RoundedRectangle;
+use crate::elements::text::{TextStyle, Text};
 
-#[derive(Clone, Copy)]
+use crate::components::circle_icon::CircleIcon;
+
+use crate::layout::Row;
+
+use crate::discard_nonsies;
+use crate::PelicanUI;
+
+use rust_on_rails::prelude::*;
+
+#[derive(Clone)]
 pub struct Button {
     label: &'static str,
-    size: Size,
-    width: Width,
+    size: ButtonSize,
+    width: ButtonWidth,
     style: ButtonStyle,
-    photo: Option<CircleIconData>,
-    icon_l: Option<Icon>,
-    icon_r: Option<Icon>
+    photo: Option<resources::Image>,
+    icon_l: Option<&'static str>,
+    icon_r: Option<&'static str>
 }
 
-impl ComponentBuilder for Button {
-    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        let mut children: Vec<Box<dyn ComponentBuilder>>  = vec![];
+impl Component for Button {
+    fn build(&self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
+        let theme = &ctx.get::<PelicanUI>().theme;
+        let colors = theme.colors.button.colors_from(self.style, ButtonState::Default);
 
-        let (text_size, height, size, x_padding, spacing, radius) = match self.1 {
-            Size::Medium => (TextSize::md(), 32, 16, 12, 4, 12),
-            Size::Large => (TextSize::lg(), 48, 24, 24, 12, 24)
-        };
-        
-        if let Some(icon) = self.icon_l { children.push(icon.build(size, COLORS.text.heading)); }
-
-        children.push(Text::label(ctx, self.label, text_size));
-
-        if let Some(icon) = self.icon_r { children.push(icon.build(size, COLORS.text.heading)); }
-
-        let content = Row(ZERO, spacing, Align::Center, children);
-
-        let colors = COLORS.button.colors_from(self.style, ButtonState::Default);
-        
-        let width = match self.2 {
-            Width::Hug => {
-                let bound = Rect::new(0, 0, max_size.x, max_size.y);
-                content.build(ctx, bound).size(ctx).x + (x_padding * 2)
-            },
-            Width::Expand => max_size.x,
+        let (text_size, height, icon_size, x_padding, spacing) = match self.size {
+            ButtonSize::Medium => (theme.fonts.size.md, 32, 16, 12, 4),
+            ButtonSize::Large => (theme.fonts.size.lg, 48, 24, 24, 12)
         };
 
-        Stack(ZERO, Align::Center, vec![
-            RoundedRectangle(width, height, radius, colors.background, Some((colors.outline, 1))),
-            content,
-        ]).build_children(ctx, max_size)
+        let size = match self.width {
+            ButtonWidth::Hug => Size::Fit,
+            ButtonWidth::Expand => Size::Static(max_size.0, height),
+        };
+        
+        Container(Offset::Center, size, vec![Box::new(
+            Container(
+                Offset::Center, 
+                Size::Static(max_size.0, height),
+                vec![
+                    Box::new(RoundedRectangle(colors.background, colors.outline, 1, height / 2)),
+                    Box::new(Row(spacing, Offset::Center, discard_nonsies![
+                        match &self.photo {
+                            Some(image) => Some(Box::new(CircleIcon::Image(image.clone(), None, false, icon_size))),
+                            None => None,
+                        },
+                        match self.icon_l {
+                            Some(icon) => Some(Box::new(Icon(icon, colors.label, icon_size))),
+                            None => None,
+                        },
+                        Some(Box::new(Text(TextStyle::Label(colors.label), self.label, text_size))),
+                        match self.icon_r {
+                            Some(icon) => Some(Box::new(Icon(icon, colors.label, icon_size))),
+                            None => None,
+                        },
+                    ]))
+                ]
+            )
+        )])
     }
-
-    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 }
 
 #[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]
@@ -66,13 +80,13 @@ pub enum ButtonState {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum Width {
+pub enum ButtonWidth {
     Expand,
     Hug,
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum Size {
+pub enum ButtonSize {
     Large,
     Medium,
 }
@@ -81,8 +95,8 @@ impl Button {
     pub fn primary(label: &'static str) -> Self {
         Self {
             label,
-            size: Size::Large,
-            width: Width::Expand,
+            size: ButtonSize::Large,
+            width: ButtonWidth::Expand,
             style: ButtonStyle::Primary,
             photo: None,
             icon_l: None,
@@ -91,26 +105,26 @@ impl Button {
     }
 
     pub fn secondary(
+        icon_l: Option<&'static str>, 
         label: &'static str, 
-        l: Option<Icon>, 
-        r: Option<Icon>
+        icon_r: Option<&'static str>
     ) -> Self {
         Self {
             label,
-            size: Size::Medium,
-            width: Width::Hug,
+            size: ButtonSize::Medium,
+            width: ButtonWidth::Hug,
             style: ButtonStyle::Secondary,
             photo: None,
-            icon_l: Some(l),
-            icon_r: Some(r)
+            icon_l,
+            icon_r,
         }
     }
 
     pub fn ghost(label: &'static str) -> Self {
         Self {
             label,
-            size: Size::Medium,
-            width: Width::Hug,
+            size: ButtonSize::Medium,
+            width: ButtonWidth::Hug,
             style: ButtonStyle::Ghost,
             photo: None,
             icon_l: None,
@@ -118,54 +132,54 @@ impl Button {
         }
     }
 
-    pub fn keypad(label: &'static str) -> Self {
+    pub fn keypad(label: &'static str, icon_l: Option<&'static str>) -> Self {
         Self {
             label,
-            size: Size::Large,
-            width: Width::Expand,
+            size: ButtonSize::Large,
+            width: ButtonWidth::Expand,
             style: ButtonStyle::Ghost,
             photo: None,
-            icon_l: None,
+            icon_l,
             icon_r: None
         }
     }
 
     pub fn photo(
         label: &'static str, 
-        photo: RgbaImage,
+        photo: resources::Image,
     ) -> Self {
         Self {
             label,
-            size: Size::Medium,
-            width: Width::Hug,
+            size: ButtonSize::Medium,
+            width: ButtonWidth::Hug,
             style: ButtonStyle::Secondary,
-            photo: Some(CircleIconData::Photo(photo)),
+            photo: Some(photo),
             icon_l: None,
             icon_r: None
         }
     }
 
-    pub fn button_row(a: &'static str, b: &'static str) -> Row {
-        Row(ZERO, 16, Align::Center, vec![Self::primary(a), Self::primary(b)])
-    }
+    // pub fn button_row(a: &'static str, b: &'static str) -> Row {
+    //     Row(ZERO, 16, Align::Center, vec![Self::primary(a), Self::primary(b)])
+    // }
 
-    pub fn quick_actions(btns: Vec<(Icon, &'static str)>) -> Wrap {
-        let children = btns
-            .into_iter()
-            .map(|btn| {
-                Self::secondary(btn.1, Some(btn.1), None)
-            }).collect();
+    // pub fn quick_actions(colorss: Vec<(Icon, &'static str)>) -> Wrap {
+    //     let children = colorss
+    //         .into_iter()
+    //         .map(|colors| {
+    //             Self::secondary(colors.1, Some(colors.1), None)
+    //         }).collect();
 
-        Wrap(ZERO, 8, Align::Left, children)
-    }
+    //     Wrap(ZERO, 8, Align::Left, children)
+    // }
 
-    pub fn quick_deselect(btns: Vec<&'static str>) -> Wrap {
-        let children = btns
-            .into_iter()
-            .map(|label| {
-                Self::secondary(label, None, Some(Icon::Close))
-            }).collect();
+    // pub fn quick_deselect(colorss: Vec<&'static str>) -> Wrap {
+    //     let children = colorss
+    //         .into_iter()
+    //         .map(|label| {
+    //             Self::secondary(label, None, Some(Icon::Close))
+    //         }).collect();
 
-        Wrap(ZERO, 8, Align::Left, children)
-    }
+    //     Wrap(ZERO, 8, Align::Left, children)
+    // }
 }
