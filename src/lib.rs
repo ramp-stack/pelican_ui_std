@@ -27,37 +27,37 @@ impl Plugin for PelicanUI {
 }
 
 pub mod prelude {
-    pub use crate::components::button::{Button};
+    // pub use crate::components::button::{Button};
     // pub use crate::theme::colors::*;
     pub use crate::elements::icon::Icon;
     // pub use crate::theme::fonts::{Text, TextSize, TextStyle};
-    pub use crate::{Column, Row};
+    // pub use crate::{Column, Row};
     // pub use crate::*;
     // pub use rust_on_rails::prelude::*;
-    pub use crate::elements::shapes::Circle;
+    // pub use crate::elements::shapes::Circle;
     // pub use crate::elements::image::Image as ProfileImage;
     // pub use crate::ZERO;
-    pub use crate::layout::{Column, Row, Padding};
-    pub use crate::elements::text::{Text, TextStyle};
-    pub use crate::components::circle_icon::{CircleIcon, CircleIconData, CircleIconStyle};
+    // pub use crate::layout::{Column, Row, Padding};
+    // pub use crate::elements::text::{Text, TextStyle};
+    pub use crate::components::circle_icon::{ProfileImage, CircleIcon, CircleIconData, CircleIconStyle};
     pub use crate::theme::Theme;
     pub use crate::PelicanUI;
 }
 
 pub mod custom {
-	pub use crate::theme::colors::{
-	    ColorResources,
-	    BackgroundColor,
-	    OutlineColor,
-	    StatusColor,
-	    TextColor,
-	    BrandColor,
-	    ShadesColor
-	};
+	// pub use crate::theme::colors::{
+	//     ColorResources,
+	//     BackgroundColor,
+	//     OutlineColor,
+	//     StatusColor,
+	//     TextColor,
+	//     BrandColor,
+	//     ShadesColor
+	// };
 
-	pub use crate::theme::fonts::{
-	    FontResources,
-	    Fonts,
-	    FontSize,
-	};
+	// pub use crate::theme::fonts::{
+	//     FontResources,
+	//     Fonts,
+	//     FontSize,
+	// };
 }

@@ -17,30 +17,36 @@ use rust_on_rails::prelude::*;
 //     }
 // }
 
+pub struct Circle;
 
-#[derive(Clone)]
-pub struct Circle(pub u32, pub Color);
-
-impl Component for Circle {
-    fn build(&self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
-        Container(Offset::default(), Size::Static(self.0, self.0), vec![
-            Box::new(Shape(ShapeType::Ellipse(0), self.1))
-        ])
+impl Circle {
+    pub fn new(s: u32, color: Color) -> Shape {
+        Shape(ShapeType::Ellipse(0, (s, s)), color)
     }
 }
 
-#[derive(Clone)]
-pub struct RoundedRectangle(pub Color, pub Color, pub u32, pub u32);
-// background color, stroke color, stroke width, corner radius
+pub struct Outline;
 
-impl Component for RoundedRectangle {
-    fn build(&self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
-        Container(Offset::default(), Size::Fill, vec![
-            Box::new(Shape(ShapeType::RoundedRectangle(0, self.3), self.0)),
-            Box::new(Shape(ShapeType::RoundedRectangle(self.2, self.3), self.1))
-        ])
+impl Outline {
+    pub fn new(s: u32, color: Color) -> Shape {
+        Shape(ShapeType::Ellipse((s as f32 * 0.06).round() as u32, (s, s)), color)
     }
 }
+
+
+
+// #[derive(Clone)]
+// pub struct RoundedRectangle(pub Color, pub Color, pub u32, pub u32);
+// // background color, stroke color, stroke width, corner radius
+
+// impl Component for RoundedRectangle {
+//     fn build(&self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
+//         Container(Offset::default(), Size::Fill, vec![
+//             Box::new(Shape(ShapeType::RoundedRectangle(0, self.3), self.0)),
+//             Box::new(Shape(ShapeType::RoundedRectangle(self.2, self.3), self.1))
+//         ])
+//     }
+// }
 
 
 // pub struct RoundedRectangle(Box<dyn ComponentBuilder>);

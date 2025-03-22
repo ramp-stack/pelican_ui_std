@@ -2,8 +2,6 @@
 use rust_on_rails::prelude::*;
 use std::collections::HashMap;
 
-use crate::components::button::{ButtonState, ButtonStyle};
-
 #[derive(Clone)]
 pub struct ColorResources { 
     pub background: BackgroundColor, 
@@ -24,9 +22,7 @@ impl Default for ColorResources {
             text: TextColor::default(),
             brand: BrandColor::default(),
             shades: ShadesColor::default(),
-            button: ButtonColors::new(
-                ButtonSchemes::default(),
-            ),
+            button: ButtonColors::default(),
         } 
     }
 }
@@ -150,15 +146,9 @@ impl Default for StatusColor {
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct ButtonColorScheme {
-    pub background: Color,
-    pub label: Color,
-    pub outline: Color,
-}
 
 #[derive(Copy, Clone)]
-pub struct ButtonSchemes {
+pub struct ButtonColors {
     pub primary_default: ButtonColorScheme,
     pub primary_disabled: ButtonColorScheme,
     pub primary_hover: ButtonColorScheme,
@@ -175,9 +165,9 @@ pub struct ButtonSchemes {
     pub ghost_selected: ButtonColorScheme,
 }
 
-impl Default for ButtonSchemes {
+impl Default for ButtonColors {
     fn default() -> Self {
-        ButtonSchemes {
+        ButtonColors {
             primary_default: ButtonColorScheme {
                 background: Color::from_hex("eb343a", 255),
                 label: Color::from_hex("ffffff", 255),
@@ -244,34 +234,9 @@ impl Default for ButtonSchemes {
     }
 }
 
-#[derive(Default, Clone)]
-pub struct ButtonColors {
-    color_map: HashMap<(ButtonState, ButtonStyle), ButtonColorScheme>,
-}
-
-impl ButtonColors {
-    pub fn new(schemes: ButtonSchemes) -> Self {
-        let mut color_map = HashMap::new();
-
-        color_map.insert((ButtonState::Default, ButtonStyle::Primary), schemes.primary_default);
-        color_map.insert((ButtonState::Disabled, ButtonStyle::Primary), schemes.primary_disabled);
-        color_map.insert((ButtonState::Hover, ButtonStyle::Primary), schemes.primary_hover);
-        color_map.insert((ButtonState::Selected, ButtonStyle::Primary), schemes.primary_selected);
-
-        color_map.insert((ButtonState::Default, ButtonStyle::Secondary), schemes.secondary_default);
-        color_map.insert((ButtonState::Disabled, ButtonStyle::Secondary), schemes.secondary_disabled);
-        color_map.insert((ButtonState::Hover, ButtonStyle::Secondary), schemes.secondary_hover);
-        color_map.insert((ButtonState::Selected, ButtonStyle::Secondary), schemes.secondary_selected);
-
-        color_map.insert((ButtonState::Default, ButtonStyle::Ghost), schemes.ghost_default);
-        color_map.insert((ButtonState::Disabled, ButtonStyle::Ghost), schemes.ghost_disabled);
-        color_map.insert((ButtonState::Hover, ButtonStyle::Ghost), schemes.ghost_hover);
-        color_map.insert((ButtonState::Selected, ButtonStyle::Ghost), schemes.ghost_selected);
-
-        ButtonColors{ color_map }
-    }
-
-    pub fn colors_from(&self, style: ButtonStyle, state: ButtonState) -> ButtonColorScheme {
-        self.color_map.get(&(state, style)).copied().expect("ColorScheme Not Found")
-    }
+#[derive(Copy, Clone)]
+pub struct ButtonColorScheme {
+    pub background: Color,
+    pub label: Color,
+    pub outline: Color,
 }
