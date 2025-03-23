@@ -15,7 +15,7 @@ use crate::PelicanUI;
 // First item in a file should be top-layer component struct or enum
 // 'User' should never touch the struct, only new functions
 
-pub struct Button(pub _ButtonBackground, pub _ButtonContent, pub ButtonStyle, pub ButtonWidth, pub u32, pub u32);
+pub struct Button(pub _ButtonBackground, pub _ButtonContent, pub ButtonStyle, pub ButtonState, pub ButtonWidth, pub u32, pub u32, pub fn() -> ());
 
 impl Button {
     pub fn new(
@@ -28,6 +28,7 @@ impl Button {
         width: ButtonWidth,
         style: ButtonStyle,
         state: ButtonState,
+        on_click: fn() -> (),
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         let colors = ButtonColorMap::new(ctx).colors_from(style, state);
@@ -46,24 +47,35 @@ impl Button {
                 icon_r.map(|icon| Icon::new(ctx, icon, colors.label, icon_size)),
                 spacing
             ),
-            style, width, height, padding, 
+            style, state, width, height, padding, on_click
         )
     }
 }
 
 impl Component for Button {
     fn build(&mut self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
-        let width = match self.3 {
-            ButtonWidth::Hug => Component::size(&mut self.0, ctx, max_size).0+(self.5*2),
+        let width = match self.4 {
+            ButtonWidth::Hug => Component::size(&mut self.1, ctx, max_size).0+(self.6*2),
             ButtonWidth::Expand => max_size.0,
         };
-
-        Container::new(Stack(Offset::Center, Size::Static(width, self.4)), vec![&mut self.0, &mut self.1])
+        Container::new(Stack(Offset::Center, Size::Static(width, self.5)), vec![&mut self.0, &mut self.1])
     }
 
-    fn on_click(&mut self, ctx: &mut Context, _max_size: (u32, u32), position: (u32, u32)) {
-        println!("been clicked: {:?}", position);
-        let colors = ButtonColorMap::new(ctx).colors_from(self.2, ButtonState::Selected);
+    fn on_click(&mut self, ctx: &mut Context, _max_size: (u32, u32), position: (u32, u32)) { self.7() }
+
+    fn on_move(&mut self, ctx: &mut Context, _max_size: (u32, u32), position: (u32, u32)) {
+        let hovering = false; // Detect hovering.
+
+        let state = match self.3 {
+            ButtonState::Disabled => self.3,
+            ButtonState::Selected => self.3,
+            _ => match hovering {
+                true => ButtonState::Hover,
+                false => ButtonState::Default,
+            }
+        };
+
+        let colors = ButtonColorMap::new(ctx).colors_from(self.2, state);
         if let Shape(ShapeType::RoundedRectangle(_, (_, _), _), c) = &mut self.0.0 {
             *c = colors.background;
         }
@@ -172,7 +184,7 @@ impl ButtonColorMap {
 
 
 impl Button {
-    pub fn primary(ctx: &mut Context, label: &'static str) -> Self {
+    pub fn primary(ctx: &mut Context, label: &'static str, on_click: fn() -> ()) -> Self {
         Button::new(
             ctx,
             Some(label),
@@ -183,6 +195,7 @@ impl Button {
             ButtonWidth::Expand,
             ButtonStyle::Primary,
             ButtonState::Default,
+            on_click
         )
     }
 
@@ -191,6 +204,7 @@ impl Button {
         icon_l: Option<&'static str>,
         label: &'static str,
         icon_r: Option<&'static str>,
+        on_click: fn() -> (),
     ) -> Self {
         Button::new(
             ctx,
@@ -202,85 +216,112 @@ impl Button {
             ButtonWidth::Hug,
             ButtonStyle::Secondary,
             ButtonState::Default,
+            on_click
         )
     }
 
-    // pub fn secondary(
-        // icon_l: Option<&'static str>, 
-        // label: &'static str, 
-        // icon_r: Option<&'static str>
-    // ) -> Self {
-    //     Self {
-    //         label,
-    //         size: ButtonSize::Medium,
-    //         width: ButtonWidth::Hug,
-    //         style: ButtonStyle::Secondary,
-    //         photo: None,
-    //         icon_l,
-    //         icon_r,
-    //     }
-    // }
+    pub fn ghost(
+        ctx: &mut Context, 
+        label: &'static str,
+        on_click: fn() -> (),
+    ) -> Self {
+        Button::new(
+            ctx,
+            Some(label),
+            None,
+            None,
+            None,
+            ButtonSize::Medium,
+            ButtonWidth::Hug,
+            ButtonStyle::Ghost,
+            ButtonState::Default,
+            on_click
+        )
+    }
 
-    // pub fn ghost(label: &'static str) -> Self {
-    //     Self {
-    //         label,
-    //         size: ButtonSize::Medium,
-    //         width: ButtonWidth::Hug,
-    //         style: ButtonStyle::Ghost,
-    //         photo: None,
-    //         icon_l: None,
-    //         icon_r: None
-    //     }
-    // }
+    pub fn key_pad(
+        ctx: &mut Context, 
+        label: Option<&'static str>,
+        icon: Option<&'static str>,
+        on_click: fn() -> (),
+    ) -> Self {
+        Button::new(
+            ctx,
+            label,
+            None,
+            icon,
+            None,
+            ButtonSize::Medium,
+            ButtonWidth::Hug,
+            ButtonStyle::Ghost,
+            ButtonState::Default,
+            on_click
+        )
+    }
 
-    // pub fn keypad(label: &'static str, icon_l: Option<&'static str>) -> Self {
-    //     Self {
-    //         label,
-    //         size: ButtonSize::Large,
-    //         width: ButtonWidth::Expand,
-    //         style: ButtonStyle::Ghost,
-    //         photo: None,
-    //         icon_l,
-    //         icon_r: None
-    //     }
-    // }
+    pub fn navigation(
+        ctx: &mut Context, 
+        icon: &'static str,
+        label: &'static str,
+        selected: bool,
+        on_click: fn() -> (),
+    ) -> Self {
+        Button::new(
+            ctx,
+            Some(label),
+            None,
+            Some(icon),
+            None,
+            ButtonSize::Large,
+            ButtonWidth::Expand,
+            ButtonStyle::Ghost,
+            if selected {ButtonState::Selected} else {ButtonState::Default},
+            on_click
+        )
+    }
 
-    // pub fn photo(
-    //     label: &'static str, 
-    //     photo: resources::Image,
-    // ) -> Self {
-    //     Self {
-    //         label,
-    //         size: ButtonSize::Medium,
-    //         width: ButtonWidth::Hug,
-    //         style: ButtonStyle::Secondary,
-    //         photo: Some(photo),
-    //         icon_l: None,
-    //         icon_r: None
-    //     }
-    // }
-
-    // pub fn button_row(a: &'static str, b: &'static str) -> Row {
-    //     Row(ZERO, 16, Align::Center, vec![Self::primary(a), Self::primary(b)])
-    // }
-
-    // pub fn quick_actions(colorss: Vec<(Icon, &'static str)>) -> Wrap {
-    //     let children = colorss
-    //         .into_iter()
-    //         .map(|colors| {
-    //             Self::secondary(colors.1, Some(colors.1), None)
-    //         }).collect();
-
-    //     Wrap(ZERO, 8, Align::Left, children)
-    // }
-
-    // pub fn quick_deselect(colorss: Vec<&'static str>) -> Wrap {
-    //     let children = colorss
-    //         .into_iter()
-    //         .map(|label| {
-    //             Self::secondary(label, None, Some(Icon::Close))
-    //         }).collect();
-
-    //     Wrap(ZERO, 8, Align::Left, children)
-    // }
+    pub fn photo(
+        ctx: &mut Context, 
+        label: &'static str,
+        photo: CircleIconContent,
+        selected: bool,
+        on_click: fn() -> (),
+    ) -> Self {
+        Button::new(
+            ctx,
+            Some(label),
+            Some(photo),
+            None,
+            None,
+            ButtonSize::Large,
+            ButtonWidth::Expand,
+            ButtonStyle::Ghost,
+            if selected {ButtonState::Selected} else {ButtonState::Default},
+            on_click
+        )
+    }
 }
+
+// pub fn button_row(a: &'static str, b: &'static str) -> Row {
+//     Row(ZERO, 16, Align::Center, vec![Self::primary(a), Self::primary(b)])
+// }
+
+// pub fn quick_actions(colorss: Vec<(Icon, &'static str)>) -> Wrap {
+//     let children = colorss
+//         .into_iter()
+//         .map(|colors| {
+//             Self::secondary(colors.1, Some(colors.1), None)
+//         }).collect();
+
+//     Wrap(ZERO, 8, Align::Left, children)
+// }
+
+// pub fn quick_deselect(colorss: Vec<&'static str>) -> Wrap {
+//     let children = colorss
+//         .into_iter()
+//         .map(|label| {
+//             Self::secondary(label, None, Some(Icon::Close))
+//         }).collect();
+
+//     Wrap(ZERO, 8, Align::Left, children)
+// }
