@@ -4,81 +4,46 @@ use crate::elements::shapes::{Circle, Outline};
 use crate::layout::{Stack, Offset, Size};
 use crate::PelicanUI;
 
-pub enum ProfileImage {
-    Icon(&'static str, CircleIconStyle),
-    Image(resources::Image)
-}
+// Rules:
+// Exported structs and enums prefixed with name of the "top-layer" component.
+// If a struct or enum isn’t exported, start its name with _.
+// First item in a file should be top-layer component struct or enum
+// 'User' should never touch the struct, only new functions
 
-pub enum _ProfileImage {
-    Icon(CircleIconData),
-    Image(Image)
-}
-
-impl _ProfileImage {
-    pub fn new(ctx: &mut Context, input: ProfileImage, s: u32) -> Self {
-        match input {
-            ProfileImage::Image(image) => _ProfileImage::Image(Image(ShapeType::Ellipse(0, (s, s)), image, None)),
-            ProfileImage::Icon(name, style) => _ProfileImage::Icon(CircleIconData::new(ctx, name, style, s))
-        }
-    }
-}
-
-pub struct CircleIcon(pub _ProfileImage, pub Option<Shape>, pub Option<Container<'static>>);
+pub struct CircleIcon(pub _CircleIconContent, pub Option<Shape>, pub Option<_Flair>);
 
 impl CircleIcon {
-    pub fn new(ctx: &mut Context, content: ProfileImage, flair: Option<(&'static str, CircleIconStyle)>, outline: bool, size: u32) -> Self {
+    pub fn new(ctx: &mut Context, content: CircleIconContent, flair: Option<(&'static str, CircleIconStyle)>, outline: bool, size: u32) -> Self {
         let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
         let flair_s = (size as f32 / 3.0).round() as u32;
 
         CircleIcon(
-            _ProfileImage::new(ctx, content, size), 
-            outline.then(|| Outline::new(size, black)),
-            flair.map(|(name, style)| Container::new(Stack(Offset::Center, Size::default()), vec![
-                &mut CircleIconData::new(ctx, name, style, flair_s), &mut Outline::new(flair_s, black)
-            ]))
+            _CircleIconContent::new(ctx, content, size),  // Adds primary content
+            outline.then(|| Outline::circle(size, black)), // Adds an outline if enabled.
+            flair.map(|(name, style)| _Flair::new(ctx, name, style, flair_s)) // Creates a flair if provided.
         )
     }
 }
 
 impl Component for CircleIcon {
-    fn build(&mut self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
+    fn build(&mut self, _ctx: &mut Context, _max_size: (u32, u32)) -> Container {
         let mut children: Vec<&mut dyn Drawable> = vec![];
 
+        // Adds either an icon or an image.
         match &mut self.0 {
-            _ProfileImage::Icon(icon) => children.push(icon),
-            _ProfileImage::Image(image) => children.push(image)
+            _CircleIconContent::Icon(icon) => children.push(icon),
+            _CircleIconContent::Image(image) => children.push(image)
         }
 
+        // Adds optional outline and flair if they exist.
         if let Some(outline) = &mut self.1 { children.push(outline); }
-        if let Some(flair) = &mut self.2 {
-            children.push(flair);
-        }
+        if let Some(flair) = &mut self.2 { children.push(flair); }
 
         Container::new(Stack(Offset::BottomRight, Size::default()), children)
     }
 }
 
-pub struct CircleIconData(pub Shape, pub Icon);
-
-impl CircleIconData {
-    pub fn new(ctx: &mut Context, name: &'static str, style: CircleIconStyle, size: u32) -> Self {
-        println!("circle icon data size: {:?}", size);
-        let icon_size = (size as f32 * 0.75).round() as u32;
-        println!("icon_size: {:?}", icon_size);
-        let (background, icon_color) = style.get(ctx);
-        CircleIconData(
-            Circle::new(size - 2, background), 
-            Icon::new(ctx, name, icon_color, icon_size)
-        )
-    }
-}
-
-impl Component for CircleIconData {
-    fn build(&mut self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
-        Container::new(Stack(Offset::Center, Size::default()), vec![&mut self.0, &mut self.1])
-    }
-}
-
+/// Defines available styles for a `CircleIcon`.
 pub enum CircleIconStyle {
     Primary,
     Secondary,
@@ -89,6 +54,7 @@ pub enum CircleIconStyle {
 }
 
 impl CircleIconStyle {
+    /// Retrieves icon and background colors for the given style.
     pub fn get(&self, ctx: &mut Context) -> (Color, Color) {
         let colors = &ctx.get::<PelicanUI>().theme.colors;
         match self {
@@ -99,5 +65,63 @@ impl CircleIconStyle {
             CircleIconStyle::Warning => (colors.status.warning, colors.text.heading),
             CircleIconStyle::Danger => (colors.status.danger, colors.text.heading),
         }
+    }
+}
+
+/// Defines content types.
+pub enum CircleIconContent {
+    Icon(&'static str, CircleIconStyle),
+    Image(resources::Image)
+}
+
+/// Internal enumerator for handling icon content.
+pub enum _CircleIconContent {
+    Icon(_CircleIconData),
+    Image(Image)
+}
+
+impl _CircleIconContent {
+    pub fn new(ctx: &mut Context, input: CircleIconContent, s: u32) -> Self {
+        match input {
+            CircleIconContent::Image(image) => _CircleIconContent::Image(Image(ShapeType::Ellipse(0, (s, s)), image, None)),
+            CircleIconContent::Icon(name, style) => _CircleIconContent::Icon(_CircleIconData::new(ctx, name, style, s))
+        }
+    }
+}
+
+/// Stores shape and icon data for a 'CircleIcon'.
+pub struct _CircleIconData(pub Shape, pub Icon);
+
+impl _CircleIconData {
+    pub fn new(ctx: &mut Context, name: &'static str, style: CircleIconStyle, size: u32) -> Self {
+        let icon_size = (size as f32 * 0.75).round() as u32;
+        let (background, icon_color) = style.get(ctx);
+        _CircleIconData(
+            Circle::new(size - 2, background), 
+            Icon::new(ctx, name, icon_color, icon_size)
+        )
+    }
+}
+
+impl Component for _CircleIconData {
+    fn build(&mut self, _ctx: &mut Context, _max_size: (u32, u32)) -> Container {
+        Container::new(Stack(Offset::Center, Size::default()), vec![&mut self.0, &mut self.1])
+    }
+}
+
+/// Flair for a 'CircleIcon'.
+//#[derive(Component(Stack(Offset::Center, Size::default())))]
+pub struct _Flair(_CircleIconData, Shape);
+
+impl _Flair {
+    pub fn new(ctx: &mut Context, name: &'static str, style: CircleIconStyle, size: u32) -> Self {
+        let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
+        _Flair(_CircleIconData::new(ctx, name, style, size), Outline::circle(size, black))
+    }
+}
+
+impl Component for _Flair {
+    fn build(&mut self, _ctx: &mut Context, _max_size: (u32, u32)) -> Container {
+        Container::new(Stack(Offset::Center, Size::default()), vec![&mut self.0, &mut self.1])
     }
 }

@@ -1,3 +1,3 @@
 pub mod icon;
 pub mod shapes;
-// pub mod text;
+pub mod text;

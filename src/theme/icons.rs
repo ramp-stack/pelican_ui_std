@@ -69,7 +69,7 @@ impl IconResources {
     }
 
     pub fn add_icon(&mut self, icon_name: &'static str, icon: resources::Image) {
-        if let Some(existing) = self.0.get(&icon_name) {
+        if self.0.get(&icon_name).is_some() {
             println!("add_icon(): Icon with name {:?} already exists. Use 'set_icon()' instead.", icon_name);
         } else {
             self.0.insert(icon_name, icon);

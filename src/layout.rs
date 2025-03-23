@@ -6,7 +6,8 @@ pub enum Size {
     Fit,
     ExpandToFit,
     Fill,
-    Static(u32, u32)
+    Static(u32, u32),
+    Custom(fn((u32, u32), (u32, u32)) -> (u32, u32))
 }
 
 impl Size {
@@ -15,7 +16,8 @@ impl Size {
             Self::Fit =>(min_size.0.min(max_size.0), min_size.1.min(max_size.1)),
             Self::ExpandToFit => min_size,
             Self::Fill => max_size,
-            Self::Static(x, y) => (*x, *y)
+            Self::Static(x, y) => (*x, *y),
+            Self::Custom(func) => func(max_size, min_size)
         }
     }
 }
@@ -39,12 +41,12 @@ impl Offset {
     pub fn get(&self, max_size: (u32, u32), min_size: (u32, u32)) -> (i32, i32) {
         match self {
             Self::TopLeft => (0, 0),
-            Self::TopCenter => (((max_size.0 - min_size.0) / 2) as i32, 0),
-            Self::TopRight => ((max_size.0 - min_size.0) as i32, 0),
-            Self::Left => (0, ((max_size.1 - min_size.1) / 2) as i32),
-            Self::Center => (((max_size.0 - min_size.0) / 2) as i32, ((max_size.1 - min_size.1) / 2) as i32),
-            Self::Right => ((max_size.0 - min_size.0) as i32, ((max_size.1 - min_size.1) / 2) as i32),
-            Self::BottomLeft => (0, (max_size.1 - min_size.1) as i32),
+            Self::TopCenter => ((max_size.0 as i32 - min_size.0 as i32) / 2, 0),
+            Self::TopRight => (max_size.0 as i32 - min_size.0 as i32, 0),
+            Self::Left => (0, (max_size.1 as i32 - min_size.1 as i32) / 2),
+            Self::Center => ((max_size.0 as i32 - min_size.0 as i32) / 2, (max_size.1 as i32 - min_size.1 as i32) / 2),
+            Self::Right => (max_size.0 as i32 - min_size.0 as i32, (max_size.1 as i32 - min_size.1 as i32) / 2),
+            Self::BottomLeft => (0, max_size.1 as i32 - min_size.1 as i32),
             Self::BottomCenter => (((max_size.0 as i32 - min_size.0 as i32) / 2), (max_size.1 as i32 - min_size.1 as i32)),
             Self::BottomRight => ((max_size.0 as i32 - min_size.0 as i32), (max_size.1 as i32 - min_size.1 as i32)),
             Self::Static(x, y) => (*x, *y)
@@ -101,6 +103,35 @@ impl ColumnOffset {
     }
 }
 
+pub struct Row(pub u32, pub RowOffset);
+
+impl Layout for Row {
+    fn layout(&self, ctx: &mut Context, max_size: (u32, u32), items: Vec<SizeFn>) -> Vec<((i32, i32), (u32, u32))> {
+        let mut offset = 0;
+        items.into_iter().map(|mut i| {
+            let size = i(ctx, (max_size.0-offset, max_size.1));
+            let v = ((offset as i32, self.1.get(max_size.1, size.1)), size);
+            offset += size.0+self.0;
+            v
+        }).collect()
+    }
+}
+
+pub enum RowOffset {
+    Top,
+    Center,
+    Bottom
+}
+
+impl RowOffset {
+    pub fn get(&self, max_height: u32, height: u32) -> i32 {
+        match self {
+            RowOffset::Top => 0,
+            RowOffset::Center => (max_height as i32 - height as i32) / 2,
+            RowOffset::Bottom => max_height as i32 - height as i32
+        }
+    }
+}
 
 // #[macro_export]
 // macro_rules! discard_nonsies {

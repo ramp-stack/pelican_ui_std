@@ -25,11 +25,23 @@ impl Circle {
     }
 }
 
+pub struct RoundedRectangle;
+
+impl RoundedRectangle {
+    pub fn new(w: u32, h: u32, r: u32, bg: Color) -> Shape {
+        Shape(ShapeType::RoundedRectangle(0, (w, h), r), bg)
+    }
+}
+
 pub struct Outline;
 
 impl Outline {
-    pub fn new(s: u32, color: Color) -> Shape {
+    pub fn circle(s: u32, color: Color) -> Shape {
         Shape(ShapeType::Ellipse((s as f32 * 0.06).round() as u32, (s, s)), color)
+    }
+
+    pub fn rounded_rectangle(w: u32, h: u32, r: u32, s: u32, sc: Color) -> Shape {
+        Shape(ShapeType::RoundedRectangle(s, (w, h), r), sc)
     }
 }
 

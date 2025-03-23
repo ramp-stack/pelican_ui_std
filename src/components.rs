@@ -1,6 +1,6 @@
 // pub mod amount_display;
 // pub mod bumper;
-// pub mod button;
+pub mod button;
 // pub mod card;
 pub mod circle_icon;
 // pub mod data_item;
@@ -13,7 +13,7 @@ pub mod circle_icon;
 
 // pub use crate::components::amount_display::*;
 // pub use crate::components::bumper::*;
-// pub use crate::components::button::*;
+pub use crate::components::button::*;
 // pub use crate::components::card::*;
 pub use crate::components::circle_icon::*;
 // pub use crate::components::data_item::*;
