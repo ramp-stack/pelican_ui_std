@@ -27,19 +27,11 @@ impl Plugin for PelicanUI {
 }
 
 pub mod prelude {
-    pub use crate::components::button::Button;
-    // pub use crate::theme::colors::*;
     pub use crate::elements::icon::Icon;
-    // pub use crate::theme::fonts::{Text, TextSize, TextStyle};
-    // pub use crate::{Column, Row};
-    // pub use crate::*;
-    // pub use rust_on_rails::prelude::*;
-    // pub use crate::elements::shapes::Circle;
-    // pub use crate::elements::image::Image as ProfileImage;
-    // pub use crate::ZERO;
-    // pub use crate::layout::{Column, Row, Padding};
     pub use crate::elements::text::{Text, TextStyle};
     pub use crate::components::circle_icon::{CircleIcon, CircleIconContent, CircleIconStyle};
+    // pub use crate::components::list_item::ListItem;
+    // pub use crate::components::button::Button;
     pub use crate::theme::Theme;
     pub use crate::PelicanUI;
 }

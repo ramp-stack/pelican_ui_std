@@ -2,7 +2,7 @@
 use rust_on_rails::prelude::*;
 use std::collections::HashMap;
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct ColorResources { 
     pub background: BackgroundColor, 
     pub outline: OutlineColor, 

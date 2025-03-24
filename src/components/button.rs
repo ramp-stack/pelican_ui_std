@@ -61,9 +61,9 @@ impl Component for Button {
         Container::new(Stack(Offset::Center, Size::Static(width, self.5)), vec![&mut self.0, &mut self.1])
     }
 
-    fn on_click(&mut self, ctx: &mut Context, _max_size: (u32, u32), position: (u32, u32)) { self.7() }
+    fn on_click(&mut self, _ctx: &mut Context, _max_size: (u32, u32), _position: (u32, u32)) { self.7() }
 
-    fn on_move(&mut self, ctx: &mut Context, _max_size: (u32, u32), position: (u32, u32)) {
+    fn on_move(&mut self, ctx: &mut Context, _max_size: (u32, u32), _position: (u32, u32)) {
         let hovering = false; // Detect hovering.
 
         let state = match self.3 {
@@ -76,9 +76,10 @@ impl Component for Button {
         };
 
         let colors = ButtonColorMap::new(ctx).colors_from(self.2, state);
-        if let Shape(ShapeType::RoundedRectangle(_, (_, _), _), c) = &mut self.0.0 {
-            *c = colors.background;
-        }
+
+        if let Shape(ShapeType::RoundedRectangle(_, (_, _), _), c) = &mut self.0.0 { *c = colors.background; }
+        if let Shape(ShapeType::RoundedRectangle(_, (_, _), _), c) = &mut self.0.1 { *c = colors.outline; }
+        if let Some(BasicText(_, c, _, _, _, _)) = &mut self.1.2 { *c = colors.label; }
     }
 }
 

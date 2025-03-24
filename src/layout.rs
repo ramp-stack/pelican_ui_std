@@ -6,8 +6,7 @@ pub enum Size {
     Fit,
     ExpandToFit,
     Fill,
-    Static(u32, u32),
-    Custom(fn((u32, u32), (u32, u32)) -> (u32, u32))
+    Static(u32, u32)
 }
 
 impl Size {
@@ -16,8 +15,7 @@ impl Size {
             Self::Fit =>(min_size.0.min(max_size.0), min_size.1.min(max_size.1)),
             Self::ExpandToFit => min_size,
             Self::Fill => max_size,
-            Self::Static(x, y) => (*x, *y),
-            Self::Custom(func) => func(max_size, min_size)
+            Self::Static(x, y) => (*x, *y)
         }
     }
 }
@@ -71,6 +69,37 @@ impl Layout for Stack {
         }).collect()
     }
 }
+
+// Three variations (Fill, Fit, Fixed(x))
+
+// Two dimensions (Width, Height)
+
+// Size(Fill, Fill)
+// Size(Fit, Fit)
+// Size(Fixed(48), Fixed(48))
+// Size(Fill, Fit)
+// Size(Fill, Fixed(48))
+// Size(Fixed(48), Fill)
+// Size(Fixed(48), Fit)
+// Size(Fit, Fixed(48))
+// Size(Fit, Fill)
+
+// Each 'child' has Size enum
+
+// Calculate space allocated to Fit or Fixed(x) children
+// Divide remaining space amongst Fill children
+
+// If no Fill children, set parent/row/column/stack width to Fit (it's children)
+// If has Fill children, set parent/row/column/stack width to Fill (it's parent)
+
+// Button(Size(Fill, Fixed(48)), children);
+
+// Row(RowOffset::Center, children);
+
+
+
+
+
 
 
 pub struct Column(pub u32, pub ColumnOffset);
