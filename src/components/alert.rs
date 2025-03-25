@@ -13,35 +13,23 @@ use crate::PelicanUI;
 // First item in a file should be top-layer component struct or enum
 // 'User' should never touch the struct, only new functions
 
-pub struct Alert(pub Icon, pub BasicText);
+pub struct Alert(pub Row, pub Icon, pub BasicText);
 
-impl AmountDisplay {
+impl Alert {
     pub fn new(ctx: &mut Context, usd: &'static str, btc: &'static str, err: Option<&'static str>) -> Self {
-        let color = ctx.get::<PelicanUI>().theme.colors.status.warning;
+        let theme = ctx.get::<PelicanUI>().theme;
+        let (color, font_size) = (theme.colors.status.warning, theme.fonts.size.md);
 
-        AmountDisplay (
+        Alert (
+            Row(4, Offset::Center, Size::Fit),
             Icon::new(ctx, "warning", color, 32),
-            Text::new(ctx, title, TextStyle::Heading, font_size)
+            Text::new(ctx, title, TextStyle::Primary, font_size)
         )
     }
 }
 
-impl Component for AmountDisplay {
-    fn build(&mut self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
-        Container::new(Row(4, RowOffset::Center), vec![&mut self.0, &mut self.1])
-    }
-}
-
-pub struct Alert(pub &'static str); 
-
-impl ComponentBuilder for AmountDisplay {
-    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        Row(None, 4, Align::Center, vec![
-            Icon::Warning.build(32, COLORS.status.warning), // Warning Icon
-            Text::primary(ctx, self.0, TextSize::md()) // Warning Text
-        ]).build_children(ctx, max_size)
-    }
-
-    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+impl Component for CircleIcon {
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {vec![&mut self.1, &mut self.2]}
+    fn children_mut(&self) -> Vec<&ComponentRef> {vec![&self.1, &self.2]}
+    fn layout(&self) -> &dyn Layout {&self.0}
 }

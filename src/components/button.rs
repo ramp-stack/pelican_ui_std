@@ -38,6 +38,11 @@ impl Button {
             ButtonSize::Large => (font_size.lg, 48, 24, 24, 12)
         };
 
+        let width = match width {
+            ButtonWidth::Hug => Size::Fit,
+            ButtonWidth::Expand => Size::Fill
+        };
+
         Button(
             _ButtonBackground::new(colors.background, colors.outline, height / 2, height),
             _ButtonContent(

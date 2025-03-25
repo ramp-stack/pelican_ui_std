@@ -10,7 +10,8 @@ use crate::PelicanUI;
 // First item in a file should be top-layer component struct or enum
 // 'User' should never touch the struct, only new functions
 
-pub struct CircleIcon(pub _CircleIconContent, pub Option<Shape>, pub Option<_Flair>);
+#[derive(Clone, Debug)]
+pub struct CircleIcon(Stack, pub _CircleIconContent, pub Option<Shape>, pub Option<_Flair>);
 
 impl CircleIcon {
     pub fn new(ctx: &mut Context, content: CircleIconContent, flair: Option<(&'static str, CircleIconStyle)>, outline: bool, size: u32) -> Self {
@@ -18,6 +19,7 @@ impl CircleIcon {
         let flair_s = (size as f32 / 3.0).round() as u32;
 
         CircleIcon(
+            Stack((Offset::End, Offset::End), (Size::Fit, Size::Fit)),
             _CircleIconContent::new(ctx, content, size),  // Adds primary content
             outline.then(|| Outline::circle(size, black)), // Adds an outline if enabled.
             flair.map(|(name, style)| _Flair::new(ctx, name, style, flair_s)) // Creates a flair if provided.
@@ -26,24 +28,42 @@ impl CircleIcon {
 }
 
 impl Component for CircleIcon {
-    fn build(&mut self, _ctx: &mut Context, _max_size: (u32, u32)) -> Container {
-        let mut children: Vec<&mut dyn Drawable> = vec![];
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
+        let mut children: Vec<&mut ComponentRef> = vec![];
 
         // Adds either an icon or an image.
-        match &mut self.0 {
+        match &mut self.1 {
             _CircleIconContent::Icon(icon) => children.push(icon),
             _CircleIconContent::Image(image) => children.push(image)
         }
 
         // Adds optional outline and flair if they exist.
-        if let Some(outline) = &mut self.1 { children.push(outline); }
-        if let Some(flair) = &mut self.2 { children.push(flair); }
-
-        Container::new(Stack(Offset::BottomRight, Size::default()), children)
+        if let Some(outline) = &mut self.2 { children.push(outline); }
+        if let Some(flair) = &mut self.3 { children.push(flair); }
+        
+        children
     }
+
+    fn children(&self) -> Vec<&ComponentRef> {
+        let mut children: Vec<&ComponentRef> = vec![];
+
+        // Adds either an icon or an image.
+        match &self.1 {
+            _CircleIconContent::Icon(icon) => children.push(icon),
+            _CircleIconContent::Image(image) => children.push(image)
+        }
+
+        // Adds optional outline and flair if they exist.
+        if let Some(outline) = &self.2 { children.push(outline); }
+        if let Some(flair) = &self.3 { children.push(flair); }
+        
+        children
+    }
+    fn layout(&self) -> &dyn Layout {&self.0}
 }
 
 /// Defines available styles for a `CircleIcon`.
+#[derive(Clone, Debug)]
 pub enum CircleIconStyle {
     Primary,
     Secondary,
@@ -69,12 +89,14 @@ impl CircleIconStyle {
 }
 
 /// Defines content types.
+#[derive(Clone, Debug)]
 pub enum CircleIconContent {
     Icon(&'static str, CircleIconStyle),
     Image(resources::Image)
 }
 
 /// Internal enumerator for handling icon content.
+#[derive(Clone, Debug)]
 pub enum _CircleIconContent {
     Icon(_CircleIconData),
     Image(Image)
@@ -90,13 +112,15 @@ impl _CircleIconContent {
 }
 
 /// Stores shape and icon data for a 'CircleIcon'.
-pub struct _CircleIconData(pub Shape, pub Icon);
+#[derive(Clone, Debug)]
+pub struct _CircleIconData(Stack, pub Shape, pub Icon);
 
 impl _CircleIconData {
     pub fn new(ctx: &mut Context, name: &'static str, style: CircleIconStyle, size: u32) -> Self {
         let icon_size = (size as f32 * 0.75).round() as u32;
         let (background, icon_color) = style.get(ctx);
         _CircleIconData(
+            Stack((Offset::Center, Offset::Center), (Size::Fit, Size::Fit)),
             Circle::new(size - 2, background), 
             Icon::new(ctx, name, icon_color, icon_size)
         )
@@ -104,24 +128,28 @@ impl _CircleIconData {
 }
 
 impl Component for _CircleIconData {
-    fn build(&mut self, _ctx: &mut Context, _max_size: (u32, u32)) -> Container {
-        Container::new(Stack(Offset::Center, Size::default()), vec![&mut self.0, &mut self.1])
-    }
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {vec![&mut self.1, &mut self.2]}
+    fn children(&self) -> Vec<&ComponentRef> {vec![&self.1, &self.2]}
+    fn layout(&self) -> &dyn Layout {&self.0}
 }
 
-/// Flair for a 'CircleIcon'.
-//#[derive(Component(Stack(Offset::Center, Size::default())))]
-pub struct _Flair(_CircleIconData, Shape);
+
+#[derive(Clone, Debug)]
+pub struct _Flair(Stack, _CircleIconData, Shape);
 
 impl _Flair {
     pub fn new(ctx: &mut Context, name: &'static str, style: CircleIconStyle, size: u32) -> Self {
         let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
-        _Flair(_CircleIconData::new(ctx, name, style, size), Outline::circle(size, black))
+        _Flair(
+            Stack((Offset::Center, Offset::Center), (Size::Fit, Size::Fit)),
+            _CircleIconData::new(ctx, name, style, size), 
+            Outline::circle(size, black)
+        )
     }
 }
 
 impl Component for _Flair {
-    fn build(&mut self, _ctx: &mut Context, _max_size: (u32, u32)) -> Container {
-        Container::new(Stack(Offset::Center, Size::default()), vec![&mut self.0, &mut self.1])
-    }
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {vec![&mut self.1, &mut self.2]}
+    fn children(&self) -> Vec<&ComponentRef> {vec![&self.1, &self.2]}
+    fn layout(&self) -> &dyn Layout {&self.0}
 }

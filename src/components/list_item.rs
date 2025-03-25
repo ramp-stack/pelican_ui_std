@@ -4,7 +4,7 @@ use crate::elements::icon::Icon;
 use crate::elements::text::{Text, TextStyle};
 use crate::theme::colors::ButtonColorScheme;
 use crate::components::circle_icon::{CircleIcon, CircleIconContent, CircleIconStyle};
-use crate::layout::{Row, RowOffset, Column, ColumnOffset, Stack, Offset, Size};
+use crate::layout::{Row, Column, Stack, Offset, Size};
 use crate::PelicanUI;
 
 // Rules:
@@ -13,7 +13,8 @@ use crate::PelicanUI;
 // First item in a file should be top-layer component struct or enum
 // 'User' should never touch the struct, only new functions
 
-pub struct ListItem(pub CircleIcon, pub CircleIcon); //pub Option<Icon>, pub Option<CircleIcon>, pub _ListItemData);
+#[derive(Clone, Debug)]
+pub struct ListItem(pub Row, pub Option<Icon>, pub Option<CircleIcon>, pub Option<CircleIcon>, pub _ListItemData);
 
 impl ListItem {
     pub fn new(
@@ -28,40 +29,38 @@ impl ListItem {
         circle_icon: Option<CircleIconContent>,
         on_click: fn() -> (),
     ) -> Self {
-        let theme = &ctx.get::<PelicanUI>().theme;
-        let (colors, font_size) = (theme.colors, theme.fonts.size);
-
         ListItem (
+            Row(16, Offset::Center, Size::Fill),
             radio_button.map(|enabled| _RadioButton::new(ctx, enabled)), 
-            circle_icon.map(|data| CircleIcon::new(ctx, data, None, false, 48)),
+            circle_icon.clone().map(|data| CircleIcon::new(ctx, data, None, false, 48)),
             _ListItemData (
-                _LeftData (
-                    _TitleRow (
-                        Text::new(ctx, title, TextStyle::Heading, font_size.h5),
-                        flair.map(|(name, color)| Icon::new(ctx, name, color, 20)),
-                    ),
-                    subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size.xs)),
-                    description.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size.xs)),
-                ),
-                right_title.map(|r_title| { _RightData (
-                    Text::new(ctx, r_title, TextStyle::Heading, font_size.h5),
-                    right_subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size.xs)),
-                )}),
+                Row(8, Offset::Start, Size::Fit),
+                _LeftData::new(title, flair, subtitle, description),
+                right_title.map(|r_title| _RightData::new(r_title, right_subtitle)), 
             )
         )
     }
 }
 
 impl Component for ListItem {
-    fn build(&mut self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
-        let mut children: Vec<&mut dyn Drawable> = vec![];
-        if let Some(radio_button) = &mut self.0 { children.push(radio_button); }
-        if let Some(circle_icon) = &mut self.1 { children.push(circle_icon); }
-        children.push(&mut self.2);
-        Container::new(Row(16, RowOffset::Center), vec![&mut self.0, &mut self.1])
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
+        let mut children: Vec<&mut ComponentRef> = vec![];
+        if let Some(radio_button) = &mut self.1 { children.push(radio_button); }
+        if let Some(circle_icon) = &mut self.2 { children.push(circle_icon); }
+        children.push(&mut self.4);
+        children
     }
+    fn children(&self) -> Vec<&ComponentRef> {
+        let mut children: Vec<&ComponentRef> = vec![];
+        if let Some(radio_button) = &self.1 { children.push(radio_button); }
+        if let Some(circle_icon) = &self.2 { children.push(circle_icon); }    
+        children.push(&self.4);
+        children
+    }
+    fn layout(&self) -> &dyn Layout {&self.0}
 }
 
+#[derive(Clone, Debug)]
 struct _RadioButton;
 
 impl _RadioButton {
@@ -72,45 +71,113 @@ impl _RadioButton {
     }
 }
 
-struct _ListItemData(pub _LeftData, pub Option<_RightData>);
+#[derive(Clone, Debug)]
+struct _ListItemData(pub Row, pub _LeftData, pub Option<_RightData>);
 
 impl Component for _ListItemData {
-    fn build(&mut self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
-        let mut children: Vec<&mut dyn Drawable> = vec![&mut self.0];
-        if let Some(right_data) = &mut self.1 { children.push(right_data); }
-        Container::new(Row(8, RowOffset::Top), children)
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
+        let mut children: Vec<&mut ComponentRef> = vec![&mut self.1];
+        if let Some(right_data) = &mut self.2 { children.push(right_data); }
+        children
     }
+    fn children(&self) -> Vec<&ComponentRef> {
+        let mut children: Vec<&ComponentRef> = vec![&self.1];
+        if let Some(right_data) = &self.2 { children.push(right_data); }
+        children
+    }
+    fn layout(&self) -> &dyn Layout {&self.0}
 }
 
-struct _TitleRow(pub BasicText, pub Option<Icon>);
+#[derive(Clone, Debug)]
+struct _TitleRow(pub Row, pub BasicText, pub Option<Icon>);
+
+impl _TitleRow {
+    pub fn new(title: &'static str, flair: Option<(&'static str, Color)>) -> Self {
+        let font_size = &ctx.get::<PelicanUI>().theme.fonts.size.h5;
+        _TitleRow(
+            Row(8, Offset::Start, Size::Fit),
+            Text::new(ctx, title, TextStyle::Heading, font_size),
+            flair.map(|(name, color)| Icon::new(ctx, name, color, 20)),
+        )
+    }
+}
 
 impl Component for _TitleRow {
-    fn build(&mut self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
-        let mut children: Vec<&mut dyn Drawable> = vec![&mut self.0];
-        if let Some(flair) = &mut self.1 { children.push(flair); }
-        Container::new(Row(8, RowOffset::Center), children)
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
+        let mut children: Vec<&mut ComponentRef> = vec![&mut self.1];
+        if let Some(flair) = &mut self.2 { children.push(flair); }
+        children
     }
+    fn children(&self) -> Vec<&ComponentRef> {
+        let mut children: Vec<&ComponentRef> = vec![&self.1];
+        if let Some(flair) = &self.2 { children.push(flair); }
+        children
+    }
+    fn layout(&self) -> &dyn Layout {&self.0}
 }
 
-struct _LeftData(pub _TitleRow, pub Option<BasicText>, pub Option<BasicText>);
+#[derive(Clone, Debug)]
+struct _LeftData(pub Column, pub _TitleRow, pub Option<BasicText>, pub Option<BasicText>);
+
+impl _LeftData {
+    pub fn new(
+        title: &'static str,
+        flair: Option<(&'static str, Color)>,
+        subtitle: Option<&'static str>,
+        description: Option<&'static str>,
+    ) -> Self {
+        let font_size = &ctx.get::<PelicanUI>().theme.fonts.size.xs;
+        _LeftData (
+            Column(4, Offset::Start, Size::Fit),
+            _TitleRow::new(title, flair),
+            subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size)),
+            description.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size)),
+        )
+    }
+}
 
 impl Component for _LeftData {
-    fn build(&mut self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
-        let mut children: Vec<&mut dyn Drawable> = vec![&mut self.0];
-        if let Some(subtitle) = &mut self.1 { children.push(subtitle); }
-        if let Some(description) = &mut self.2 { children.push(description); }
-        Container::new(Column(4, ColumnOffset::Left), children)
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
+        let mut children: Vec<&mut ComponentRef> = vec![&mut self.1];
+        if let Some(subtitle) = &mut self.2 { children.push(subtitle); }
+        if let Some(description) = &mut self.3 { children.push(description); }
+        children
+    }
+    fn children(&self) -> Vec<&ComponentRef> {
+        let mut children: Vec<&ComponentRef> = vec![&self.1];
+        if let Some(subtitle) = &self.2 { children.push(subtitle); }
+        if let Some(description) = &self.3 { children.push(description); }
+        children
+    }
+    fn layout(&self) -> &dyn Layout {&self.0}
+}
+
+#[derive(Clone, Debug)]
+struct _RightData(pub Column, pub BasicText, pub Option<BasicText>);
+
+impl _RightData {
+    pub fn new(title: &'static str, subtitle: Option<&'static str>) -> Self {
+        let font_size = &ctx.get::<PelicanUI>().theme.fonts.size;
+        _RightData (
+            Column(4, Offset::End, Size::Fit),
+            Text::new(ctx, title, TextStyle::Heading, font_size.h5),
+            subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size.xs)),
+        ),
     }
 }
 
-struct _RightData(pub BasicText, pub Option<BasicText>);
-
 impl Component for _RightData {
-    fn build(&mut self, ctx: &mut Context, max_size: (u32, u32)) -> Container {
-        let mut children: Vec<&mut dyn Drawable> = vec![&mut self.0];
-        if let Some(subtitle) = &mut self.1 { children.push(subtitle); }
-        Container::new(Column(4, ColumnOffset::Right), children)
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
+        let mut children: Vec<&mut ComponentRef> = vec![&mut self.1];
+        if let Some(subtitle) = &mut self.2 { children.push(subtitle); }
+        children
     }
+    fn children(&self) -> Vec<&ComponentRef> {
+        let mut children: Vec<&ComponentRef> = vec![&self.1];
+        if let Some(subtitle) = &self.2 { children.push(subtitle); }
+        children
+    }
+    fn layout(&self) -> &dyn Layout {&self.0}
 }
 
 // pub enum AccountType { Spending, Savings }

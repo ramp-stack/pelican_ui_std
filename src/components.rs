@@ -5,7 +5,7 @@
 pub mod circle_icon;
 // pub mod data_item;
 // pub mod header;
-// pub mod list_item;
+pub mod list_item;
 // pub mod message;
 // pub mod native_keyboard;
 // pub mod navigator;
@@ -18,7 +18,7 @@ pub mod circle_icon;
 pub use crate::components::circle_icon::*;
 // pub use crate::components::data_item::*;
 // pub use crate::components::header::*;
-// pub use crate::components::list_item::*;
+pub use crate::components::list_item::*;
 // pub use crate::components::message::*;
 // pub use crate::components::native_keyboard::*;
 // pub use crate::components::navigator::*;
