@@ -7,13 +7,7 @@ use crate::components::circle_icon::{CircleIcon, CircleIconContent, CircleIconSt
 use crate::layout::{Row, RowOffset, Column, ColumnOffset, Stack, Offset, Size};
 use crate::PelicanUI;
 
-// Rules:
-// Exported structs and enums prefixed with name of the "top-layer" component.
-// If a struct or enum isn’t exported, start its name with _.
-// First item in a file should be top-layer component struct or enum
-// 'User' should never touch the struct, only new functions
-
-struct _DataItem(pub Row, pub Option<_Number>, pub _DataItemContent);
+struct DataItem(pub Row, pub Option<_Number>, pub _DataItemContent);
 
 impl DataItem {
     pub fn new(
@@ -32,6 +26,26 @@ impl DataItem {
     }
 }
 
+impl Component for DataItem {
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
+        let mut children: Vec<&mut ComponentRef> = vec![];
+        if let Some(number) = &mut self.1 { children.push(number); }
+        children.push(&mut self.2)
+        
+        children
+    }
+
+    fn children(&self) -> Vec<&ComponentRef> {
+        let mut children: Vec<&mut ComponentRef> = vec![&self.1];
+        if let Some(number) = &self.1 { children.push(number); }
+        children.push(&self.2)
+        
+        children
+    }
+
+    fn layout(&self) -> &dyn Layout {&self.0}
+}
+
 struct _Number(pub Stack, pub BasicText, pub Shape);
 
 impl _Number {
@@ -46,94 +60,123 @@ impl _Number {
     }
 }
 
+impl Component for _Number {
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> { vec![&mut self.1, &mut self.2] }
+    fn children(&self) -> Vec<&ComponentRef> { vec![&self.1, &self.2] }
+    fn layout(&self) -> &dyn Layout {&self.0}
+}
+
 struct _DataItemContent(pub BasicText, pub BasicText, pub BasicText, pub _Table, pub _QuickActions);
 
 impl _DataItemContent {
-    pub fn new() -> Self {
+    pub fn new(
+        label: &'static str,
+        text: Option<&'static str>,
+        secondary: Option<&'static str>,
+        table: Option<Vec<(&'static str, &'static str)>>,
+        quick_actions: Option<Vec<(&'static str, &'static str)>>,
+    ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         _DataItemContent (
             Text::new(ctx, label, TextStyle::Heading, font_size.h5),
             text.map(|t| Text::new(ctx, t, TextStyle::Primary, font_size.md)),
             secondary.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm)),
+            table.map(|tabulars| _Table::new(ctx, tabulars)),
+            quick_actions.map(|actions| _QuickActions::new(actions)),
         )
     }
 }
 
-struct _Table(pub Stack, pub Vec<_Tabular>);
+impl Component for _DataItemContent {
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
+        let mut children: Vec<&mut ComponentRef> = vec![&mut self.1];
 
-struct _Tabular(pub Row, pub BasicText, pub BasicText);
+        if let Some(text) = &mut self.2 { children.push(text); }
+        if let Some(secondary) = &mut self.3 { children.push(secondary); }
+        if let Some(table) = &mut self.4 { children.push(table); }
+        if let Some(actions) = &mut self.5 { children.push(actions); }
+        
+        children
+    }
+
+    fn children(&self) -> Vec<&ComponentRef> {
+        let mut children: Vec<&mut ComponentRef> = vec![&self.1];
+
+        if let Some(text) = &self.2 { children.push(text); }
+        if let Some(secondary) = &self.3 { children.push(secondary); }
+        if let Some(table) = &self.4 { children.push(table); }
+        if let Some(actions) = &self.5 { children.push(actions); }
+        
+        children
+    }
+
+    fn layout(&self) -> &dyn Layout {&self.0}
+}
+
+struct _Table(pub Column, pub Vec<_Tabular>);
+
+impl _Table {
+    pub fn new(ctx: &mut Context, items: Vec<(&'static str, &'static str)>) -> Self {
+        _Table (
+            Column(0, Offset::Start, Size::Fit),
+            items.iter().map(|(name, data)| _Tabular::new(ctx, name, data)).collect()
+        )
+    }
+}
+
+impl Component for _Table {
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
+        self.1.iter().map(|a| &mut a).collect()
+    }
+    fn children_mut(&self) -> Vec<&ComponentRef> {
+        self.1.iter().map(|a| &a).collect()
+    }
+    fn layout(&self) -> &dyn Layout {&self.0}
+}
+
+struct _Tabular(pub Row, pub BasicText, pub Expand, pub BasicText);
+
+impl _Tabular {
+    pub fn new(ctx: &mut Context, name: &'static str, data: &'static str) -> Self {
+        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
+        _Tabular (
+            Row(0, Offset::Start, Size::Fill),
+            Text::new(ctx, name, TextStyle::Primary, font_size),
+            Expand(true, false),  // Expand width, not height
+            Text::new(ctx, name, TextStyle::Primary, font_size),
+        )
+    }
+}
+
+impl Component for _Tabular {
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {vec![&mut self.1, &mut self.2, &mut self.3]}
+    fn children_mut(&self) -> Vec<&ComponentRef> {vec![&self.1, &self.2, &self.3]}
+    fn layout(&self) -> &dyn Layout {&self.0}
+}
+
+struct Expand;
 
 struct _QuickActions(pub Wrap, pub Vec<Button>);
 
-impl Component for Card {
-    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {vec![&mut self.1, &mut self.2]}
-    fn children_mut(&self) -> Vec<&ComponentRef> {vec![&self.1, &self.2]}
+impl _QuickActions {
+    pub fn new(items: Vec<(&'static str, &'static str)>) -> Self {
+        _QuickActions (
+            Wrap(8, 8, Offset::Start, Size::Fill),
+            items.iter().map(|(icon, label)| Button::secondary(ctx, Some(icon), label, None)).collect()
+        )
+    }
+}
+
+impl Component for _QuickActions {
+    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
+        self.1.iter().map(|a| &mut a).collect()
+    }
+    fn children_mut(&self) -> Vec<&ComponentRef> {
+        self.1.iter().map(|a| &a).collect()
+    }
     fn layout(&self) -> &dyn Layout {&self.0}
 }
-pub struct DataItem {
-    number: Option<&'static str>,
-    label: &'static str,
-    table: Option<Vec<(&'static str, &'static str)>>,
-    text: Option<&'static str>,
-    secondary_text: Option<&'static str>,
-    quick_actions: Option<Vec<(&'static str, &'static str)>>,
-}
 
-impl ComponentBuilder for DataItem {
-    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        let mut children: Vec<Box<dyn ComponentBuilder>> = vec![];
-        let mut contents: Vec<Box<dyn ComponentBuilder>> = vec![];
-
-        contents.push(Text::heading(ctx, self.label, TextSize::h5()));
-
-        if let Some(text) = &self.text { 
-            contents.push(Text::primary(ctx, self.text, TextSize::md())); 
-        }
-
-        if let Some(secondary_text) = &self.secondary_text { 
-            contents.push(Text::secondary(ctx, self.secondary_text, TextSize::sm())); 
-        }
-
-        if !self.table.is_empty() { 
-            let tabulars = &self.table
-                .into_iter()
-                .map(|row| {
-                    Row(ZERO, AUTO, Align::Center, vec![
-                        Text::primary(ctx, row.0, TextSize::sm()),
-                        Text::primary(ctx, row.1, TextSize::sm())
-                    ])
-                }).collect();
-
-            contents.push(Column(ZERO, 0, Align::Left, tabulars));
-        }
-
-        if !self.quick_actions.is_empty() { 
-            let buttons = &self.quick_actions
-                .into_iter()
-                .map(|label| {
-                    Button::secondary(label, Icon::Edit, Size::Medium, Width::Hug)
-                }).collect();
-
-            contents.push(Row(ZERO, 8, Align::Left, buttons));
-        }
-
-        if let Some(num) = self.number { 
-            children.push(
-                Stack(ZERO, Align::Center, vec![
-                    Circle(32, COLORS.background.secondary, None),
-                    Text::heading(ctx, num, TextSize::h5())
-                ])
-            ); 
-        }
-
-        children.push(Column(ZERO, 16, Align::Left, contents));
-
-        Row(ZERO, 16, Align::Left, children).build_children(ctx, max_size)
-    }
-
-    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
-}
 
 // let confirm_amount = DataItem {
 //     number: Some("2"),

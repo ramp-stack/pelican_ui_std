@@ -28,9 +28,9 @@ impl Plugin for PelicanUI {
 
 pub mod prelude {
     pub use crate::elements::icon::Icon;
-    pub use crate::elements::text::{Text, TextStyle};
-    pub use crate::components::circle_icon::{CircleIcon, CircleIconContent, CircleIconStyle};
-    pub use crate::components::list_item::ListItem;
+    // pub use crate::elements::text::{Text, TextStyle};
+    pub use crate::components::avatar::{Avatar, AvatarContent, CircleIconStyle};
+    // pub use crate::components::list_item::ListItem;
     // pub use crate::components::button::Button;
     pub use crate::theme::Theme;
     pub use crate::PelicanUI;

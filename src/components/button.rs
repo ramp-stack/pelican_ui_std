@@ -9,12 +9,6 @@ use crate::components::circle_icon::{CircleIcon, CircleIconContent};
 use crate::layout::{Stack, Offset, Size, Row, RowOffset};
 use crate::PelicanUI;
 
-// Rules:
-// Exported structs and enums prefixed with name of the "top-layer" component.
-// If a struct or enum isn’t exported, start its name with _.
-// First item in a file should be top-layer component struct or enum
-// 'User' should never touch the struct, only new functions
-
 pub struct Button(pub _ButtonBackground, pub _ButtonContent, pub ButtonStyle, pub ButtonState, pub ButtonWidth, pub u32, pub u32, pub fn() -> ());
 
 impl Button {
@@ -88,19 +82,24 @@ impl Component for Button {
     }
 }
 
-pub struct _ButtonContent(Option<CircleIcon>, Option<Icon>, Option<BasicText>, Option<Icon>, u32);
+#[derive(Clone, Debug, Component)]
+pub struct ButtonContent(Row, Option<Avatar>, Option<Icon>, Option<BasicText>, Option<Icon>);
 
-impl Component for _ButtonContent {
-    fn build(&mut self, _ctx: &mut Context, max_size: (u32, u32)) -> Container {
-        let mut children: Vec<&mut dyn Drawable> = vec![];
-
-        if let Some(icon) = &mut self.3 { children.push(icon); }
-        if let Some(label) = &mut self.2 { children.push(label); }
-        if let Some(icon) = &mut self.1 { children.push(icon); }
-        if let Some(image) = &mut self.0 { children.push(image); }
-
-        Container::new(Row(self.4, RowOffset::Center), children)
-        // Container::new(Stack(Offset::default(), Size::default()), children)
+impl ButtonContent {
+    fn new(size: ButtonSize, avatar: Option<AvatarContent>, l_icon: Option<&'static str>, label: Option<&'static str>, r_icon: Option<&'static str>, color: Color) -> Self {
+        let (text_size, icon_size, spacing) = size.content();
+        ButtonContent(
+            Row::center(spacing),
+            avatar.map(|content| Avatar::new(ctx, content, None, false, icon_size)),
+            icon_l.map(|icon| Icon::new(ctx, icon, color, icon_size)),
+            label.map(|label| Text::new(ctx, label, TextStyle::Label(color), text_size)),
+            icon_r.map(|icon| Icon::new(ctx, icon, color, icon_size)),
+        )
+    }
+    fn color(&mut self, color: Color) {
+        if let Some(Icon(_, Image(_, _, c))) = &mut self.2 { *c = Some(color); }
+        if let Some(BasicText(_, c, _, _, _, _)) = &mut self.3 { *c = color; }
+        if let Some(Icon(_, Image(_, _, c))) = &mut self.4 { *c = Some(color); }
     }
 }
 
@@ -153,6 +152,21 @@ pub enum ButtonWidth {
 pub enum ButtonSize {
     Large,
     Medium,
+}
+
+impl ButtonSize {
+    pub fn content(&self) -> (u32, u32, u32) { // text size, icon size, spacing
+        match size {
+            ButtonSize::Medium => (font_size.md, 16, 4),
+            ButtonSize::Large => (font_size.lg, 24, 12)
+        }
+    } 
+    pub fn background(&self) -> (u32, u32) { // height, padding
+        match size {
+            ButtonSize::Medium => (32, 12),
+            ButtonSize::Large => (48, 24)
+        }
+    } 
 }
 
 #[derive(Default, Clone)]

@@ -12,6 +12,28 @@ pub struct TextMessage {
     time: DateTime,
 }
 
+pub struct TextMessage(pub Row, pub CircleIcon, pub _TextMessage);
+
+impl TextMessage {
+    pub fn new(
+        style: MessageType,
+        messages: Vec<&'static str>,
+        sender: Profile,
+        time: DateTime,
+    ) -> Self {
+        TextMessage (
+            Row(8, Offset::Start, Size::Fit),
+            
+        )
+    }
+}
+
+struct _TextMessage(pub Column, pub _MessageBubbles, pub _MessageData);
+
+struct _MessageBubbles(pub Column, pub Vec<_MessageBubble>);
+
+enum
+
 impl ComponentBuilder for TextMessage {
     fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
         let mut row: Vec<Box<dyn ComponentBuilder>> = vec![];
@@ -97,3 +119,5 @@ pub enum MessageType {
     Group,
     Rooms,
 }
+
+pub struct DateTime(date: &'static str, time: &'static str);
