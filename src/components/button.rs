@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::images::Icon;
+use crate::elements::icon::Icon;
 use crate::elements::shapes::{RoundedRectangle, Outline};
 use crate::elements::text::{Text, TextStyle};
 use crate::theme::colors::ButtonColorScheme;
@@ -23,10 +23,9 @@ impl Button {
         state: ButtonState,
         on_click: fn(&mut Context, (u32, u32)) -> (),
     ) -> Self {
+
         let colors = ButtonColor::get(ctx, style, state);
-
         let content = ButtonContent::new(ctx, avatar, icon_l, label, icon_r, size, colors.label);
-
         let (height, padding) = size.background();
 
         let width = match width {
@@ -165,7 +164,7 @@ pub enum ButtonState {
 #[derive(Default, Clone)]
 pub struct ButtonColor;
 impl ButtonColor {
-    fn get(ctx: &mut Context, style: ButtonStyle, state: ButtonState) -> ButtonColorScheme {
+    pub fn get(ctx: &mut Context, style: ButtonStyle, state: ButtonState) -> ButtonColorScheme {
         let schemes = &ctx.get::<PelicanUI>().theme.colors.button;
         match (style, state) {
             (ButtonStyle::Primary, ButtonState::Default) => schemes.primary_default,

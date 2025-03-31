@@ -1,3 +1,3 @@
 pub mod shapes;
-pub mod images;
+pub mod icon;
 pub mod text;

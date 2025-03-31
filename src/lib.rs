@@ -26,7 +26,7 @@ impl PelicanUI {
 pub mod prelude {
     pub use crate::layout::*;
     pub use crate::components::*;
-    pub use crate::elements::images::{Icon, CircleIconStyle};
+    pub use crate::elements::icon::Icon;
     // pub use crate::elements::text::{Text, TextStyle};
     pub use crate::theme::Theme;
     pub use crate::PelicanUI;

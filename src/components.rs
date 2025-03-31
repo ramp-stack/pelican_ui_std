@@ -4,6 +4,12 @@ pub use avatar::*;
 pub mod button;
 pub use button::*;
 
+pub mod icon_button;
+pub use icon_button::*;
+
+pub mod text_input;
+pub use text_input::*;
+
 // pub mod amount_display;
 // pub mod bumper;
 // pub mod button;

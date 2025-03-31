@@ -1,8 +1,9 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
+use crate::layout::{Stack, Offset, Size};
 use crate::PelicanUI;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum TextStyle {
     Heading,
     Primary,
@@ -12,23 +13,50 @@ pub enum TextStyle {
     Label(Color),
 }
 
-#[derive(Clone)]
+impl TextStyle {
+    pub fn get(&self, ctx: &mut Context) -> (Color, resources::Font) {
+        let theme = &ctx.get::<PelicanUI>().theme;
+        match self {
+            TextStyle::Heading => (theme.colors.text.heading, theme.fonts.fonts.heading.clone()),
+            TextStyle::Primary => (theme.colors.text.primary, theme.fonts.fonts.text.clone()),
+            TextStyle::Secondary => (theme.colors.text.secondary, theme.fonts.fonts.text.clone()),
+            TextStyle::Error => (theme.colors.text.danger, theme.fonts.fonts.text.clone()),
+            TextStyle::White => (theme.colors.text.heading, theme.fonts.fonts.text.clone()),
+            TextStyle::Label(color) => (*color, theme.fonts.fonts.label.clone())
+        }
+    }
+}
+
 pub struct Text;
 
 impl Text {
     pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: u32) -> BasicText {
-        let theme = &ctx.get::<PelicanUI>().theme;
-        let (colors, fonts) = (theme.colors.text, theme.fonts.fonts.clone());
-
-        let (color, font) = match style {
-            TextStyle::Heading => (colors.heading, fonts.heading.clone()),
-            TextStyle::Primary => (colors.primary, fonts.text.clone()),
-            TextStyle::Secondary => (colors.secondary, fonts.text.clone()),
-            TextStyle::Error => (colors.danger, fonts.text.clone()),
-            TextStyle::White => (colors.heading, fonts.text.clone()),
-            TextStyle::Label(label_color) => (label_color, fonts.label.clone())
-        };
-
+        let (color, font) = style.get(ctx);
         BasicText::new(text, color, None, size, (size as f32*1.25) as u32, font)
+    }
+}
+
+#[derive(Clone, Debug, Component)]
+pub struct ExpandableText(Stack, BasicText);
+
+impl ExpandableText {
+    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: u32) -> Self {
+        let (color, font) = style.get(ctx);
+        ExpandableText(
+            Stack(Offset::default(), Offset::default(), Size::Fill(MinSize(0), MaxSize(u32::MAX)), Size::Fit),
+            BasicText::new(text, color, None, size, (size as f32*1.25) as u32, font)
+        )
+    }
+}
+
+impl Events for ExpandableText {
+    fn on_click(&mut self, ctx: &mut Context, position: Option<(u32, u32)>) -> bool {
+        println!("p: {:?}", position);
+        true
+    }
+    fn on_resize(&mut self, _ctx: &mut Context, size: (u32, u32)) {
+        if let BasicText(_, _, min_width, _, _, _) = &mut self.1 {
+            *min_width = Some(size.0);
+        }
     }
 }

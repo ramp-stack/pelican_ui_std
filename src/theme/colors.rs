@@ -48,7 +48,8 @@ pub struct ShadesColor {
     pub lighten: Color,
     pub lighten2: Color,
     pub darken: Color,
-    pub darken2: Color
+    pub darken2: Color,
+    pub transparent: Color
 }
 
 impl Default for ShadesColor {
@@ -59,7 +60,8 @@ impl Default for ShadesColor {
             lighten: Color::from_hex("ffffff", 20),
             lighten2: Color::from_hex("ffffff", 40),
             darken: Color::from_hex("000000", 20),
-            darken2: Color::from_hex("000000", 40)
+            darken2: Color::from_hex("000000", 40),
+            transparent: Color::from_hex("000000", 0),
         }
     }
 }

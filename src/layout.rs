@@ -103,7 +103,7 @@ impl Offset {
             Self::Start => 0,
             Self::Center => (max_size as i32 - item as i32) / 2,
             Self::End => max_size as i32 - item as i32,
-            Self::Static(s) => *s,
+            Self::Static(s) => *s as i32,
         }
     }
 
@@ -164,5 +164,22 @@ impl Layout for Stack {
             self.3.get().unwrap_or_else(|| Stack::fit(heights))
         );
         SizeInfo::new(size.0.0, size.1.0, size.0.1, size.1.1)
+    }
+}
+
+#[derive(Debug, Clone, Component)]
+pub struct Padding<D: Drawable + Clone>(Stack, D);
+impl<D: Drawable + Clone> Events for Padding<D> {}
+
+impl<D: Drawable + Clone> Padding<D> {
+    pub fn new(ctx: &mut Context, item: D, padding: (u32, u32, u32, u32)) -> Self {
+        let size = item.size(ctx);
+        let wp = padding.0+padding.2;
+        let hp = padding.1+padding.3;
+        Padding(Stack(
+            Offset::Static(padding.0 as i32), Offset::Static(padding.1 as i32), 
+            Size::Fill(size.min_width()+MinSize(padding.2), size.max_width()-MaxSize(padding.2)),
+            Size::Fill(size.min_height()+MinSize(padding.3), size.max_height()-MaxSize(padding.3))
+        ), item)
     }
 }
