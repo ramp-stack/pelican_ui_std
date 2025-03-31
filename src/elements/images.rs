@@ -1,6 +1,7 @@
 use rust_on_rails::prelude::*;
 use crate::PelicanUI;
 use crate::layout::{Stack, Offset, Size};
+use crate::elements::shapes::Circle;
 
 #[derive(Clone, Debug, Component)]
 pub struct Icon(Stack, pub Image);
@@ -12,6 +13,11 @@ impl Icon {
             Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit),
             Image(ShapeType::Rectangle(0, (size, size)), theme.icons.get(name), Some(color))
         )
+    }
+
+    pub fn set_color(&mut self, color: Color) {
+        let Image(_, _, c) = &mut self.1;
+        *c = Some(color);
     }
 }
 impl Events for Icon {}

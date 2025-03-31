@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
-use crate::elements::icon::{Icon, CircleIcon, CircleIconStyle};
-use crate::elements::shapes::{Circle, Outline};
+use crate::elements::images::{CircleIcon, CircleIconStyle};
+use crate::elements::shapes::Outline;
 use crate::layout::{Stack, Offset, Size};
 use crate::PelicanUI;
 
@@ -42,7 +42,7 @@ impl Flair {
         let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
         Flair(
             Stack::center(),
-            CircleIcon::new(ctx, name, style, size), 
+            CircleIcon::new(ctx, name, style, size),
             Outline::circle(size, black)
         )
     }

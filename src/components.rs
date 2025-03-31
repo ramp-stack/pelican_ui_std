@@ -1,8 +1,13 @@
+pub mod avatar;
+pub use avatar::{Avatar, AvatarContent};
+
+pub mod button;
+pub use button::{Button, ButtonSize, ButtonWidth, ButtonStyle};
+
 // pub mod amount_display;
 // pub mod bumper;
 // pub mod button;
 // pub mod card;
-pub mod avatar;
 // pub mod data_item;
 // pub mod header;
 // pub mod list_item;
@@ -15,7 +20,6 @@ pub mod avatar;
 // pub use crate::components::bumper::*;
 // pub use crate::components::button::*;
 // pub use crate::components::card::*;
-pub use avatar::{Avatar, AvatarContent, CircleIconStyle};
 // pub use crate::components::data_item::*;
 // pub use crate::components::header::*;
 // pub use crate::components::list_item::*;

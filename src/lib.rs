@@ -1,12 +1,13 @@
-pub mod components;
 pub mod theme;
 pub mod layout;
 pub mod elements;
+pub mod components;
 
 use rust_on_rails::prelude::*;
 
 use crate::theme::Theme;
 
+#[derive(Plugin)]
 pub struct PelicanUI {
     pub theme: Theme,
 }
@@ -22,16 +23,12 @@ impl PelicanUI {
     }
 }
 
-impl Plugin for PelicanUI {
-    fn name() -> &'static str { "Pelican UI" }
-}
-
 pub mod prelude {
-    pub use crate::elements::icon::Icon;
+    pub use crate::elements::images::{Icon, CircleIconStyle};
     // pub use crate::elements::text::{Text, TextStyle};
-    pub use crate::components::avatar::{Avatar, AvatarContent, CircleIconStyle};
+    pub use crate::components::avatar::{Avatar, AvatarContent};
     // pub use crate::components::list_item::ListItem;
-    // pub use crate::components::button::Button;
+    pub use crate::components::button::{Button, ButtonStyle, ButtonWidth, ButtonSize, ButtonState};
     pub use crate::theme::Theme;
     pub use crate::PelicanUI;
 }
