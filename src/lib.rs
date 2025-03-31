@@ -24,11 +24,10 @@ impl PelicanUI {
 }
 
 pub mod prelude {
+    pub use crate::layout::*;
+    pub use crate::components::*;
     pub use crate::elements::images::{Icon, CircleIconStyle};
     // pub use crate::elements::text::{Text, TextStyle};
-    pub use crate::components::avatar::{Avatar, AvatarContent};
-    // pub use crate::components::list_item::ListItem;
-    pub use crate::components::button::{Button, ButtonStyle, ButtonWidth, ButtonSize, ButtonState};
     pub use crate::theme::Theme;
     pub use crate::PelicanUI;
 }
