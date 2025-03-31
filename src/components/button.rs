@@ -55,6 +55,7 @@ impl Events for Button {
         false
     }
     fn on_move(&mut self, ctx: &mut Context, position: Option<(u32, u32)>) -> bool {
+        println!("move: {:?}", position);
         match (position.is_some(), self.4) {
             (true, ButtonState::Default) => self.set_state(ctx, ButtonState::Hover),
             (false, ButtonState::Hover) => self.set_state(ctx, ButtonState::Default),
@@ -95,7 +96,7 @@ impl ButtonBackground {
         ButtonBackground(
             Stack(Offset::Center, Offset::Center, width, Size::Fit),
             RoundedRectangle::new(100, height, height/2, bg),
-            Outline::rounded_rectangle(100, height, height/2, 3, oc)
+            Outline::rounded_rectangle(100, height, height/2, 1, oc)
         )
     }
 
