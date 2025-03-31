@@ -35,11 +35,17 @@ impl Layout for Row {
                 if width < max_width { //I can expand
                     match me {
                         Some(w) if w < width => {
+                            println!("w: {:?}, width: {:?}", w, width);
                             ne = ne.min(width-w);//Next size could be the min size of next expandable block
                         },
                         Some(w) if w == width => {
                             ne = ne.min(max_width-width);//Next size could be the max size of one of the smallest items
                             c += 1.0;
+                        },
+                        Some(w) if w > width => {
+                            ne = ne.min(max_width-width).min(w-width);//Next size could be the max size of one of the smallest items
+                            me = Some(width);
+                            c = 1.0;
                         },
                         _ => {
                             ne = ne.min(max_width-width);//Next size could be the max size of one of the smallest items
@@ -50,9 +56,11 @@ impl Layout for Row {
                 }
                 (me, c, ne)
             });
+            println!("ne: {:?}", next);
             if min_exp.is_none() {break;}
             let min_exp = min_exp.unwrap();
 
+            println!("finish");
             let expand = (next*count).min(free_space);//Next size could be the rest of the free_space
             free_space -= expand;
             let expand = expand / count;
