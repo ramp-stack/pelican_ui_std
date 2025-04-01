@@ -48,7 +48,7 @@ impl Events for IconButton {
         false
     }
     fn on_move(&mut self, ctx: &mut Context, position: Option<(u32, u32)>) -> bool {
-        println!("move: {:?}", position);
+        // println!("move: {:?}", position);
         match (position.is_some(), self.5) {
             (true, ButtonState::Default) => self.set_state(ctx, ButtonState::Hover),
             (false, ButtonState::Hover) => self.set_state(ctx, ButtonState::Default),

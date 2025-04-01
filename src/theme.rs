@@ -3,15 +3,18 @@ use rust_on_rails::prelude::Context;
 use colors::ColorResources;
 use fonts::FontResources;
 use icons::IconResources;
+use brand::BrandResources;
 
 pub mod colors;
 pub mod fonts;
 pub mod icons;
+pub mod brand;
 
 pub struct Theme {
     pub colors: ColorResources,
     pub fonts: FontResources,
     pub icons: IconResources,
+    pub brand: BrandResources,
 }
 
 impl Theme {
@@ -19,27 +22,15 @@ impl Theme {
         Theme {
             colors: ColorResources::default(),
             fonts: FontResources::default(ctx),
-            icons: IconResources::default(ctx)
+            icons: IconResources::default(ctx),
+            brand: BrandResources::default(ctx)
         }
     }
 
     pub fn new(
         colors: ColorResources, 
         fonts: FontResources, 
-        icons: IconResources
-    ) -> Self {
-        Theme { colors, fonts, icons }
-    }
-
-    pub fn set_colors(&mut self, colors: ColorResources) {
-        self.colors = colors;
-    }
-
-    pub fn set_fonts(&mut self, fonts: FontResources) {
-        self.fonts = fonts;
-    }
-
-    pub fn set_icons(&mut self, icons: IconResources) {
-        self.icons = icons;
-    }
+        icons: IconResources,
+        brand: BrandResources,
+    ) -> Self { Theme { colors, fonts, icons, brand } }
 }

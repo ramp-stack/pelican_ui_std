@@ -21,21 +21,22 @@ impl Button {
         width: ButtonWidth,
         style: ButtonStyle,
         state: ButtonState,
+        offset: Offset,
         on_click: fn(&mut Context, (u32, u32)) -> (),
     ) -> Self {
-
         let colors = ButtonColor::get(ctx, style, state);
         let content = ButtonContent::new(ctx, avatar, icon_l, label, icon_r, size, colors.label);
         let (height, padding) = size.background();
-
         let width = match width {
-            ButtonWidth::Hug => Size::Fit,
+            ButtonWidth::Hug => Size::Static(content.size(ctx).min_width().0+(padding*2)),
             ButtonWidth::Expand => Size::Fill(content.size(ctx).min_width()+(padding*2), MaxSize::MAX)
         };
 
         let background = ButtonBackground::new(colors.background, colors.outline, width, height);
 
-        Button(Stack::center(), background, content, style, state, on_click)
+        let layout = Stack(offset, Offset::Center, Size::Fit, Size::Fit);
+
+        Button(layout, background, content, style, state, on_click)
     }
 
     pub fn set_state(&mut self, ctx: &mut Context, state: ButtonState) {
@@ -54,7 +55,7 @@ impl Events for Button {
         false
     }
     fn on_move(&mut self, ctx: &mut Context, position: Option<(u32, u32)>) -> bool {
-        println!("move: {:?}", position);
+        // println!("move: {:?}", position);
         match (position.is_some(), self.4) {
             (true, ButtonState::Default) => self.set_state(ctx, ButtonState::Hover),
             (false, ButtonState::Hover) => self.set_state(ctx, ButtonState::Default),
@@ -202,6 +203,7 @@ impl Button {
             ButtonWidth::Expand,
             ButtonStyle::Primary,
             ButtonState::Default,
+            Offset::Center,
             on_click
         )
     }
@@ -223,6 +225,7 @@ impl Button {
             ButtonWidth::Hug,
             ButtonStyle::Secondary,
             ButtonState::Default,
+            Offset::Center,
             on_click
         )
     }
@@ -242,6 +245,7 @@ impl Button {
             ButtonWidth::Hug,
             ButtonStyle::Ghost,
             ButtonState::Default,
+            Offset::Center,
             on_click
         )
     }
@@ -262,6 +266,7 @@ impl Button {
             ButtonWidth::Hug,
             ButtonStyle::Ghost,
             ButtonState::Default,
+            Offset::Center,
             on_click
         )
     }
@@ -283,6 +288,7 @@ impl Button {
             ButtonWidth::Expand,
             ButtonStyle::Ghost,
             if selected {ButtonState::Selected} else {ButtonState::Default},
+            Offset::Start,
             on_click
         )
     }
@@ -304,6 +310,7 @@ impl Button {
             ButtonWidth::Expand,
             ButtonStyle::Ghost,
             if selected {ButtonState::Selected} else {ButtonState::Default},
+            Offset::Start,
             on_click
         )
     }
