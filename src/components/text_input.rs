@@ -77,7 +77,7 @@ impl Events for TextInput {
 }
 
 #[derive(Clone, Debug, Component)]
-pub struct InputContent(Row, Option<BasicText>, ExpandableText, #[skip] &'static str, Option<IconButton>);
+pub struct InputContent(Row, ExpandableText, #[skip] &'static str, Option<IconButton>);
 impl Events for InputContent {}
 
 impl InputContent {
