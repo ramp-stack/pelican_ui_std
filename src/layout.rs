@@ -249,3 +249,42 @@ impl Layout for Stack {
 #[derive(Debug, Clone, Component)]
 pub struct Bin<L: Layout + Clone, D: Drawable + Clone>(pub L, pub D);
 impl<L: Layout + Clone, D: Drawable + Clone> Events for Bin<L, D> {}
+
+pub struct Opt<D: Drawable + Clone>(Stack, Option<D>, #[skip] Option<D>);
+impl<D: Drawable + Clone> Events for Opt<D> {}
+
+impl<D: Drawabel + Clone> Opt<D> {
+    pub fn new(item: D, display: bool) -> Self {
+        match display {
+            true => Opt(Stack::default(), Some(item), None),
+            false => Opt(Stack::default(), None, Some(item)),
+        }
+    }
+
+    pub fn display(&mut self, display: bool) {
+        match display {
+            true if self.1.is_none() => self.1.insert(self.2.take().unwrap()),
+            false if self.2.is_none() => self.2.insert(self.1.take().unwrap()),
+        } 
+    }
+
+    pub fn inner(&mut self) -> &mut D {self.1.as_mut().unwrap_or_else(|| self.2.as_mut().unwrap())}
+}
+
+//Switch out D and O for L and R. Rename to some other 3 letter synonme or abreviation for Either
+pub struct Eth<D: Drawable + Clone, O: Drawable + Clone>(Stack, Opt<D>, Opt<O>);
+impl<D: Drawable + Clone, O: Drawable + Clone> Events for Eth<D, O> {}
+
+impl<D: Drawabel + Clone, O: Drawable + Clone> Eth<D, O> {
+    pub fn new(left: D, right: D) -> Self {
+        Eth(Stack::default(), Opt::new(left, true), Opt::new(right, false))
+    }
+
+    pub fn display_left(&mut self, display_left: bool) {
+        self.1.display(display_left);
+        self.2.display(!display_left);
+    }
+
+    pub fn left(&mut self) -> &mut D {self.1.inner()}
+    pub fn right(&mut self) -> &mut O {self.2.inner()}
+}

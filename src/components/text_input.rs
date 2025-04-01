@@ -7,7 +7,7 @@ use crate::layout::{Padding, Column, Stack, Offset, Size, Row};
 use crate::PelicanUI;
 
 #[derive(Debug, Clone, Component)]
-pub struct TextInput(Column, Option<BasicText>, InputField, Option<BasicText>);
+pub struct TextInput(Column, Opt<BasicText>, InputField, Opt<BasicText>);
 impl Events for TextInput {}
 
 impl TextInput {
@@ -16,7 +16,6 @@ impl TextInput {
         label: Option<&'static str>,
         placeholder: &'static str,
         help_text: Option<&'static str>,
-        error: Option<&'static str>,
         icon_button: Option<(&'static str, fn(&mut Context, (u32, u32)) -> ())>,
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
@@ -41,10 +40,8 @@ impl TextInput {
     }
 }
 
-
-
 #[derive(Clone, Debug, Component)]
-struct InputField(Stack, InputBackground, InputContent, #[skip] InputState);
+struct InputField(Stack, InputBackground, InputContent, #[skip] InputState, #[skip] bool);
 
 impl InputField {
     pub fn new(
@@ -59,66 +56,37 @@ impl InputField {
         let height = content.size(ctx).min_height().0;
         let background = InputBackground::new(background, outline, width, height);
 
-        InputField(Stack::center(), background, content, state)
+        InputField(Stack::center(), background, content, state, false)
     }
 
-    fn set_state(&mut self, ctx: &mut Context, state: InputState) {
-        if self.3 != state {
-            self.3 = state;
-            let (background, outline) = state.get_color(ctx);
-            self.1.set_color(background, outline);
-        }
+    pub fn set_error(&mut self, error: bool) {
+        self.4 = error;
+        if let Some(state) = self.3.toggle_error(self.4) {self.set_state(state);}
+    } 
+
+    fn set_state(&mut self, state: InputState) {
+        let (background, outline) = state.get_color(ctx);
+        *self.1.background() = background;
+        *self.1.outline() = outline;
+        *self.2.focus() = state == InputState::Focus;
     }
 }
 
 impl Events for InputField {
-    fn on_click(&mut self, ctx: &mut Context, position: Option<(u32, u32)>) -> bool {
-        match (position.is_some(), self.3) {
-            (true, _) => self.set_state(ctx, InputState::Focus),
-            (false, InputState::Focus) => self.set_state(ctx, InputState::Default),
-            _ => {}
-        };
-
-        match self.3 {
-            InputState::Focus => *self.2.input().placeholder() = None,
-            _ => {
-                let len = self.2.input().value().len();
-                let pt = self.2.input().get_placeholder();
-                match len>0{
-                    true => *self.2.input().placeholder() = None,
-                    false => *self.2.input().placeholder() = Some(pt)
-                }
-            }
-        }
-
-        // Remove after implementing cursor system 
-        *self.2.input().cursor() = match self.3 {
-            InputState::Focus => "|".to_string(),
-            _ => String::new(),
-        };
-
+    fn on_mouse(&mut self, ctx: &mut Context, event: MouseEvent) -> bool {
+        if let Some(state) = self.3.handle(event, self.4) {self.set_state(state);}
         true
     }
-    fn on_move(&mut self, ctx: &mut Context, position: Option<(u32, u32)>) -> bool {
-        match (position.is_some(), self.3) {
-            (true, InputState::Default) => self.set_state(ctx, InputState::Hover),
-            (false, InputState::Hover) => self.set_state(ctx, InputState::Default),
-            _ => {}
-        };
-        true
-    }
-    fn on_press(&mut self, _ctx: &mut Context, text: String) -> bool {
-        match self.3 {
-            InputState::Focus => {
-                let t = self.2.input().value();
-                *t = match text.as_str() {
-                    "\u{7f}" => if t.len()>0 {(&t[0..t.len() - 1]).to_string()} else {String::new()}, // delete char
-                    _ => t.clone().to_owned()+&text // add character
-                };
-            },
-            _ => {}
+    
+    fn on_keyboard(&mut self, _ctx: &mut Context, event: KeyboardEvent) -> bool {
+        if self.3 == InputState::Focus {
+            let t = self.2.input();
+            *t = match event.text.as_str() {
+                "\u{7f}" => if t.len()>0 {(&t[0..t.len() - 1]).to_string()} else {String::new()}, // delete char
+                c => t.clone().to_owned()+c // add character
+            };
         }
-        true
+        false
     }
 }
 
@@ -128,77 +96,46 @@ impl Events for InputBackground {}
 
 impl InputBackground {
     fn new(bg: Color, oc: Color, width: Size, height: u32) -> Self {
-        InputBackground(
+        InputBackground(//TODO: Change RoundedRectangle to no longer accept width or height but always expand, Change size::Fit to Static(height)
             Stack(Offset::Center, Offset::Center, width, Size::Fit, Padding::default()),
             RoundedRectangle::new(0, None, Some(height), 8, bg),
             RoundedRectangle::new(1, None, Some(height), 8, oc)
         )
     }
 
-    fn set_color(&mut self, bg: Color, oc: Color) {
-        *self.1.shape().color() = bg;
-        *self.2.shape().color() = oc;
-    }
+    fn background(&mut self) -> &mut Color {self.1.shape().color()}
+    fn outline(&mut self) -> &mut Color {self.2.shape().color()}
 }
 
 #[derive(Clone, Debug, Component)]
-struct InputContent(Row, Input, Option<IconButton>);
-impl Events for InputContent {}
+struct InputContent(Row, Eth<ExpandableText, ExpandableText>, Option<IconButton>, #[skip] bool);
 
 impl InputContent {
     fn new(
         ctx: &mut Context, 
         placeholder: &'static str, 
-        icon_button: Option<(&'static str, fn(&mut Context, (u32, u32)) -> ())>
+        icon_button: Option<IconButton>
     ) -> Self {
+        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.md;
+
         InputContent(
-            Row(8, Offset::Center, Size::Fit, Padding(8, 8, 8, 8)),
-            Input::new(ctx, placeholder),
-            icon_button.map(|(icon, on_click)| IconButton::input(ctx, icon, on_click))
+            Row(16, Offset::Center, Size::Fit, Padding(16, 8, 8, 8)),
+            Eth::new(
+                ExpandableText::new(ctx, "", TextStyle::Primary, font_size),
+                ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size),
+            ),
+            icon_button
         )
     }
 
-    fn input(&mut self) -> &mut Input { &mut self.1 }
+    fn input(&mut self) -> &mut String { &mut self.1.right().value() }
+    fn focus(&mut self) -> &mut bool {&mut self.3}
 }
 
-#[derive(Clone, Debug, Component)]
-struct Input(Stack, InputValue, Option<ExpandableText>, #[skip] ExpandableText);
-impl Events for Input {}
-
-impl Input {
-    fn new(ctx: &mut Context, placeholder: &'static str) -> Self {
-        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.md;
-        let placeholder = ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size);
-        Input(
-            Stack(Offset::Start, Offset::Center, Size::Fit, Size::Fit, Padding(8, 6, 8, 6)),
-            InputValue::new(ctx),
-            Some(placeholder.clone()),
-            placeholder,
-        )
+impl Events for InputContent {
+    fn on_tick(&mut self, ctx: &mut Context) {
+        self.1.displa_yleft(!self.1.left().value().is_empty() || self.3)
     }
-
-    pub fn cursor(&mut self) -> &mut String { self.1.cursor().value() }
-    pub fn value(&mut self) -> &mut String { self.1.text().value() }
-    pub fn placeholder(&mut self) -> &mut Option<ExpandableText> { &mut self.2 }
-    pub fn get_placeholder(&self) -> ExpandableText { self.3.clone() }
-}
-
-#[derive(Clone, Debug, Component)]
-struct InputValue(Row, BasicText, ExpandableText);
-impl Events for InputValue {}
-
-impl InputValue {
-    fn new(ctx: &mut Context) -> Self {
-        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.md;
-        InputValue(
-            Row::center(0),
-            Text::new(ctx, "", TextStyle::Primary, font_size),
-            ExpandableText::new(ctx, "", TextStyle::White, font_size),
-        )
-    }
-
-    pub fn text(&mut self) -> &mut BasicText { &mut self.1 }
-    pub fn cursor(&mut self) -> &mut ExpandableText {&mut self.2 }
 }
 
 #[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]
@@ -210,6 +147,52 @@ enum InputState {
 }
 
 impl InputState {
+    fn toggle_error(&mut self, error: bool) -> Option<Self> {
+        let state = match self {
+            InputState::Default if error => Some(InputState::Error),
+            InputState::Error if !error => Some(InputState::Default),
+            _ => None
+        };
+        if let Some(state) = state { *self = state; }
+        state
+    }
+
+    fn handle(&mut self, event: MouseEvent, error: bool) -> Option<Self> {
+        let state = match self {
+            InputState::Default => {
+                match mouse {
+                    MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
+                    _ => None
+                }
+            },
+            InputState::Hover => {
+                match event.state {
+                    MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
+                    MouseEvent{state: MouseState::Moved, position: None} if error => Some(InputState::Error),
+                    MouseEvent{state: MouseState::Moved, position: None} => Some(InputState::Default),
+                    _ => None
+                }
+            },
+            InputState::Focus => {
+                match event.state {
+                    MouseEvent{state: MouseState::Pressed, position: None} if error => Some(InputState::Error),
+                    MouseEvent{state: MouseState::Pressed, position: None} => Some(InputState::Default),
+                    _ => None
+                }
+            },
+            InputState::Error => {
+                match event.state {
+                    MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
+                    MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
+                    _ => None
+                }
+            }
+            _ => None
+        };
+        if let Some(state) = state { *self = state; }
+        state
+    }
+
     fn get_color(&self, ctx: &mut Context) -> (Color, Color) { // background, outline
         let colors = &ctx.get::<PelicanUI>().theme.colors;
         match self {
