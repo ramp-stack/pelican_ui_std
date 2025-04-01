@@ -34,21 +34,29 @@ impl RoundedRectangle {
     }
 }
 
-#[derive(Clone, Debug, Component)]
-pub struct ExpandingRoundedRectangle(Stack, Shape);
+pub struct Rectangle;
 
-impl ExpandingRoundedRectangle {
-    pub fn new(ctx: &mut Context, h: u32, r: u32, c: Color) -> Self {
-        ExpandingRoundedRectangle(
+impl Rectangle {
+    pub fn new(w: u32, h: u32, bg: Color) -> Shape {
+        Shape(ShapeType::Rectangle(0, (w, h)), bg)
+    }
+}
+
+#[derive(Clone, Debug, Component)]
+pub struct ExpandingRectangle(Stack, Shape);
+
+impl ExpandingRectangle {
+    pub fn new(h: u32, c: Color) -> Self {
+        ExpandingRectangle(
             Stack(Offset::default(), Offset::default(), Size::Fill(MinSize(0), MaxSize(u32::MAX)), Size::Fit, Padding::default()),
-            RoundedRectangle::new(100, h, r, c)
+            Rectangle::new(100, h, c)
         )
     }
 }
 
-impl Events for ExpandingRoundedRectangle {
+impl Events for ExpandingRectangle {
     fn on_resize(&mut self, _ctx: &mut Context, size: (u32, u32)) {
-        if let Shape(ShapeType::RoundedRectangle(_, (w, _), _), _) = &mut self.1 {
+        if let Shape(ShapeType::Rectangle(_, (w, _)), _) = &mut self.1 {
             *w = size.0;
         }
     }

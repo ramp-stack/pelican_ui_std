@@ -1,12 +1,10 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::icon::Icon;
 use crate::elements::text::{Text, TextStyle};
-use crate::elements::shapes::{RoundedRectangle, Outline, ExpandingRoundedRectangle};
-use crate::theme::colors::ButtonColorScheme;
+use crate::elements::shapes::{RoundedRectangle, Outline, ExpandingRectangle};
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::components::button::ButtonState;
-use crate::layout::{Row, Column, Stack, Padding, Offset, Size};
+use crate::layout::{Column, Stack, Padding, Offset, Size};
 use crate::PelicanUI;
 
 #[derive(Debug, Clone, Component)]
@@ -116,7 +114,7 @@ impl Events for CardBackground {
 }
 
 #[derive(Clone, Debug, Component)]
-struct SeparationLine(Stack, ExpandingRoundedRectangle);
+struct SeparationLine(Stack, ExpandingRectangle);
 impl Events for SeparationLine {}
 
 impl SeparationLine {
@@ -124,7 +122,7 @@ impl SeparationLine {
         let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
         SeparationLine(
             Stack(Offset::Start, Offset::Start, Size::Fill(MinSize(10), MaxSize::MAX), Size::Fit, Padding(p, 6, p, 6)),
-            ExpandingRoundedRectangle::new(ctx, 1, 0, color)
+            ExpandingRectangle::new(1, color)
         )
     }
 }

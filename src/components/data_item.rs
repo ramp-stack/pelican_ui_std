@@ -1,180 +1,113 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::icon::Icon;
-use crate::elements::text::{Text, TextStyle};
-use crate::theme::colors::ButtonColorScheme;
-use crate::components::circle_icon::{CircleIcon, CircleIconContent, CircleIconStyle};
-use crate::layout::{Row, RowOffset, Column, ColumnOffset, Stack, Offset, Size};
+use crate::elements::text::{Text, ExpandableText, TextStyle};
+use crate::elements::shapes::Circle;
+use crate::components::button::Button;
+use crate::layout::{Column, Row, Stack, Padding, Offset, Size};
 use crate::PelicanUI;
 
-struct DataItem(pub Row, pub Option<_Number>, pub _DataItemContent);
+#[derive(Clone, Debug, Component)]
+pub struct DataItem(Row, Option<Number>, DataItemContent);
+impl Events for DataItem {}
 
 impl DataItem {
     pub fn new(
-        number: Option<u32>,
+        ctx: &mut Context,
+        number: Option<&'static str>,
         label: &'static str,
         text: Option<&'static str>,
         secondary: Option<&'static str>,
         table: Option<Vec<(&'static str, &'static str)>>,
-        quick_actions: Option<Vec<(&'static str, &'static str)>>,
+        quick_actions: Option<Vec<(&'static str, &'static str, fn(&mut Context, (u32, u32)) -> ())>>,
     ) -> Self {
         DataItem (
-            Row(32, Offset::Start, Size::Fill),
-            number.map(|n| _Number::new(ctx, n)),
-            _DataItemContent(label, text, secondary, table, quick_actions)
+            Row(32, Offset::Start, Size::Fit, Padding::default()),
+            number.map(|n| Number::new(ctx, n)),
+            DataItemContent::new(ctx, label, text, secondary, table, quick_actions)
         )
     }
 }
 
-impl Component for DataItem {
-    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
-        let mut children: Vec<&mut ComponentRef> = vec![];
-        if let Some(number) = &mut self.1 { children.push(number); }
-        children.push(&mut self.2)
-        
-        children
-    }
+#[derive(Clone, Debug, Component)]
+struct Number(Stack, BasicText, Shape);
+impl Events for Number {}
 
-    fn children(&self) -> Vec<&ComponentRef> {
-        let mut children: Vec<&mut ComponentRef> = vec![&self.1];
-        if let Some(number) = &self.1 { children.push(number); }
-        children.push(&self.2)
-        
-        children
-    }
-
-    fn layout(&self) -> &dyn Layout {&self.0}
-}
-
-struct _Number(pub Stack, pub BasicText, pub Shape);
-
-impl _Number {
-    pub fn new(ctx: &mut Context, num: u32) -> Self {
-        let theme = ctx.get::<PelicanUI>().theme;
+impl Number {
+    pub fn new(ctx: &mut Context, txt: &'static str) -> Self {
+        let theme = &ctx.get::<PelicanUI>().theme;
         let (color, font_size) = (theme.colors.background.secondary, theme.fonts.size.h5);
-        _Number (
-            Stack((Offset::Center, Offset::Center), (Size::Fit, Size::Fit)),
-            Text::new(ctx, &num.to_string(), TextStyle::Heading, font_size),
+        Number(
+            Stack::center(),
+            Text::new(ctx, txt, TextStyle::Heading, font_size),
             Circle::new(32, color), 
         )
     }
 }
 
-impl Component for _Number {
-    fn children_mut(&mut self) -> Vec<&mut ComponentRef> { vec![&mut self.1, &mut self.2] }
-    fn children(&self) -> Vec<&ComponentRef> { vec![&self.1, &self.2] }
-    fn layout(&self) -> &dyn Layout {&self.0}
-}
+#[derive(Clone, Debug, Component)]
+struct DataItemContent(Column, BasicText, Option<BasicText>, Option<BasicText>, Option<Table>, Option<QuickActions>);
+impl Events for DataItemContent {}
 
-struct _DataItemContent(pub BasicText, pub BasicText, pub BasicText, pub _Table, pub _QuickActions);
-
-impl _DataItemContent {
-    pub fn new(
+impl DataItemContent {
+    fn new(
+        ctx: &mut Context,
         label: &'static str,
         text: Option<&'static str>,
         secondary: Option<&'static str>,
         table: Option<Vec<(&'static str, &'static str)>>,
-        quick_actions: Option<Vec<(&'static str, &'static str)>>,
+        quick_actions: Option<Vec<(&'static str, &'static str, fn(&mut Context, (u32, u32)) -> ())>>,
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
-        _DataItemContent (
+        DataItemContent(
+            Column(16, Offset::Start, Size::Fit, Padding::default()),
             Text::new(ctx, label, TextStyle::Heading, font_size.h5),
             text.map(|t| Text::new(ctx, t, TextStyle::Primary, font_size.md)),
             secondary.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm)),
-            table.map(|tabulars| _Table::new(ctx, tabulars)),
-            quick_actions.map(|actions| _QuickActions::new(actions)),
+            table.map(|tabulars| Table::new(ctx, tabulars)),
+            quick_actions.map(|actions| QuickActions::new(ctx, actions)),
         )
     }
 }
 
-impl Component for _DataItemContent {
-    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
-        let mut children: Vec<&mut ComponentRef> = vec![&mut self.1];
+#[derive(Clone, Debug, Component)]
+struct Table(pub Column, pub Vec<Tabular>);
+impl Events for Table {}
 
-        if let Some(text) = &mut self.2 { children.push(text); }
-        if let Some(secondary) = &mut self.3 { children.push(secondary); }
-        if let Some(table) = &mut self.4 { children.push(table); }
-        if let Some(actions) = &mut self.5 { children.push(actions); }
-        
-        children
-    }
-
-    fn children(&self) -> Vec<&ComponentRef> {
-        let mut children: Vec<&mut ComponentRef> = vec![&self.1];
-
-        if let Some(text) = &self.2 { children.push(text); }
-        if let Some(secondary) = &self.3 { children.push(secondary); }
-        if let Some(table) = &self.4 { children.push(table); }
-        if let Some(actions) = &self.5 { children.push(actions); }
-        
-        children
-    }
-
-    fn layout(&self) -> &dyn Layout {&self.0}
-}
-
-struct _Table(pub Column, pub Vec<_Tabular>);
-
-impl _Table {
+impl Table {
     pub fn new(ctx: &mut Context, items: Vec<(&'static str, &'static str)>) -> Self {
-        _Table (
-            Column(0, Offset::Start, Size::Fit),
-            items.iter().map(|(name, data)| _Tabular::new(ctx, name, data)).collect()
+        Table (
+            Column(0, Offset::Start, Size::Fit, Padding::default()),
+            items.iter().map(|(name, data)| Tabular::new(ctx, name, data)).collect()
         )
     }
 }
 
-impl Component for _Table {
-    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
-        self.1.iter().map(|a| &mut a).collect()
-    }
-    fn children_mut(&self) -> Vec<&ComponentRef> {
-        self.1.iter().map(|a| &a).collect()
-    }
-    fn layout(&self) -> &dyn Layout {&self.0}
-}
+#[derive(Clone, Debug, Component)]
+struct Tabular(Row, ExpandableText, BasicText);
+impl Events for Tabular {}
 
-struct _Tabular(pub Row, pub BasicText, pub Expand, pub BasicText);
-
-impl _Tabular {
-    pub fn new(ctx: &mut Context, name: &'static str, data: &'static str) -> Self {
+impl Tabular {
+    fn new(ctx: &mut Context, name: &'static str, data: &'static str) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
-        _Tabular (
-            Row(0, Offset::Start, Size::Fill),
-            Text::new(ctx, name, TextStyle::Primary, font_size),
-            Expand(true, false),  // Expand width, not height
+        Tabular (
+            Row(0, Offset::Start, Size::Fit, Padding::default()),
+            ExpandableText::new(ctx, name, TextStyle::Primary, font_size),
             Text::new(ctx, name, TextStyle::Primary, font_size),
         )
     }
 }
 
-impl Component for _Tabular {
-    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {vec![&mut self.1, &mut self.2, &mut self.3]}
-    fn children_mut(&self) -> Vec<&ComponentRef> {vec![&self.1, &self.2, &self.3]}
-    fn layout(&self) -> &dyn Layout {&self.0}
-}
+#[derive(Clone, Debug, Component)]
+struct QuickActions(Row, Vec<Button>); // Row should be wrap
+impl Events for QuickActions {}
 
-struct Expand;
-
-struct _QuickActions(pub Wrap, pub Vec<Button>);
-
-impl _QuickActions {
-    pub fn new(items: Vec<(&'static str, &'static str)>) -> Self {
-        _QuickActions (
-            Wrap(8, 8, Offset::Start, Size::Fill),
-            items.iter().map(|(icon, label)| Button::secondary(ctx, Some(icon), label, None)).collect()
+impl QuickActions {
+    fn new(ctx: &mut Context, items: Vec<(&'static str, &'static str, fn(&mut Context, (u32, u32)) -> ())>) -> Self {
+        QuickActions (
+            Row(8, Offset::Start, Size::Fit, Padding::default()),
+            items.iter().map(|(icon, label, on_click)| Button::secondary(ctx, Some(icon), label, None, *on_click)).collect()
         )
     }
-}
-
-impl Component for _QuickActions {
-    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
-        self.1.iter().map(|a| &mut a).collect()
-    }
-    fn children_mut(&self) -> Vec<&ComponentRef> {
-        self.1.iter().map(|a| &a).collect()
-    }
-    fn layout(&self) -> &dyn Layout {&self.0}
 }
 
 

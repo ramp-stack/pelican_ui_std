@@ -20,4 +20,8 @@ impl Alert {
             Text::new(ctx, title, TextStyle::Primary, font_size)
         )
     }
+
+    pub fn title(&mut self) -> &mut String {
+        &mut self.2.0
+    }
 }
