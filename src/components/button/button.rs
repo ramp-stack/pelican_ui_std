@@ -1,12 +1,10 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::icon::Icon;
-use crate::elements::shapes::{RoundedRectangle, Outline};
+use crate::elements::shapes::RoundedRectangle;
 use crate::elements::text::{Text, TextStyle};
-use crate::theme::colors::ButtonColorScheme;
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::layout::{Stack, Offset, Size, Padding, Row};
-use crate::PelicanUI;
 
 use super::{ButtonState, ButtonStyle, ButtonSize};
 
@@ -90,9 +88,9 @@ impl ButtonContent {
     }
 
     fn set_color(&mut self, color: Color) {
-        if let Some(icon) = &mut self.2 { icon.set_color(color); }
-        if let Some(BasicText(_, c, _, _, _, _)) = &mut self.3 { *c = color; }
-        if let Some(icon) = &mut self.4 { icon.set_color(color); }
+        if let Some(icon) = &mut self.2 { *icon.color() = Some(color); }
+        if let Some(text) = &mut self.3 { *text.color() = color; }
+        if let Some(icon) = &mut self.4 { *icon.color() = Some(color); }
     }
 }
 
@@ -110,8 +108,8 @@ impl ButtonBackground {
     }
 
     fn set_color(&mut self, bg: Color, oc: Color) {
-        let RoundedRectangle(_, Shape(_, c)) = &mut self.1; *c = bg;
-        let RoundedRectangle(_, Shape(_, c)) = &mut self.2; *c = oc;
+        *self.1.shape().color() = bg;
+        *self.2.shape().color() = oc;
     }
 }
 

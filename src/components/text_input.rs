@@ -1,8 +1,8 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::shapes::{RoundedRectangle, Outline};
+use crate::elements::shapes::RoundedRectangle;
 use crate::elements::text::{Text,TextStyle, ExpandableText};
-use crate::components::icon_button::IconButton;
+use crate::components::button::IconButton;
 use crate::layout::{Padding, Column, Stack, Offset, Size, Row};
 use crate::PelicanUI;
 
@@ -20,6 +20,7 @@ impl TextInput {
         icon_button: Option<(&'static str, fn(&mut Context, (u32, u32)) -> ())>,
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
+
         let subtext = if let Some(err) = error {
             Some(Text::new(ctx, err, TextStyle::Error, font_size.sm))
         } else if let Some(help) = help_text {
@@ -29,12 +30,13 @@ impl TextInput {
         let state = match error.is_some() {
             true => InputState::Error,
             false => InputState::Default,
-        };
+        }; // Error status goes away on hover, on focus (shouldn't)
 
         TextInput(
             Column(16, Offset::Start, Size::Fit, Padding::default()),
             label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5)),
-            InputField::new(ctx, state, placeholder, icon_button), subtext
+            InputField::new(ctx, state, placeholder, icon_button), 
+            subtext
         )
     }
 }
@@ -67,25 +69,6 @@ impl InputField {
             self.1.set_color(background, outline);
         }
     }
-
-    fn update(&mut self) {
-        match self.3 {
-            InputState::Focus => self.2.1.2 = None,
-            _ => {
-                let BasicText(t, _, _, _, _, _) = &mut self.2.1.1.1;
-                match t.len()>0{
-                    true => self.2.1.2 = None,
-                    false => self.2.1.2 = Some(self.2.1.3.clone())
-                }
-            }
-        }
-
-        // Remove after implementing cursor system 
-        match self.3 {
-            InputState::Focus => {let BasicText(t, _, _, _, _, _) = &mut self.2.1.1.2.1; *t = "|".to_string();},
-            _ => {let BasicText(t, _, _, _, _, _) = &mut self.2.1.1.2.1; *t = String::new();}
-        }
-    }
 }
 
 impl Events for InputField {
@@ -95,7 +78,25 @@ impl Events for InputField {
             (false, InputState::Focus) => self.set_state(ctx, InputState::Default),
             _ => {}
         };
-        self.update();
+
+        match self.3 {
+            InputState::Focus => *self.2.input().placeholder() = None,
+            _ => {
+                let len = self.2.input().value().len();
+                let pt = self.2.input().get_placeholder();
+                match len>0{
+                    true => *self.2.input().placeholder() = None,
+                    false => *self.2.input().placeholder() = Some(pt)
+                }
+            }
+        }
+
+        // Remove after implementing cursor system 
+        *self.2.input().cursor() = match self.3 {
+            InputState::Focus => "|".to_string(),
+            _ => String::new(),
+        };
+
         true
     }
     fn on_move(&mut self, ctx: &mut Context, position: Option<(u32, u32)>) -> bool {
@@ -109,9 +110,9 @@ impl Events for InputField {
     fn on_press(&mut self, _ctx: &mut Context, text: String) -> bool {
         match self.3 {
             InputState::Focus => {
-                let BasicText(t, _, _, _, _, _) = &mut self.2.1.1.1;
+                let t = self.2.input().value();
                 *t = match text.as_str() {
-                    "\u{7f}" => if t.len() > 0 {(&t[0..t.len() - 1]).to_string()} else {String::new()}, // delete char
+                    "\u{7f}" => if t.len()>0 {(&t[0..t.len() - 1]).to_string()} else {String::new()}, // delete char
                     _ => t.clone().to_owned()+&text // add character
                 };
             },
@@ -122,29 +123,21 @@ impl Events for InputField {
 }
 
 #[derive(Clone, Debug, Component)]
-struct InputBackground(Stack, Shape, Shape);
+struct InputBackground(Stack, RoundedRectangle, RoundedRectangle);
+impl Events for InputBackground {}
 
 impl InputBackground {
     fn new(bg: Color, oc: Color, width: Size, height: u32) -> Self {
         InputBackground(
             Stack(Offset::Center, Offset::Center, width, Size::Fit, Padding::default()),
-            RoundedRectangle::new(100, height, 8, bg),
-            Outline::rounded_rectangle(100, height, 8, 1, oc)
+            RoundedRectangle::new(0, None, Some(height), 8, bg),
+            RoundedRectangle::new(1, None, Some(height), 8, oc)
         )
     }
 
     fn set_color(&mut self, bg: Color, oc: Color) {
-        let Shape(_, c) = &mut self.1;
-        *c = bg;
-        let Shape(_, c) = &mut self.2;
-        *c = oc;
-    }
-}
-
-impl Events for InputBackground {
-    fn on_resize(&mut self, _ctx: &mut Context, size: (u32, u32)) {
-        if let Shape(ShapeType::RoundedRectangle(_, (w, _), _), _) = &mut self.1 { *w = size.0; }
-        if let Shape(ShapeType::RoundedRectangle(_, (w, _), _), _) = &mut self.2 { *w = size.0; }
+        *self.1.shape().color() = bg;
+        *self.2.shape().color() = oc;
     }
 }
 
@@ -164,6 +157,8 @@ impl InputContent {
             icon_button.map(|(icon, on_click)| IconButton::input(ctx, icon, on_click))
         )
     }
+
+    fn input(&mut self) -> &mut Input { &mut self.1 }
 }
 
 #[derive(Clone, Debug, Component)]
@@ -181,6 +176,11 @@ impl Input {
             placeholder,
         )
     }
+
+    pub fn cursor(&mut self) -> &mut String { self.1.cursor().value() }
+    pub fn value(&mut self) -> &mut String { self.1.text().value() }
+    pub fn placeholder(&mut self) -> &mut Option<ExpandableText> { &mut self.2 }
+    pub fn get_placeholder(&self) -> ExpandableText { self.3.clone() }
 }
 
 #[derive(Clone, Debug, Component)]
@@ -196,6 +196,9 @@ impl InputValue {
             ExpandableText::new(ctx, "", TextStyle::White, font_size),
         )
     }
+
+    pub fn text(&mut self) -> &mut BasicText { &mut self.1 }
+    pub fn cursor(&mut self) -> &mut ExpandableText {&mut self.2 }
 }
 
 #[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]

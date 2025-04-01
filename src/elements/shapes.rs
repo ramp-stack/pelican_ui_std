@@ -27,7 +27,7 @@ impl Circle {
 }
 
 #[derive(Clone, Debug, Component)]
-pub struct RoundedRectangle(pub Stack, pub Shape);
+pub struct RoundedRectangle(Stack, Shape);
 
 impl RoundedRectangle {
     pub fn new(s: u32, w: Option<u32>, h: Option<u32>, r: u32, c: Color) -> Self {
@@ -36,6 +36,8 @@ impl RoundedRectangle {
             Shape(ShapeType::RoundedRectangle(s, (w.unwrap_or(0), h.unwrap_or(0)), r), c)
         )
     }
+
+    pub fn shape(&mut self) -> &mut Shape { &mut self.1 }
 
     fn get_size(s: Option<u32>) -> Size {
         s.map(|s| Size::Static(s)).unwrap_or(Size::Fill(MinSize(0), MaxSize(u32::MAX)))

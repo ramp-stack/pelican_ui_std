@@ -1,11 +1,5 @@
 use rust_on_rails::prelude::*;
-use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::icon::Icon;
-use crate::elements::shapes::{RoundedRectangle, Outline};
-use crate::elements::text::{Text, TextStyle};
 use crate::theme::colors::ButtonColorScheme;
-use crate::components::avatar::{Avatar, AvatarContent};
-use crate::layout::{Stack, Offset, Size, Padding, Row};
 use crate::PelicanUI;
 
 mod button;

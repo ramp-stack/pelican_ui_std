@@ -47,6 +47,8 @@ impl ExpandableText {
             BasicText::new(text, color, None, size, (size as f32*1.25) as u32, font)
         )
     }
+
+    pub fn value(&mut self) -> &mut String { self.1.value() }
 }
 
 impl Events for ExpandableText {
