@@ -7,11 +7,8 @@ pub struct Icon(Stack, pub Image);
 
 impl Icon {
     pub fn new(ctx: &mut Context, name: &'static str, color: Color, size: u32) -> Self {
-        let theme = &ctx.get::<PelicanUI>().theme;
-        Icon(
-            Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit),
-            Image(ShapeType::Rectangle(0, (size, size)), theme.icons.get(name), Some(color))
-        )
+        let icon = ctx.get::<PelicanUI>().theme.icons.get(name);
+        Icon(Stack::default(), Image(ShapeType::Rectangle(0, (size, size)), icon, Some(color)))
     }
 
     pub fn set_color(&mut self, color: Color) {

@@ -1,193 +1,5 @@
 use rust_on_rails::prelude::*;
 
-#[derive(Clone, Debug)]
-pub struct Row(pub u32, pub Offset, pub Size);
-
-impl Row {
-    pub fn center(spacing: u32) -> Self {
-        Row(spacing, Offset::Center, Size::Fit)
-    }
-    fn fit_width(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
-        items.into_iter().reduce(|s, i| (s.0+i.0, s.1+i.1)).unwrap_or_default()
-    }
-
-    fn fit_height(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
-        items.into_iter().reduce(|s, i| (s.0.max(i.0), s.1.max(i.1))).unwrap_or_default()
-    }
-}
-
-
-impl Layout for Row {
-    fn build(&self, _ctx: &mut Context, row_size: (u32, u32), items: Vec<SizeInfo>) -> Vec<((i32, i32), (u32, u32))> {
-        let mut sizes: Vec<_> = items.iter().map(|i| {
-            let size = i.get((i.min_width().0, row_size.1));
-            (size.0 as f32, size.1)
-        }).collect();
-
-        let padding = (items.len()-1) as u32 * self.0;
-        let min_width = items.iter().fold(MinSize::default(), |s, i| s+i.min_width())+padding;
-
-        let mut free_space = (row_size.0 as i32 - min_width.0 as i32).max(0) as f32;
-        while free_space > 0.0 {
-            let (min_exp, count, next) = items.iter().zip(sizes.iter()).fold((None, 0.0, free_space as f32), |(mut me, mut c, mut ne), (i, size)| {
-                let width = size.0;
-                let max_width = i.max_width().0 as f32;
-                if width < max_width { //I can expand
-                    match me {
-                        Some(w) if w < width => {
-                            println!("w: {:?}, width: {:?}", w, width);
-                            ne = ne.min(width-w);//Next size could be the min size of next expandable block
-                        },
-                        Some(w) if w == width => {
-                            ne = ne.min(max_width-width);//Next size could be the max size of one of the smallest items
-                            c += 1.0;
-                        },
-                        Some(w) if w > width => {
-                            ne = ne.min(max_width-width).min(w-width);//Next size could be the max size of one of the smallest items
-                            me = Some(width);
-                            c = 1.0;
-                        },
-                        _ => {
-                            ne = ne.min(max_width-width);//Next size could be the max size of one of the smallest items
-                            me = Some(width);
-                            c = 1.0;
-                        }
-                    }
-                }
-                (me, c, ne)
-            });
-            // println!("ne: {:?}", next);
-            if min_exp.is_none() {break;}
-            let min_exp = min_exp.unwrap();
-
-            // println!("finish");
-            let expand = (next*count).min(free_space);//Next size could be the rest of the free_space
-            free_space -= expand;
-            let expand = expand / count;
-
-            sizes.iter_mut().zip(items.iter()).for_each(|(size, i)| {
-                if size.0 < i.max_width().0 as f32 && size.0 == min_exp {
-                    size.0 += expand;
-                }
-            });
-        }
-
-        let mut offset = 0;
-        sizes.into_iter().map(|size| {
-            let width = size.0.floor() as u32;
-            let v = ((offset as i32, self.1.get(row_size.1, size.1)), (width, size.1));
-            offset += width+self.0;
-            v
-        }).collect()
-    }
-
-    fn size(&self, _ctx: &mut Context, items: Vec<SizeInfo>) -> SizeInfo {
-        let (widths, heights): (Vec<_>, Vec<_>) = items.into_iter().map(|i|
-            ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
-        ).unzip();
-        let items = widths.len() as u32;
-        let padding = self.0*(items-1);
-        let width = Row::fit_width(widths);
-        let height = self.2.get().unwrap_or_else(|| Row::fit_height(heights));
-        let min_width = width.0 + padding;
-        let max_width = width.1 + padding;
-        SizeInfo::new(min_width, height.0, max_width, height.1)
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct Column(pub u32, pub Offset, pub Size);
-
-impl Column {
-    pub fn center(spacing: u32) -> Self {
-        Column(spacing, Offset::Center, Size::Fit)
-    }
-
-    fn fit_width(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
-        items.into_iter().reduce(|s, i| (s.0.max(i.0), s.1.max(i.1))).unwrap_or_default()
-    }
-
-    fn fit_height(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
-        items.into_iter().reduce(|s, i| (s.0 + i.0, s.1 + i.1)).unwrap_or_default()
-    }
-}
-
-impl Layout for Column {
-    fn build(&self, _ctx: &mut Context, col_size: (u32, u32), items: Vec<SizeInfo>) -> Vec<((i32, i32), (u32, u32))> {
-        let mut sizes: Vec<_> = items.iter().map(|i| {
-            let size = i.get((col_size.0, i.min_height().0));
-            (size.0, size.1 as f32)
-        }).collect();
-
-        let padding = (items.len() - 1) as u32 * self.0;
-        let min_height = items.iter().fold(MinSize::default(), |s, i| s + i.min_height()) + padding;
-
-        let mut free_space = (col_size.1 as i32 - min_height.0 as i32).max(0) as f32;
-        while free_space > 0.0 {
-            let (min_exp, count, next) = items.iter().zip(sizes.iter()).fold((None, 0.0, free_space), |(mut me, mut c, mut ne), (i, size)| {
-                let height = size.1;
-                let max_height = i.max_height().0 as f32;
-                if height < max_height {
-                    match me {
-                        Some(h) if h < height => {
-                            ne = ne.min(height - h);
-                        },
-                        Some(h) if h == height => {
-                            ne = ne.min(max_height - height);
-                            c += 1.0;
-                        },
-                        Some(h) if h > height => {
-                            ne = ne.min(max_height - height).min(h - height);
-                            me = Some(height);
-                            c = 1.0;
-                        },
-                        _ => {
-                            ne = ne.min(max_height - height);
-                            me = Some(height);
-                            c = 1.0;
-                        }
-                    }
-                }
-                (me, c, ne)
-            });
-            
-            if min_exp.is_none() { break; }
-            let min_exp = min_exp.unwrap();
-            let expand = (next * count).min(free_space);
-            free_space -= expand;
-            let expand = expand / count;
-
-            sizes.iter_mut().zip(items.iter()).for_each(|(size, i)| {
-                if size.1 < i.max_height().0 as f32 && size.1 == min_exp {
-                    size.1 += expand;
-                }
-            });
-        }
-
-        let mut offset = 0;
-        sizes.into_iter().map(|size| {
-            let height = size.1.floor() as u32;
-            let v = ((self.1.get(col_size.0, size.0), offset as i32), (size.0, height));
-            offset += height + self.0;
-            v
-        }).collect()
-    }
-
-    fn size(&self, _ctx: &mut Context, items: Vec<SizeInfo>) -> SizeInfo {
-        let (widths, heights): (Vec<_>, Vec<_>) = items.into_iter().map(|i|
-            ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
-        ).unzip();
-        let items = heights.len() as u32;
-        let padding = self.0 * (items - 1);
-        let width = Column::fit_width(widths);
-        let height = self.2.get().unwrap_or_else(|| Column::fit_height(heights));
-        let min_height = height.0 + padding;
-        let max_height = height.1 + padding;
-        SizeInfo::new(width.0, min_height, width.1, max_height)
-    }
-}
-
-
 #[derive(Clone, Copy, Default, Debug)]
 pub enum Offset {
     #[default]
@@ -236,10 +48,176 @@ impl Size {
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct Stack(pub Offset, pub Offset, pub Size, pub Size);
+pub struct Padding(pub u32, pub u32, pub u32, pub u32);
+
+impl Padding {
+    pub fn new(p: u32) -> Self {Padding(p, p, p, p)}
+
+    fn adjust_size(&self, size: (u32, u32)) -> (u32, u32) {
+        let wp = self.0+self.2;
+        let hp = self.1+self.3;
+        (size.0-wp, size.1-hp)
+    }
+
+    fn adjust_offset(&self, offset: (i32, i32)) -> (i32, i32) {
+        (offset.0+self.0 as i32, offset.1+self.1 as i32)
+    }
+
+    fn adjust_info(&self, info: SizeInfo) -> SizeInfo {
+        let wp = self.0+self.2;
+        let hp = self.1+self.3;
+        SizeInfo::new(info.min_width()+wp, info.min_height()+hp, info.max_width()+wp, info.max_height()+hp)
+    }
+}
+
+pub struct UniformExpand;
+impl UniformExpand {
+    pub fn get(sizes: Vec<(u32, u32)>, max_size: u32, spacing: u32) -> Vec<u32> {
+        let spacing = (sizes.len()-1) as u32 * spacing;
+        let min_size = sizes.iter().fold(0, |s, i| s+i.0)+spacing;
+
+        let mut sizes = sizes.into_iter().map(|s| (s.0 as f32, s.1)).collect::<Vec<_>>();
+
+        let mut free_space = (max_size as i32 - min_size as i32).max(0) as f32;
+        while free_space > 0.0 {
+            let (min_exp, count, next) = sizes.iter().fold((None, 0.0, free_space as f32), |(mut me, mut c, mut ne), size| {
+                let min = size.0 as f32;
+                let max = size.1 as f32;
+                if min < max { //I can expand
+                    match me {
+                        Some(w) if w < min => {
+                            ne = ne.min(min-w);//Next size could be the min size of next expandable block
+                        },
+                        Some(w) if w == min => {
+                            ne = ne.min(max-min);//Next size could be the max size of one of the smallest items
+                            c += 1.0;
+                        },
+                        Some(w) if w > min => {
+                            ne = ne.min(max-min).min(w-min);//Next size could be the max size of one of the smallest items
+                            me = Some(min);
+                            c = 1.0;
+                        },
+                        _ => {
+                            ne = ne.min(max-min);//Next size could be the max size of one of the smallest items
+                            me = Some(min);
+                            c = 1.0;
+                        }
+                    }
+                }
+                (me, c, ne)
+            });
+            if min_exp.is_none() {break;}
+            let min_exp = min_exp.unwrap();
+
+            let expand = (next*count).min(free_space);//Next size could be the rest of the free_space
+            free_space -= expand;
+            let expand = expand / count;
+
+            sizes.iter_mut().for_each(|size| {
+                if size.0 < size.1 as f32 && size.0 == min_exp {
+                    size.0 += expand;
+                }
+            });
+        }
+        sizes.into_iter().map(|s| s.0.floor() as u32).collect()
+    }
+}
+
+
+#[derive(Clone, Debug)]
+pub struct Row(pub u32, pub Offset, pub Size, pub Padding);
+
+impl Row {
+    pub fn center(spacing: u32) -> Self {
+        Row(spacing, Offset::Center, Size::Fit, Padding::default())
+    }
+    fn fit_width(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
+        items.into_iter().reduce(|s, i| (s.0+i.0, s.1+i.1)).unwrap_or_default()
+    }
+
+    fn fit_height(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
+        items.into_iter().reduce(|s, i| (s.0.max(i.0), s.1.max(i.1))).unwrap_or_default()
+    }
+}
+
+
+impl Layout for Row {
+    fn build(&self, _ctx: &mut Context, row_size: (u32, u32), items: Vec<SizeInfo>) -> Vec<((i32, i32), (u32, u32))> {
+        let row_size = self.3.adjust_size(row_size);
+
+        let widths = UniformExpand::get(items.iter().map(|i| (i.min_width().0, i.max_width().0)).collect::<Vec<_>>(), row_size.0, self.0);
+
+        let mut offset = 0;
+        items.into_iter().zip(widths.into_iter()).map(|(i, width)| {
+            let size = i.get((width, row_size.1));
+            let off = self.3.adjust_offset((offset as i32, self.1.get(row_size.1, size.1)));
+            offset += size.0+self.0;
+            (off, size)
+        }).collect()
+    }
+
+    fn size(&self, _ctx: &mut Context, items: Vec<SizeInfo>) -> SizeInfo {
+        let (widths, heights): (Vec<_>, Vec<_>) = items.into_iter().map(|i|
+            ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
+        ).unzip();
+        let spacing = self.0*(widths.len() as u32-1);
+        let width = Self::fit_width(widths);
+        let height = self.2.get().unwrap_or_else(|| Self::fit_height(heights));
+        self.3.adjust_info(SizeInfo::new(width.0+spacing, height.0, width.1+spacing, height.1))
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Column(pub u32, pub Offset, pub Size, pub Padding);
+
+impl Column {
+    pub fn center(spacing: u32) -> Self {
+        Column(spacing, Offset::Center, Size::Fit, Padding::default())
+    }
+    fn fit_width(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
+        items.into_iter().reduce(|s, i| (s.0.max(i.0), s.1.max(i.1))).unwrap_or_default()
+    }
+
+    fn fit_height(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
+        items.into_iter().reduce(|s, i| (s.0+i.0, s.1+i.1)).unwrap_or_default()
+    }
+}
+
+
+impl Layout for Column {
+    fn build(&self, _ctx: &mut Context, col_size: (u32, u32), items: Vec<SizeInfo>) -> Vec<((i32, i32), (u32, u32))> {
+        let col_size = self.3.adjust_size(col_size);
+
+        let heights = UniformExpand::get(items.iter().map(|i| (i.min_height().0, i.max_height().0)).collect::<Vec<_>>(), col_size.1, self.0);
+
+        let mut offset = 0;
+        items.into_iter().zip(heights.into_iter()).map(|(i, height)| {
+            let size = i.get((col_size.0, height));
+            let off = self.3.adjust_offset((self.1.get(col_size.0, size.0), offset as i32));
+            offset += size.1+self.0;
+            (off, size)
+        }).collect()
+    }
+
+    fn size(&self, _ctx: &mut Context, items: Vec<SizeInfo>) -> SizeInfo {
+        let (widths, heights): (Vec<_>, Vec<_>) = items.into_iter().map(|i|
+            ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
+        ).unzip();
+        let spacing = self.0*(heights.len() as u32-1);
+        let width = self.2.get().unwrap_or_else(|| Self::fit_width(widths));
+        let height = Self::fit_height(heights);
+        self.3.adjust_info(SizeInfo::new(width.0, height.0+spacing, width.1, height.1+spacing))
+    }
+}
+
+
+
+
+#[derive(Clone, Debug, Default)]
+pub struct Stack(pub Offset, pub Offset, pub Size, pub Size, pub Padding);
 impl Stack {
     pub fn center() -> Self {
-        Stack(Offset::Center, Offset::Center, Size::Fit, Size::Fit)
+        Stack(Offset::Center, Offset::Center, Size::Fit, Size::Fit, Padding::default())
     }
     fn fit(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
         items.into_iter().reduce(|s, i| (s.0.max(i.0), s.1.max(i.1))).unwrap_or_default()
@@ -248,10 +226,11 @@ impl Stack {
 
 impl Layout for Stack {
     fn build(&self, _ctx: &mut Context, stack_size: (u32, u32), items: Vec<SizeInfo>) -> Vec<((i32, i32), (u32, u32))> {
+        let stack_size = self.4.adjust_size(stack_size);
         items.into_iter().map(|i| {
             let size = i.get(stack_size);
             let offset = (self.0.get(stack_size.0, size.0), self.1.get(stack_size.1, size.1));
-            (offset, size)
+            (self.4.adjust_offset(offset), size)
         }).collect()
     }
 
@@ -263,23 +242,10 @@ impl Layout for Stack {
             self.2.get().unwrap_or_else(|| Stack::fit(widths)),
             self.3.get().unwrap_or_else(|| Stack::fit(heights))
         );
-        SizeInfo::new(size.0.0, size.1.0, size.0.1, size.1.1)
+        self.4.adjust_info(SizeInfo::new(size.0.0, size.1.0, size.0.1, size.1.1))
     }
 }
 
 #[derive(Debug, Clone, Component)]
-pub struct Padding<D: Drawable + Clone>(Stack, pub D);
-impl<D: Drawable + Clone> Events for Padding<D> {}
-
-impl<D: Drawable + Clone> Padding<D> {
-    pub fn new(ctx: &mut Context, item: D, padding: (u32, u32, u32, u32)) -> Self {
-        let size = item.size(ctx);
-        let wp = padding.0+padding.2;
-        let hp = padding.1+padding.3;
-        Padding(Stack(
-            Offset::Static(padding.0 as i32), Offset::Static(padding.1 as i32), 
-            Size::Fill(size.min_width()+MinSize(padding.2), size.max_width()-MaxSize(padding.2)),
-            Size::Fill(size.min_height()+MinSize(padding.3), size.max_height()-MaxSize(padding.3))
-        ), item)
-    }
-}
+pub struct Bin<L: Layout + Clone, D: Drawable + Clone>(pub L, pub D);
+impl<L: Layout + Clone, D: Drawable + Clone> Events for Bin<L, D> {}

@@ -1,7 +1,7 @@
 use rust_on_rails::prelude::*;
 use crate::elements::icon::Icon;
 use crate::elements::shapes::{Outline, Circle};
-use crate::layout::{Stack, Offset, Size};
+use crate::layout::{Stack, Offset, Size, Padding};
 use crate::PelicanUI;
 
 #[derive(Clone, Debug)]
@@ -48,7 +48,7 @@ impl Avatar {
         };
 
         Avatar(
-            Stack(Offset::End, Offset::End, Size::Fit, Size::Fit),
+            Stack(Offset::End, Offset::End, Size::Fit, Size::Fit, Padding::default()),
             circle_icon,
             image,
             outline.then(|| Outline::circle(size, black)),

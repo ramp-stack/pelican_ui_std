@@ -5,7 +5,7 @@ use crate::elements::shapes::{RoundedRectangle, Outline};
 use crate::elements::text::{Text, TextStyle};
 use crate::theme::colors::ButtonColorScheme;
 use crate::components::avatar::{Avatar, AvatarContent};
-use crate::layout::{Stack, Offset, Size, Row};
+use crate::layout::{Stack, Offset, Size, Padding, Row};
 use crate::PelicanUI;
 
 #[derive(Debug, Clone, Component)]
@@ -24,17 +24,17 @@ impl Button {
         offset: Offset,
         on_click: fn(&mut Context, (u32, u32)) -> (),
     ) -> Self {
+        let (height, padding) = size.background();
         let colors = ButtonColor::get(ctx, style, state);
         let content = ButtonContent::new(ctx, avatar, icon_l, label, icon_r, size, colors.label);
-        let (height, padding) = size.background();
+
         let width = match width {
             ButtonWidth::Hug => Size::Static(content.size(ctx).min_width().0+(padding*2)),
             ButtonWidth::Expand => Size::Fill(content.size(ctx).min_width()+(padding*2), MaxSize::MAX)
         };
 
         let background = ButtonBackground::new(colors.background, colors.outline, width, height);
-
-        let layout = Stack(offset, Offset::Center, Size::Fit, Size::Fit);
+        let layout = Stack(offset, Offset::Center, Size::Fit, Size::Fit, Padding::default());
 
         Button(layout, background, content, style, state, on_click)
     }
@@ -70,7 +70,15 @@ pub struct ButtonContent(Row, Option<Avatar>, Option<Icon>, Option<BasicText>, O
 impl Events for ButtonContent {}
 
 impl ButtonContent {
-    fn new(ctx: &mut Context, avatar: Option<AvatarContent>, icon_l: Option<&'static str>, label: Option<&'static str>, icon_r: Option<&'static str>, size: ButtonSize, color: Color) -> Self {
+    fn new(
+        ctx: &mut Context, 
+        avatar: Option<AvatarContent>, 
+        icon_l: Option<&'static str>, 
+        label: Option<&'static str>, 
+        icon_r: Option<&'static str>, 
+        size: ButtonSize, 
+        color: Color
+    ) -> Self {
         let (text_size, icon_size, spacing) = size.content(ctx);
         ButtonContent(
             Row::center(spacing),
@@ -94,7 +102,7 @@ pub struct ButtonBackground(Stack, Shape, Shape);
 impl ButtonBackground {
     pub fn new(bg: Color, oc: Color, width: Size, height: u32) -> Self {
         ButtonBackground(
-            Stack(Offset::Center, Offset::Center, width, Size::Fit),
+            Stack(Offset::Center, Offset::Center, width, Size::Fit, Padding::default()),
             RoundedRectangle::new(100, height, height/2, bg),
             Outline::rounded_rectangle(100, height, height/2, 1, oc)
         )

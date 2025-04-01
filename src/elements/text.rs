@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::layout::{Stack, Offset, Size};
+use crate::layout::{Stack, Padding, Offset, Size};
 use crate::PelicanUI;
 
 #[derive(Clone, Debug)]
@@ -43,7 +43,7 @@ impl ExpandableText {
     pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: u32) -> Self {
         let (color, font) = style.get(ctx);
         ExpandableText(
-            Stack(Offset::default(), Offset::default(), Size::Fill(MinSize(0), MaxSize(u32::MAX)), Size::Fit),
+            Stack(Offset::default(), Offset::default(), Size::Fill(MinSize(0), MaxSize(u32::MAX)), Size::Fit, Padding::default()),
             BasicText::new(text, color, None, size, (size as f32*1.25) as u32, font)
         )
     }
