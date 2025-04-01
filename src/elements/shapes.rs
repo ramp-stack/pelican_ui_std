@@ -26,38 +26,27 @@ impl Circle {
     }
 }
 
-pub struct RoundedRectangle;
+#[derive(Clone, Debug, Component)]
+pub struct RoundedRectangle(pub Stack, pub Shape);
 
 impl RoundedRectangle {
-    pub fn new(w: u32, h: u32, r: u32, bg: Color) -> Shape {
-        Shape(ShapeType::RoundedRectangle(0, (w, h), r), bg)
-    }
-}
-
-pub struct Rectangle;
-
-impl Rectangle {
-    pub fn new(w: u32, h: u32, bg: Color) -> Shape {
-        Shape(ShapeType::Rectangle(0, (w, h)), bg)
-    }
-}
-
-#[derive(Clone, Debug, Component)]
-pub struct ExpandingRectangle(Stack, Shape);
-
-impl ExpandingRectangle {
-    pub fn new(h: u32, c: Color) -> Self {
-        ExpandingRectangle(
-            Stack(Offset::default(), Offset::default(), Size::Fill(MinSize(0), MaxSize(u32::MAX)), Size::Fit, Padding::default()),
-            Rectangle::new(100, h, c)
+    pub fn new(s: u32, w: Option<u32>, h: Option<u32>, r: u32, c: Color) -> Self {
+        RoundedRectangle(
+            Stack(Offset::default(), Offset::default(), Self::get_size(w), Self::get_size(h), Padding::default()),
+            Shape(ShapeType::RoundedRectangle(s, (w.unwrap_or(0), h.unwrap_or(0)), r), c)
         )
     }
+
+    fn get_size(s: Option<u32>) -> Size {
+        s.map(|s| Size::Static(s)).unwrap_or(Size::Fill(MinSize(0), MaxSize(u32::MAX)))
+    }
 }
 
-impl Events for ExpandingRectangle {
+impl Events for RoundedRectangle {
     fn on_resize(&mut self, _ctx: &mut Context, size: (u32, u32)) {
-        if let Shape(ShapeType::Rectangle(_, (w, _)), _) = &mut self.1 {
+        if let Shape(ShapeType::RoundedRectangle(_, (w, h), _), _) = &mut self.1 {
             *w = size.0;
+            *h = size.1;
         }
     }
 }
@@ -67,10 +56,6 @@ pub struct Outline;
 impl Outline {
     pub fn circle(s: u32, color: Color) -> Shape {
         Shape(ShapeType::Ellipse((s as f32 * 0.06).round() as u32, (s, s)), color)
-    }
-
-    pub fn rounded_rectangle(w: u32, h: u32, r: u32, s: u32, sc: Color) -> Shape {
-        Shape(ShapeType::RoundedRectangle(s, (w, h), r), sc)
     }
 }
 

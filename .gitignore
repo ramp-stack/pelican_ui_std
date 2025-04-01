@@ -1,2 +1,4 @@
 /target
-src/.lib.rs.swp
+src/.*.swp
+src/components/.*.swp
+src/elements/.*.swp
