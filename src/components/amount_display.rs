@@ -2,19 +2,12 @@ use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::icon::Icon;
 use crate::elements::text::{Text, TextStyle};
-use crate::theme::colors::ButtonColorScheme;
-use crate::components::circle_icon::{CircleIcon, CircleIconContent, CircleIconStyle};
-use crate::layout::{Row, RowOffset, Column, ColumnOffset, Stack, Offset, Size};
+use crate::layout::{Row, Column, Offset, Size, Padding};
 use crate::PelicanUI;
 
-// Rules:
-// Exported structs and enums prefixed with name of the "top-layer" component.
-// If a struct or enum isn’t exported, start its name with _.
-// First item in a file should be top-layer component struct or enum
-// 'User' should never touch the struct, only new functions
-
-pub struct AmountDisplay(pub Column, pub BasicText, pub _Message);
-
+#[derive(Clone, Debug, Component)]
+pub struct AmountDisplay(Column, BasicText, Message);
+impl Events for AmountDisplay {}
 
 impl AmountDisplay {
     pub fn new(ctx: &mut Context, usd: &'static str, btc: &'static str, err: Option<&'static str>) -> Self {
@@ -27,43 +20,29 @@ impl AmountDisplay {
         };
 
         AmountDisplay (
-            Column(32, Offset::Center, Size::Fill),
-            Text::new(ctx, title, TextStyle::Heading, font_size),
-            _Message::new(btc, err)
+            Column(16, Offset::Center, Size::Fit, Padding(16, 64, 16, 64)),
+            Text::new(ctx, usd, TextStyle::Heading, font_size),
+            Message::new(ctx, btc, err)
         )
     }
 }
 
-impl Component for AmountDisplay {
-    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {vec![&mut self.1, &mut self.2]}
-    fn children_mut(&self) -> Vec<&ComponentRef> {vec![&self.1, &self.2]}
-    fn layout(&self) -> &dyn Layout {&self.0}
-}
+#[derive(Clone, Debug, Component)]
+struct Message(Row, Option<Icon>, BasicText);
+impl Events for Message {}
 
-struct _Message(pub Row, pub Option<Icon>, pub BasicText);
+impl Message {
+    fn new(ctx: &mut Context, btc: &'static str, err: Option<&'static str>) -> Self {
+        let theme = &ctx.get::<PelicanUI>().theme;
+        let (font_size, color) = (theme.fonts.size.lg, theme.colors.status.danger);
+        let (icon, style, text) = match err {
+            Some(err) => (Some(Icon::new(ctx, "error", color, 24)), TextStyle::Error, err),
+            None => (None, TextStyle::Secondary, btc)
+        };
 
-impl _Message {
-    pub fn new(btc: &'static str, err: Option<&'static str>) -> Self {
-        let row = Row(8, Offset::Center, Size::Fit);
-        match err {
-            Some(err) => _Message(row, Some(Icon::new(ctx, "error", 24)), Text::new(ctx, err, TextStyle::Error, font_size.lg)),
-            None => _Message(row, None, Text::new(ctx, btc, TextStyle::Secondary, font_size.lg))
-        }
+        Message(
+            Row::center(8),
+            icon, Text::new(ctx, text, style, font_size)
+        )
     }
-}
-
-impl Component for _Message {
-    fn children_mut(&mut self) -> Vec<&mut ComponentRef> {
-        let mut children: Vec<&mut ComponentRef> = vec![];
-        if let Some(icon) = &mut self.1 { children.push(icon); }
-        children.push(&mut self.2);
-        children
-    }
-    fn children_mut(&self) -> Vec<&ComponentRef> {
-        let mut children: Vec<&ComponentRef> = vec![];
-        if let Some(icon) = &self.1 { children.push(icon); }
-        children.push(&self.2);
-        children
-    }
-    fn layout(&self) -> &dyn Layout {&self.0}
 }

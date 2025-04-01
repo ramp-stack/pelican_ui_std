@@ -2,7 +2,7 @@ use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::icon::Icon;
 use crate::elements::text::{Text, TextStyle};
-use crate::layout::{Row, Offset, Size};
+use crate::layout::{Row, Offset, Size, Padding};
 use crate::PelicanUI;
 
 #[derive(Clone, Debug, Component)]
@@ -15,7 +15,7 @@ impl Alert {
         let (color, font_size) = (theme.colors.status.warning, theme.fonts.size.md);
 
         Alert (
-            Row(4, Offset::Center, Size::Fit),
+            Row(4, Offset::Center, Size::Fit, Padding::default()),
             Icon::new(ctx, "warning", color, 32),
             Text::new(ctx, title, TextStyle::Primary, font_size)
         )

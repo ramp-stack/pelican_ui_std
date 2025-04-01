@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
+use crate::layout::Stack;
 use crate::PelicanUI;
-use crate::layout::{Stack, Offset, Size};
 
 #[derive(Clone, Debug, Component)]
 pub struct Icon(Stack, pub Image);

@@ -67,7 +67,7 @@ impl QRModuleRow {
 
         let mut modules: Vec<Shape> = vec![];
         for x in 0..module_count {
-            let px = (x * module_size);
+            let px = x * module_size;
             let color = 
                 if px > module_size 
                 && py > module_size

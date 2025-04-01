@@ -37,7 +37,7 @@ impl Text {
 }
 
 #[derive(Clone, Debug, Component)]
-pub struct ExpandableText(Stack, BasicText);
+pub struct ExpandableText(pub Stack, pub BasicText);
 
 impl ExpandableText {
     pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: u32) -> Self {
@@ -50,13 +50,12 @@ impl ExpandableText {
 }
 
 impl Events for ExpandableText {
-    fn on_click(&mut self, ctx: &mut Context, position: Option<(u32, u32)>) -> bool {
+    fn on_click(&mut self, _ctx: &mut Context, position: Option<(u32, u32)>) -> bool {
         println!("p: {:?}", position);
         true
     }
     fn on_resize(&mut self, _ctx: &mut Context, size: (u32, u32)) {
-        if let BasicText(_, _, min_width, _, _, _) = &mut self.1 {
-            *min_width = Some(size.0);
-        }
+        let BasicText(_, _, min_width, _, _, _) = &mut self.1; 
+        *min_width = Some(size.0);
     }
 }

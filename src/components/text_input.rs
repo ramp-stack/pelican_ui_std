@@ -8,7 +8,7 @@ use crate::layout::{Padding, Stack, Offset, Size, Row};
 use crate::PelicanUI;
 
 #[derive(Debug, Clone, Component)]
-pub struct TextInput(Stack, InputBackground, Padding<InputContent>, #[skip] InputState);
+pub struct TextInput(Stack, InputBackground, InputContent, #[skip] InputState);
 
 impl TextInput {
     pub fn new(
@@ -16,30 +16,29 @@ impl TextInput {
         label: Option<&'static str>,
         value: Option<&'static str>,
         placeholder: &'static str,
-        icon_button: Option<(&'static str, fn(&mut Context, (u32, u32)) -> ())>,
         help_text: Option<&'static str>,
         error: Option<&'static str>,
+        icon_button: Option<(&'static str, fn(&mut Context, (u32, u32)) -> ())>,
     ) -> Self {
-
         let height = 48;
         let padding = 8;
         
         let (background, outline) = InputColor::get(ctx, InputState::Default);
-
-        let input_field = InputContent::new(ctx, value, placeholder, icon_button);
-        let content = Padding::new(ctx, input_field, (0, 0, 8, 0));
-
+        let content = InputContent::new(ctx, placeholder, icon_button);
         let width = Size::Fill(content.size(ctx).min_width()+(padding*2), MaxSize::MAX);
-
         let background = InputBackground::new(background, outline, width, height);
 
-        TextInput(Stack(Offset::Start, Offset::Center, Size::Fit, Size::Fit), background, content, InputState::Default)
+        TextInput(
+            Stack(Offset::Start, Offset::Center, Size::Fit, Size::Fit, Padding::default()),
+            background, content, InputState::Default
+        )
     }
 
     pub fn set_state(&mut self, ctx: &mut Context, state: InputState) {
         if self.3 != state {
             self.3 = state;
             let (background, outline) = InputColor::get(ctx, state);
+            println!("State: {:?}", state);
             self.1.set_color(background, outline);
         }
     }
@@ -47,7 +46,11 @@ impl TextInput {
 
 impl Events for TextInput {
     fn on_click(&mut self, ctx: &mut Context, position: Option<(u32, u32)>) -> bool {
-        // if let Some(position) = position {(self.5)(ctx, position);}
+        match (position.is_some(), self.3) {
+            (true, InputState::Hover) => self.set_state(ctx, InputState::Focus),
+            (false, InputState::Focus) => self.set_state(ctx, InputState::Default),
+            _ => {}
+        };
         true
     }
     fn on_move(&mut self, ctx: &mut Context, position: Option<(u32, u32)>) -> bool {
@@ -58,27 +61,38 @@ impl Events for TextInput {
         };
         false
     }
+    fn on_press(&mut self, ctx: &mut Context, text: String) -> bool {
+        match self.3 {
+            InputState::Focus => {
+                println!("Input field received character: {:?}", text);
+                if let BasicText(t, _, _, _, _, _) = &mut self.2.1.1 {
+                    *t = self.2.2.to_string()+&text;
+                    println!("Input field text contains: {:?}", t);
+                }
+            },
+            _ => println!("No input field is focused.")
+        }
+        true
+    }
 }
 
 #[derive(Clone, Debug, Component)]
-pub struct InputContent(Row, ExpandableText, Option<IconButton>);
-impl Events for InputContent {
-
-}
+pub struct InputContent(Row, Option<BasicText>, ExpandableText, #[skip] &'static str, Option<IconButton>);
+impl Events for InputContent {}
 
 impl InputContent {
     fn new(
         ctx: &mut Context, 
-        value: Option<&'static str>, 
-        placeholder: &'static str, 
+        placeholder: &'static str,
         icon_button: Option<(&'static str, fn(&mut Context, (u32, u32)) -> ())>
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.md;
-        let (text, style) = if let Some(value) = value {(value, TextStyle::Primary)} else {(placeholder, TextStyle::Secondary)};
+        let input_value = "";
         InputContent(
-            Row(8, Offset::Center, Size::Fit),
-            ExpandableText::new(ctx, text, style, font_size),
-            icon_button.map(|(icon, on_click)| IconButton::input(ctx, icon, on_click)),
+            Row(8, Offset::Center, Size::Fit, Padding(8, 0, 8, 0)),
+            ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size),
+            input_value,
+            icon_button.map(|(icon, on_click)| IconButton::input(ctx, icon, on_click))
         )
     }
 }
@@ -89,7 +103,7 @@ pub struct InputBackground(Stack, Shape, Shape);
 impl InputBackground {
     pub fn new(bg: Color, oc: Color, width: Size, height: u32) -> Self {
         InputBackground(
-            Stack(Offset::Center, Offset::Center, width, Size::Fit),
+            Stack(Offset::Center, Offset::Center, width, Size::Fit, Padding::default()),
             RoundedRectangle::new(100, height, 8, bg),
             Outline::rounded_rectangle(100, height, 8, 1, oc)
         )

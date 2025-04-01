@@ -1,4 +1,5 @@
 use rust_on_rails::prelude::*;
+use crate::layout::{Size, Padding, Offset, Stack};
 // use crate::{ZERO, Stack};
 // use crate::layout::Align;
 // use crate::elements::text::{Text, TextStyle};
@@ -30,6 +31,26 @@ pub struct RoundedRectangle;
 impl RoundedRectangle {
     pub fn new(w: u32, h: u32, r: u32, bg: Color) -> Shape {
         Shape(ShapeType::RoundedRectangle(0, (w, h), r), bg)
+    }
+}
+
+#[derive(Clone, Debug, Component)]
+pub struct ExpandingRoundedRectangle(Stack, Shape);
+
+impl ExpandingRoundedRectangle {
+    pub fn new(ctx: &mut Context, h: u32, r: u32, c: Color) -> Self {
+        ExpandingRoundedRectangle(
+            Stack(Offset::default(), Offset::default(), Size::Fill(MinSize(0), MaxSize(u32::MAX)), Size::Fit, Padding::default()),
+            RoundedRectangle::new(100, h, r, c)
+        )
+    }
+}
+
+impl Events for ExpandingRoundedRectangle {
+    fn on_resize(&mut self, _ctx: &mut Context, size: (u32, u32)) {
+        if let Shape(ShapeType::RoundedRectangle(_, (w, _), _), _) = &mut self.1 {
+            *w = size.0;
+        }
     }
 }
 
