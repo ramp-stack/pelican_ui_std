@@ -7,8 +7,7 @@ use crate::layout::{Padding, Column, Stack, Offset, Size, Row};
 use crate::PelicanUI;
 
 #[derive(Debug, Clone, Component)]
-pub struct TextInput(Column, Opt<BasicText>, InputField, Opt<BasicText>);
-impl Events for TextInput {}
+pub struct TextInput(Column, Option<BasicText>, InputField, Eth<BasicText, BasicText>);
 
 impl TextInput {
     pub fn new(
@@ -20,25 +19,31 @@ impl TextInput {
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
 
-        let subtext = if let Some(err) = error {
-            Some(Text::new(ctx, err, TextStyle::Error, font_size.sm))
-        } else if let Some(help) = help_text {
-            Some(Text::new(ctx, help, TextStyle::Secondary, font_size.sm))
-        } else { None };
-
-        let state = match error.is_some() {
-            true => InputState::Error,
-            false => InputState::Default,
-        }; // Error status goes away on hover, on focus (shouldn't)
-
         TextInput(
             Column(16, Offset::Start, Size::Fit, Padding::default()),
             label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5)),
-            InputField::new(ctx, state, placeholder, icon_button), 
-            subtext
+            InputField::new(ctx, placeholder, icon_button), 
+            Eth::new(
+                Text::new(ctx, help_text.unwrap_or("NONE"), TextStyle::Secondary, font_size.sm),
+                Text::new(ctx, "", TextStyle::Error, font_size.sm)
+            )
         )
     }
+     
+
+    pub fn error(&mut self) -> &mut String {
+        self.3.right().value()
+    }
 }
+
+impl Events for TextInput {
+    fn on_tick(&mut self, ctx: &mut Context) {
+        let error = !self.3.value().is_empty();
+        self.3.display_left(error);
+        *self.2.error() = error;
+    }
+}
+
 
 #[derive(Clone, Debug, Component)]
 struct InputField(Stack, InputBackground, InputContent, #[skip] InputState, #[skip] bool);
@@ -46,9 +51,8 @@ struct InputField(Stack, InputBackground, InputContent, #[skip] InputState, #[sk
 impl InputField {
     pub fn new(
         ctx: &mut Context,
-        state: InputState,
         placeholder: &'static str,
-        icon_button: Option<(&'static str, fn(&mut Context, (u32, u32)) -> ())>,
+        icon_button: Option<IconButton>,
     ) -> Self {
         let (background, outline) = state.get_color(ctx);
         let content = InputContent::new(ctx, placeholder, icon_button);
@@ -56,26 +60,58 @@ impl InputField {
         let height = content.size(ctx).min_height().0;
         let background = InputBackground::new(background, outline, width, height);
 
-        InputField(Stack::center(), background, content, state, false)
+        InputField(Stack::center(), background, content, InputState::Default, false)
     }
 
-    pub fn set_error(&mut self, error: bool) {
-        self.4 = error;
-        if let Some(state) = self.3.toggle_error(self.4) {self.set_state(state);}
-    } 
+    pub fn error(&mut self) -> &mut bool { &mut self.4 }
+}
 
-    fn set_state(&mut self, state: InputState) {
+impl Events for InputField {
+    fn on_tick(&mut self, ctx: &mut Context) {
+        self.3 = match self.3 {
+            InputState::Default if self.4 => Some(InputState::Error),
+            InputState::Error if !self.4 => Some(InputState::Default),
+            _ => None
+        }.unwrap_or(self.3);
+
         let (background, outline) = state.get_color(ctx);
         *self.1.background() = background;
         *self.1.outline() = outline;
         *self.2.focus() = state == InputState::Focus;
     }
-}
 
-impl Events for InputField {
     fn on_mouse(&mut self, ctx: &mut Context, event: MouseEvent) -> bool {
-        if let Some(state) = self.3.handle(event, self.4) {self.set_state(state);}
-        true
+        self.3 = match self.3 {
+            InputState::Default => {
+                match mouse {
+                    MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
+                    _ => None
+                }
+            },
+            InputState::Hover => {
+                match event.state {
+                    MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
+                    MouseEvent{state: MouseState::Moved, position: None} if self.4 => Some(InputState::Error),
+                    MouseEvent{state: MouseState::Moved, position: None} => Some(InputState::Default),
+                    _ => None
+                }
+            },
+            InputState::Focus => {
+                match event.state {
+                    MouseEvent{state: MouseState::Pressed, position: None} if self.4 => Some(InputState::Error),
+                    MouseEvent{state: MouseState::Pressed, position: None} => Some(InputState::Default),
+                    _ => None
+                }
+            },
+            InputState::Error => {
+                match event.state {
+                    MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
+                    MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
+                    _ => None
+                }
+            }
+            _ => None
+        }.unwrap_or(self.3);
     }
     
     fn on_keyboard(&mut self, _ctx: &mut Context, event: KeyboardEvent) -> bool {
@@ -134,7 +170,7 @@ impl InputContent {
 
 impl Events for InputContent {
     fn on_tick(&mut self, ctx: &mut Context) {
-        self.1.displa_yleft(!self.1.left().value().is_empty() || self.3)
+        self.1.display_left(!self.1.left().value().is_empty() || self.3)
     }
 }
 
@@ -147,52 +183,6 @@ enum InputState {
 }
 
 impl InputState {
-    fn toggle_error(&mut self, error: bool) -> Option<Self> {
-        let state = match self {
-            InputState::Default if error => Some(InputState::Error),
-            InputState::Error if !error => Some(InputState::Default),
-            _ => None
-        };
-        if let Some(state) = state { *self = state; }
-        state
-    }
-
-    fn handle(&mut self, event: MouseEvent, error: bool) -> Option<Self> {
-        let state = match self {
-            InputState::Default => {
-                match mouse {
-                    MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
-                    _ => None
-                }
-            },
-            InputState::Hover => {
-                match event.state {
-                    MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
-                    MouseEvent{state: MouseState::Moved, position: None} if error => Some(InputState::Error),
-                    MouseEvent{state: MouseState::Moved, position: None} => Some(InputState::Default),
-                    _ => None
-                }
-            },
-            InputState::Focus => {
-                match event.state {
-                    MouseEvent{state: MouseState::Pressed, position: None} if error => Some(InputState::Error),
-                    MouseEvent{state: MouseState::Pressed, position: None} => Some(InputState::Default),
-                    _ => None
-                }
-            },
-            InputState::Error => {
-                match event.state {
-                    MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
-                    MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
-                    _ => None
-                }
-            }
-            _ => None
-        };
-        if let Some(state) = state { *self = state; }
-        state
-    }
-
     fn get_color(&self, ctx: &mut Context) -> (Color, Color) { // background, outline
         let colors = &ctx.get::<PelicanUI>().theme.colors;
         match self {
