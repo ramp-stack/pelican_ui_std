@@ -6,7 +6,7 @@ use crate::layout::Stack;
 use super::{ButtonStyle, ButtonSize, ButtonState};
 
 #[derive(Debug, Clone, Component)]
-pub struct IconButton(Stack, RoundedRectangle, RoundedRectangle, Icon, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context, (u32, u32)) -> ());
+pub struct IconButton(Stack, RoundedRectangle, RoundedRectangle, Icon, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
 impl IconButton {
     pub fn new(
         ctx: &mut Context,
@@ -14,7 +14,7 @@ impl IconButton {
         size: ButtonSize,
         style: ButtonStyle,
         state: ButtonState,
-        on_click: fn(&mut Context, (u32, u32)) -> (),
+        on_click: fn(&mut Context) -> (),
     ) -> Self {
         let colors = state.color(ctx, style);
         let (size, icon_size, radius) = match (style, size) {
@@ -41,9 +41,9 @@ impl Events for IconButton {
             *self.2.shape().color() = colors.outline;
             *self.3.color() = Some(colors.label);
         }
-        if let MouseEvent{state: MouseState::Pressed, position: Some(position)} = event {
+        if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
             match self.5 {
-                ButtonState::Default | ButtonState::Hover => (self.6)(ctx, position),
+                ButtonState::Default | ButtonState::Hover | ButtonState::Selected => (self.6)(ctx),
                 _ => {}
             }
         }
@@ -52,7 +52,7 @@ impl Events for IconButton {
 }
 
 impl IconButton {
-    pub fn input(ctx: &mut Context, icon: &'static str, on_click: fn(&mut Context, (u32, u32)) -> ()) -> Self {
+    pub fn input(ctx: &mut Context, icon: &'static str, on_click: fn(&mut Context) -> ()) -> Self {
         IconButton::new(
             ctx,
             icon,

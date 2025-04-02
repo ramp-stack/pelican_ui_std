@@ -15,7 +15,7 @@ pub enum ButtonWidth {
 }
 
 #[derive(Debug, Clone, Component)]
-pub struct Button(Stack, ButtonBackground, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context, (u32, u32)) -> ());
+pub struct Button(Stack, ButtonBackground, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
 impl Button {
     pub fn new(
         ctx: &mut Context,
@@ -28,7 +28,7 @@ impl Button {
         style: ButtonStyle,
         state: ButtonState,
         offset: Offset,
-        on_click: fn(&mut Context, (u32, u32)) -> (),
+        on_click: fn(&mut Context) -> (),
     ) -> Self {
         let (height, padding) = size.background();
         let colors = state.color(ctx, style);
@@ -53,9 +53,9 @@ impl Events for Button {
             self.1.set_color(colors.background, colors.outline);
             self.2.set_color(colors.label);
         }
-        if let MouseEvent{state: MouseState::Pressed, position: Some(position)} = event {
+        if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
             match self.4 {
-                ButtonState::Default | ButtonState::Hover => (self.5)(ctx, position),
+                ButtonState::Default | ButtonState::Hover => (self.5)(ctx),
                 _ => {}
             }
         }
@@ -117,7 +117,7 @@ impl Button {
     pub fn primary(
         ctx: &mut Context,
         label: &'static str,
-        on_click: fn(&mut Context, (u32, u32)) -> (),
+        on_click: fn(&mut Context) -> (),
     ) -> Self {
         Button::new(
             ctx,
@@ -139,7 +139,7 @@ impl Button {
         icon_l: Option<&'static str>,
         label: &'static str,
         icon_r: Option<&'static str>,
-        on_click: fn(&mut Context, (u32, u32)) -> (),
+        on_click: fn(&mut Context) -> (),
     ) -> Self {
         Button::new(
             ctx,
@@ -159,7 +159,7 @@ impl Button {
     pub fn ghost(
         ctx: &mut Context,
         label: &'static str,
-        on_click: fn(&mut Context, (u32, u32)) -> (),
+        on_click: fn(&mut Context) -> (),
     ) -> Self {
         Button::new(
             ctx,
@@ -180,7 +180,7 @@ impl Button {
         ctx: &mut Context,
         label: Option<&'static str>,
         icon: Option<&'static str>,
-        on_click: fn(&mut Context, (u32, u32)) -> (),
+        on_click: fn(&mut Context) -> (),
     ) -> Self {
         Button::new(
             ctx,
@@ -202,7 +202,7 @@ impl Button {
         icon: &'static str,
         label: &'static str,
         selected: bool,
-        on_click: fn(&mut Context, (u32, u32)) -> (),
+        on_click: fn(&mut Context) -> (),
     ) -> Self {
         Button::new(
             ctx,
@@ -224,7 +224,7 @@ impl Button {
         label: &'static str,
         photo: AvatarContent,
         selected: bool,
-        on_click: fn(&mut Context, (u32, u32)) -> (),
+        on_click: fn(&mut Context) -> (),
     ) -> Self {
         Button::new(
             ctx,

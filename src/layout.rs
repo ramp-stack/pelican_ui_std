@@ -250,10 +250,11 @@ impl Layout for Stack {
 pub struct Bin<L: Layout + Clone, D: Drawable + Clone>(pub L, pub D);
 impl<L: Layout + Clone, D: Drawable + Clone> Events for Bin<L, D> {}
 
-pub struct Opt<D: Drawable + Clone>(Stack, Option<D>, #[skip] Option<D>);
-impl<D: Drawable + Clone> Events for Opt<D> {}
+#[derive(Debug, Clone, Component)]
+pub struct Opt<D: Drawable + Clone + 'static>(Stack, Option<D>, #[skip] Option<D>);
+impl<D: Drawable + Clone + 'static> Events for Opt<D> {}
 
-impl<D: Drawabel + Clone> Opt<D> {
+impl<D: Drawable + Clone + 'static> Opt<D> {
     pub fn new(item: D, display: bool) -> Self {
         match display {
             true => Opt(Stack::default(), Some(item), None),
@@ -263,21 +264,22 @@ impl<D: Drawabel + Clone> Opt<D> {
 
     pub fn display(&mut self, display: bool) {
         match display {
-            true if self.1.is_none() => self.1.insert(self.2.take().unwrap()),
-            false if self.2.is_none() => self.2.insert(self.1.take().unwrap()),
-        } 
+            true if self.1.is_none() => self.1 = self.2.take(),
+            false if self.2.is_none() => self.2 = self.1.take(),
+            _ => {}
+        }
     }
 
     pub fn inner(&mut self) -> &mut D {self.1.as_mut().unwrap_or_else(|| self.2.as_mut().unwrap())}
 }
 
-//Switch out D and O for L and R. Rename to some other 3 letter synonme or abreviation for Either
-pub struct Eth<D: Drawable + Clone, O: Drawable + Clone>(Stack, Opt<D>, Opt<O>);
-impl<D: Drawable + Clone, O: Drawable + Clone> Events for Eth<D, O> {}
+#[derive(Debug, Clone, Component)]
+pub struct EitherOr<L: Drawable + Clone + 'static, R: Drawable + Clone + 'static>(Stack, Opt<L>, Opt<R>);
+impl<L: Drawable + Clone + 'static, R: Drawable + Clone + 'static> Events for EitherOr<L, R> {}
 
-impl<D: Drawabel + Clone, O: Drawable + Clone> Eth<D, O> {
-    pub fn new(left: D, right: D) -> Self {
-        Eth(Stack::default(), Opt::new(left, true), Opt::new(right, false))
+impl<L: Drawable + Clone + 'static, R: Drawable + Clone + 'static> EitherOr<L, R> {
+    pub fn new(left: L, right: R) -> Self {
+        EitherOr(Stack::default(), Opt::new(left, true), Opt::new(right, false))
     }
 
     pub fn display_left(&mut self, display_left: bool) {
@@ -285,6 +287,6 @@ impl<D: Drawabel + Clone, O: Drawable + Clone> Eth<D, O> {
         self.2.display(!display_left);
     }
 
-    pub fn left(&mut self) -> &mut D {self.1.inner()}
-    pub fn right(&mut self) -> &mut O {self.2.inner()}
+    pub fn left(&mut self) -> &mut L {self.1.inner()}
+    pub fn right(&mut self) -> &mut R {self.2.inner()}
 }
