@@ -5,8 +5,14 @@ use crate::layout::Stack;
 
 use super::{ButtonStyle, ButtonSize, ButtonState};
 
-#[derive(Debug, Clone, Component)]
-pub struct IconButton(Stack, RoundedRectangle, RoundedRectangle, Icon, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
+pub type Function = Box<dyn FnMut(&mut Context)>;
+
+#[derive(Component)]
+pub struct IconButton(
+        Stack, RoundedRectangle, RoundedRectangle, Icon,
+        #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Function
+);
+
 impl IconButton {
     pub fn new(
         ctx: &mut Context,
@@ -14,7 +20,7 @@ impl IconButton {
         size: ButtonSize,
         style: ButtonStyle,
         state: ButtonState,
-        on_click: fn(&mut Context) -> (),
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let colors = state.color(ctx, style);
         let (size, icon_size, radius) = match (style, size) {
@@ -29,7 +35,7 @@ impl IconButton {
         let background = RoundedRectangle::new(0, Some(size), Some(size), radius, colors.background);
         let outline = RoundedRectangle::new(1, Some(size), Some(size), radius, colors.outline);
 
-        IconButton(Stack::center(), background, outline, icon, style, state, on_click)
+        IconButton(Stack::center(), background, outline, icon, style, state, Box::new(on_click))
     }
 }
 
@@ -52,7 +58,9 @@ impl Events for IconButton {
 }
 
 impl IconButton {
-    pub fn input(ctx: &mut Context, icon: &'static str, on_click: fn(&mut Context) -> ()) -> Self {
+    pub fn input(
+        ctx: &mut Context, icon: &'static str, on_click: impl FnMut(&mut Context) + 'static
+    ) -> Self {
         IconButton::new(
             ctx,
             icon,
@@ -61,5 +69,11 @@ impl IconButton {
             ButtonState::Default,
             on_click
         )
+    }
+}
+
+impl std::fmt::Debug for IconButton {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "IconButton(...)")
     }
 }
