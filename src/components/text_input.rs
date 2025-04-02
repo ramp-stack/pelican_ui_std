@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::shapes::RoundedRectangle;
+use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text,TextStyle, ExpandableText};
 use crate::components::button::IconButton;
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row};
@@ -30,23 +30,19 @@ impl TextInput {
         )
     }
      
-
-    pub fn error(&mut self) -> &mut String {
-        self.3.right().value()
-    }
+    pub fn error(&mut self) -> &mut String { self.3.right().value() }
 }
 
 impl Events for TextInput {
     fn on_tick(&mut self, _ctx: &mut Context) {
         let error = !self.3.right().value().is_empty();
-        self.3.display_left(error);
+        self.3.display_left(!error);
         *self.2.error() = error;
     }
 }
 
-
 #[derive(Clone, Debug, Component)]
-struct InputField(Stack, InputBackground, InputContent, #[skip] InputState, #[skip] bool);
+struct InputField(Stack, OutlinedRectangle, InputContent, #[skip] InputState, #[skip] bool);
 
 impl InputField {
     pub fn new(
@@ -57,16 +53,24 @@ impl InputField {
         let (background, outline) = InputState::Default.get_color(ctx);
         let content = InputContent::new(ctx, placeholder, icon_button);
         let width = Size::Fill(content.size(ctx).min_width(), MaxSize::MAX);
-        let height = content.size(ctx).min_height().0;
-        let background = InputBackground::new(background, outline, width, height);
+        let height = Size::Static(content.size(ctx).min_height().0);
 
-        InputField(Stack::center(), background, content, InputState::Default, false)
+        let background = OutlinedRectangle::new(background, outline, width, height, 8, 1);
+
+        InputField(
+            Stack(Offset::End, Offset::End, Size::default(), Size::default(), Padding::default()), 
+            background, content, InputState::Default, false
+        )
     }
 
     pub fn error(&mut self) -> &mut bool { &mut self.4 }
 }
 
 impl Events for InputField {
+    fn on_resize(&mut self, ctx: &mut Context, _size: (u32, u32)) {
+        *self.1.height() = Size::Static(self.2.size(ctx).min_height().0);
+    }
+
     fn on_tick(&mut self, ctx: &mut Context) {
         self.3 = match self.3 {
             InputState::Default if self.4 => Some(InputState::Error),
@@ -127,24 +131,8 @@ impl Events for InputField {
 }
 
 #[derive(Clone, Debug, Component)]
-struct InputBackground(Stack, RoundedRectangle, RoundedRectangle);
-impl Events for InputBackground {}
-
-impl InputBackground {
-    fn new(bg: Color, oc: Color, width: Size, height: u32) -> Self {
-        InputBackground(//TODO: Change RoundedRectangle to no longer accept width or height but always expand, Change size::Fit to Static(height)
-            Stack(Offset::Center, Offset::Center, width, Size::Fit, Padding::default()),
-            RoundedRectangle::new(0, None, Some(height), 8, bg),
-            RoundedRectangle::new(1, None, Some(height), 8, oc)
-        )
-    }
-
-    fn background(&mut self) -> &mut Color {self.1.shape().color()}
-    fn outline(&mut self) -> &mut Color {self.2.shape().color()}
-}
-
-#[derive(Clone, Debug, Component)]
-struct InputContent(Row, EitherOr<ExpandableText, ExpandableText>, Option<IconButton>, #[skip] bool, #[skip] Option<fn(&mut Context, &mut String) -> ()>);
+struct InputContent(Row, InputText, Option<IconButton>, #[skip] Option<fn(&mut Context, &mut String) -> ()>);
+impl Events for InputContent {}
 
 impl InputContent {
     fn new(
@@ -152,29 +140,47 @@ impl InputContent {
         placeholder: &'static str, 
         icon_button: Option<(&'static str, fn(&mut Context, &mut String) -> ())>
     ) -> Self {
-        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.md;
-        let (icon_button, on_click) = icon_button.map(|(icon, on_click)| (Some(IconButton::input(ctx, icon, |_| {println!("LOOSER!");})), Some(on_click))).unwrap_or((None, None));
+        let (icon_button, on_click) = icon_button.map(|(icon, on_click)| (
+            Some(IconButton::input(ctx, icon, |_| {println!("LOOSER!");})), 
+            Some(on_click))).unwrap_or((None, None)
+        );
 
         InputContent(
-            Row(16, Offset::Center, Size::Fit, Padding(16, 8, 8, 8)),
-            EitherOr::new(
-                ExpandableText::new(ctx, "", TextStyle::Primary, font_size),
-                ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size),
-            ),
+            Row(16, Offset::End, Size::Fit, Padding(8, 8, 8, 8)),
+            InputText::new(ctx, placeholder),
             icon_button,
-            false,
             on_click
         )
     }
 
-    fn input(&mut self) -> &mut String { self.1.left().value() }
-    fn focus(&mut self) -> &mut bool {&mut self.3}
+    fn input(&mut self) -> &mut String { self.1.input() }
+    fn focus(&mut self) -> &mut bool { self.1.focus() }
 }
 
-impl Events for InputContent {
+#[derive(Clone, Debug, Component)]
+struct InputText(Row, EitherOr<ExpandableText, ExpandableText>, #[skip] bool);
+
+impl InputText {
+    fn new(ctx: &mut Context, placeholder: &'static str,) -> Self {
+        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.md;
+
+        InputText(
+            Row(16, Offset::End, Size::Fit, Padding(8, 6, 8, 6)),
+            EitherOr::new(
+                ExpandableText::new(ctx, "", TextStyle::Primary, font_size),
+                ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size),
+            ), false
+        )
+    }
+
+    fn focus(&mut self) -> &mut bool { &mut self.2 }
+    fn input(&mut self) -> &mut String { self.1.left().value() }
+}
+
+impl Events for InputText {
     fn on_tick(&mut self, _ctx: &mut Context) {
         let input = !self.1.left().value().is_empty();
-        self.1.display_left(input || self.3)
+        self.1.display_left(input || self.2)
     }
 
     // fn on_mouse(&mut self, ctx: &mut Context) -> bool {

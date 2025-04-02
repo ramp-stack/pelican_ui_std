@@ -1,22 +1,5 @@
 use rust_on_rails::prelude::*;
 use crate::layout::{Size, Padding, Offset, Stack};
-// use crate::{ZERO, Stack};
-// use crate::layout::Align;
-// use crate::elements::text::{Text, TextStyle};
-
-// pub struct Circle(pub u32, pub Color);
-
-// impl Circle {
-//     pub fn new(size: u32, color: &'static str) -> Self {
-//         Circle(size, Color::from_hex(color, 255))
-//     }
-// }
-
-// impl ComponentBuilder for Circle {
-//     fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-//         Shape(ShapeType::Ellipse(0, (self.0, self.0)), self.1).build_children(ctx, max_size)
-//     }
-// }
 
 pub struct Circle;
 
@@ -27,13 +10,31 @@ impl Circle {
 }
 
 #[derive(Clone, Debug, Component)]
+pub struct OutlinedRectangle(Stack, RoundedRectangle, RoundedRectangle);
+impl Events for OutlinedRectangle {}
+
+impl OutlinedRectangle {
+    pub fn new(bg: Color, oc: Color, width: Size, height: Size, radius: u32, stroke: u32) -> Self {
+        OutlinedRectangle(
+            Stack(Offset::Center, Offset::Center, width, height, Padding::default()),
+            RoundedRectangle::new(0, radius, bg),
+            RoundedRectangle::new(stroke, radius, oc)
+        )
+    }
+
+    pub fn height(&mut self) -> &mut Size {self.0.height()}
+    pub fn background(&mut self) -> &mut Color {self.1.shape().color()}
+    pub fn outline(&mut self) -> &mut Color {self.2.shape().color()}
+}
+
+#[derive(Clone, Debug, Component)]
 pub struct RoundedRectangle(Stack, Shape);
 
 impl RoundedRectangle {
-    pub fn new(s: u32, w: Option<u32>, h: Option<u32>, r: u32, c: Color) -> Self {
+    pub fn new(s: u32, r: u32, c: Color) -> Self {
         RoundedRectangle(
-            Stack(Offset::default(), Offset::default(), Self::get_size(w), Self::get_size(h), Padding::default()),
-            Shape(ShapeType::RoundedRectangle(s, (w.unwrap_or(0), h.unwrap_or(0)), r), c)
+            Stack(Offset::default(), Offset::default(), Self::get_size(None), Self::get_size(None), Padding::default()),
+            Shape(ShapeType::RoundedRectangle(s, (0, 0), r), c)
         )
     }
 
@@ -47,6 +48,33 @@ impl RoundedRectangle {
 impl Events for RoundedRectangle {
     fn on_resize(&mut self, _ctx: &mut Context, size: (u32, u32)) {
         if let Shape(ShapeType::RoundedRectangle(_, (w, h), _), _) = &mut self.1 {
+            *w = size.0;
+            *h = size.1;
+        }
+    }
+}
+
+#[derive(Clone, Debug, Component)]
+pub struct Rectangle(Stack, Shape);
+
+impl Rectangle {
+    pub fn new(c: Color) -> Self {
+        Rectangle(
+            Stack(Offset::default(), Offset::default(), Self::get_size(None), Self::get_size(None), Padding::default()),
+            Shape(ShapeType::Rectangle(0, (0, 0)), c)
+        )
+    }
+
+    pub fn shape(&mut self) -> &mut Shape { &mut self.1 }
+
+    fn get_size(s: Option<u32>) -> Size {
+        s.map(|s| Size::Static(s)).unwrap_or(Size::Fill(MinSize(0), MaxSize(u32::MAX)))
+    }
+}
+
+impl Events for Rectangle {
+    fn on_resize(&mut self, _ctx: &mut Context, size: (u32, u32)) {
+        if let Shape(ShapeType::Rectangle(_, (w, h)), _) = &mut self.1 {
             *w = size.0;
             *h = size.1;
         }

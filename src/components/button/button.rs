@@ -1,7 +1,7 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::icon::Icon;
-use crate::elements::shapes::RoundedRectangle;
+use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text, TextStyle};
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::layout::{Stack, Offset, Size, Padding, Row};
@@ -15,7 +15,7 @@ pub enum ButtonWidth {
 }
 
 #[derive(Debug, Clone, Component)]
-pub struct Button(Stack, ButtonBackground, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
+pub struct Button(Stack, OutlinedRectangle, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
 impl Button {
     pub fn new(
         ctx: &mut Context,
@@ -30,16 +30,17 @@ impl Button {
         offset: Offset,
         on_click: fn(&mut Context) -> (),
     ) -> Self {
-        let (height, padding) = size.background();
+        let (h, p) = size.background();
         let colors = state.color(ctx, style);
         let content = ButtonContent::new(ctx, avatar, icon_l, label, icon_r, size, colors.label);
 
         let width = match width {
-            ButtonWidth::Hug => Size::Static(content.size(ctx).min_width().0+(padding*2)),
-            ButtonWidth::Expand => Size::Fill(content.size(ctx).min_width()+(padding*2), MaxSize::MAX)
+            ButtonWidth::Hug => Size::Static(content.size(ctx).min_width().0+(p*2)),
+            ButtonWidth::Expand => Size::Fill(content.size(ctx).min_width()+(p*2), MaxSize::MAX)
         };
-
-        let background = ButtonBackground::new(colors.background, colors.outline, width, height);
+        
+        let height = Size::Static(h);
+        let background = OutlinedRectangle::new(colors.background, colors.outline, width, height, h/2, 1);
         let layout = Stack(offset, Offset::Center, Size::Fit, Size::Fit, Padding::default());
 
         Button(layout, background, content, style, state, on_click)
@@ -50,8 +51,10 @@ impl Events for Button {
     fn on_mouse(&mut self, ctx: &mut Context, event: MouseEvent) -> bool {
         if let Some(state) = self.4.handle(ctx, event) {
             let colors = state.color(ctx, self.3);
-            self.1.set_color(colors.background, colors.outline);
+
             self.2.set_color(colors.label);
+            *self.1.outline() = colors.outline;
+            *self.1.background() = colors.background;
         }
         if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
             match self.4 {
@@ -91,25 +94,6 @@ impl ButtonContent {
         if let Some(icon) = &mut self.2 { *icon.color() = Some(color); }
         if let Some(text) = &mut self.3 { *text.color() = color; }
         if let Some(icon) = &mut self.4 { *icon.color() = Some(color); }
-    }
-}
-
-#[derive(Clone, Debug, Component)]
-struct ButtonBackground(Stack, RoundedRectangle, RoundedRectangle);
-impl Events for ButtonBackground {}
-
-impl ButtonBackground {
-    pub fn new(bg: Color, oc: Color, width: Size, height: u32) -> Self {
-        ButtonBackground(
-            Stack(Offset::Center, Offset::Center, width, Size::Fit, Padding::default()),
-            RoundedRectangle::new(0, None, Some(height), height/2, bg),
-            RoundedRectangle::new(1, None, Some(height), height/2, oc)
-        )
-    }
-
-    fn set_color(&mut self, bg: Color, oc: Color) {
-        *self.1.shape().color() = bg;
-        *self.2.shape().color() = oc;
     }
 }
 
@@ -176,7 +160,7 @@ impl Button {
         )
     }
 
-    pub fn key_pad(
+    pub fn keypad(
         ctx: &mut Context,
         label: Option<&'static str>,
         icon: Option<&'static str>,
@@ -188,8 +172,8 @@ impl Button {
             icon,
             label,
             None,
-            ButtonSize::Medium,
-            ButtonWidth::Hug,
+            ButtonSize::Large,
+            ButtonWidth::Expand,
             ButtonStyle::Ghost,
             ButtonState::Default,
             Offset::Center,

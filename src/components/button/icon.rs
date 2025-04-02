@@ -1,12 +1,12 @@
 use rust_on_rails::prelude::*;
 use crate::elements::icon::Icon;
-use crate::elements::shapes::RoundedRectangle;
-use crate::layout::Stack;
+use crate::elements::shapes::OutlinedRectangle;
+use crate::layout::{Stack, Size};
 
 use super::{ButtonStyle, ButtonSize, ButtonState};
 
 #[derive(Debug, Clone, Component)]
-pub struct IconButton(Stack, RoundedRectangle, RoundedRectangle, Icon, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
+pub struct IconButton(Stack, OutlinedRectangle, Icon, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
 impl IconButton {
     pub fn new(
         ctx: &mut Context,
@@ -25,25 +25,25 @@ impl IconButton {
             _ => panic!("{:?} is not a valid style", style)
         };
 
+        let size = Size::Static(size);
         let icon = Icon::new(ctx, icon, colors.label, icon_size);
-        let background = RoundedRectangle::new(0, Some(size), Some(size), radius, colors.background);
-        let outline = RoundedRectangle::new(1, Some(size), Some(size), radius, colors.outline);
+        let background = OutlinedRectangle::new(colors.background, colors.outline, size, size, radius, 1);
 
-        IconButton(Stack::center(), background, outline, icon, style, state, on_click)
+        IconButton(Stack::center(), background, icon, style, state, on_click)
     }
 }
 
 impl Events for IconButton {
     fn on_mouse(&mut self, ctx: &mut Context, event: MouseEvent) -> bool {
-        if let Some(state) = self.5.handle(ctx, event) {
-            let colors = state.color(ctx, self.4);
-            *self.1.shape().color() = colors.background;
-            *self.2.shape().color() = colors.outline;
-            *self.3.color() = Some(colors.label);
+        if let Some(state) = self.4.handle(ctx, event) {
+            let colors = state.color(ctx, self.3);
+            *self.1.background() = colors.background;
+            *self.1.outline() = colors.outline;
+            *self.2.color() = Some(colors.label);
         }
         if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
-            match self.5 {
-                ButtonState::Default | ButtonState::Hover | ButtonState::Selected => (self.6)(ctx),
+            match self.4 {
+                ButtonState::Default | ButtonState::Hover | ButtonState::Selected => (self.5)(ctx),
                 _ => {}
             }
         }
@@ -58,6 +58,17 @@ impl IconButton {
             icon,
             ButtonSize::Medium,
             ButtonStyle::Secondary,
+            ButtonState::Default,
+            on_click
+        )
+    }
+
+    pub fn keyboard(ctx: &mut Context, icon: &'static str, on_click: fn(&mut Context) -> ()) -> Self {
+        IconButton::new(
+            ctx,
+            icon,
+            ButtonSize::Medium,
+            ButtonStyle::Ghost,
             ButtonState::Default,
             on_click
         )

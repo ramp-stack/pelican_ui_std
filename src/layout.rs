@@ -210,9 +210,6 @@ impl Layout for Column {
     }
 }
 
-
-
-
 #[derive(Clone, Debug, Default)]
 pub struct Stack(pub Offset, pub Offset, pub Size, pub Size, pub Padding);
 impl Stack {
@@ -222,6 +219,8 @@ impl Stack {
     fn fit(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
         items.into_iter().reduce(|s, i| (s.0.max(i.0), s.1.max(i.1))).unwrap_or_default()
     }
+
+    pub fn height(&mut self) -> &mut Size {&mut self.3}
 }
 
 impl Layout for Stack {

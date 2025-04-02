@@ -1,27 +1,37 @@
 use rust_on_rails::prelude::*;
-use crate::{ Child, ConstrainedBox, Row, Column, ZERO, Align };
-use crate::components::button::*;
+use rust_on_rails::prelude::Text as BasicText;
+use crate::elements::icon::Icon;
+use crate::elements::text::{Text, TextStyle};
+use crate::components::button::Button;
+use crate::layout::{Column, Row, Offset, Size, Padding};
+use crate::PelicanUI;
 
-pub struct NumericKeypad();
+#[derive(Clone, Debug, Component)]
+pub struct NumericKeypad(Column, ButtonRow, ButtonRow, ButtonRow, ButtonRow);
+impl Events for NumericKeypad {}
 
-impl ComponentBuilder for NumericKeypad {
-    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        let row = |a: &'static str, b: &'static str, c: &'static str| {
-            Row(ZERO, 16, Align::Center, vec![
-                Button::keypad(a),
-                Button::keypad(b),
-                Button::keybad(c),
-            ])
-        };
-
-        Column(ZERO, 16, Align::Center, vec![
-            row("1", "2", "3"), 
-            row("4", "5", "6"), 
-            row("7", "8", "9"), 
-            row(".", "0", "<")
-        ]).build_children(ctx, max_size)
+impl NumericKeypad {
+    pub fn new(ctx: &mut Context) -> Self {
+        NumericKeypad(
+            Column(16, Offset::Center, Size::Fit, Padding(0, 16, 0, 16)), 
+            ButtonRow::new(ctx, Some("1"), Some("2"), Some("3")),
+            ButtonRow::new(ctx, Some("4"), Some("5"), Some("6")),
+            ButtonRow::new(ctx, Some("7"), Some("8"), Some("9")),
+            ButtonRow::new(ctx, Some("."), Some("0"), None),
+        )
     }
+}
 
-    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
+#[derive(Clone, Debug, Component)]
+struct ButtonRow(Row, Button, Button, Button);
+impl Events for ButtonRow {}
+
+impl ButtonRow {
+    fn new(ctx: &mut Context, a: Option<&'static str>, b: Option<&'static str>, c: Option<&'static str>) -> Self {
+        let key = |ctx: &mut Context, a: Option<&'static str>| {
+            Button::keypad(ctx, a, a.is_none().then_some("back"), |ctx: &mut Context| ())
+        };
+        
+        ButtonRow(Row::center(16), key(ctx, a), key(ctx, b), key(ctx, c))        
+    }
 }

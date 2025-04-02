@@ -1,6 +1,56 @@
-// use rust_on_rails::prelude::*;
-// use crate::theme::fonts::{Text, TextSize};
-// use crate::{ Child, Row, Column, COLORS, ZERO, Align, Stack, Expand, Padding };
+use rust_on_rails::prelude::*;
+use rust_on_rails::prelude::Text as BasicText;
+use crate::elements::shapes::Rectangle;
+use crate::elements::icon::Icon;
+use crate::elements::text::{Text, TextStyle};
+use crate::components::button::{Button, IconButton};
+use crate::layout::{Stack, Column, Row, Offset, Size, Padding};
+use crate::PelicanUI;
+
+#[derive(Clone, Debug, Component)]
+pub struct MobileKeyboard(Stack, Rectangle, KeyboardContent);
+impl Events for MobileKeyboard {}
+
+impl MobileKeyboard {
+    pub fn new(ctx: &mut Context) -> Self {
+        let color = ctx.get::<PelicanUI>().theme.colors.background.secondary;
+        MobileKeyboard(
+            Stack(Offset::Start, Offset::Start, Size::Static(393), Size::Static(300), Padding::default()), 
+            Rectangle::new(color),
+            KeyboardContent::new(ctx)
+        )
+    }
+}
+
+#[derive(Clone, Debug, Component)]
+pub struct KeyboardContent(Column, IconButtonRow);
+impl Events for KeyboardContent {}
+
+impl KeyboardContent {
+    pub fn new(ctx: &mut Context) -> Self {
+        KeyboardContent(
+            Column::center(16),
+            IconButtonRow::new(ctx)
+        )
+    }
+}
+
+#[derive(Clone, Debug, Component)]
+pub struct IconButtonRow(Row, IconButton, IconButton, IconButton, IconButton);
+impl Events for IconButtonRow {}
+
+impl IconButtonRow {
+    pub fn new(ctx: &mut Context) -> Self {
+        IconButtonRow(
+            Row(16, Offset::Start, Size::Fit, Padding(12, 12, 12, 12)), 
+            IconButton::keyboard(ctx, "emoji", |ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "gif", |ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "photos", |ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "camera", |ctx: &mut Context| ()),
+        )
+    }
+}
+
 
 // pub struct NativeKeyboard();
 
