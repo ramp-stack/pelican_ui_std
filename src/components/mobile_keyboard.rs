@@ -1,13 +1,13 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::shapes::Rectangle;
+use crate::elements::shapes::{Rectangle, RoundedRectangle};
 use crate::elements::icon::Icon;
 use crate::elements::text::{Text, TextStyle};
-use crate::components::button::{Button, IconButton};
-use crate::layout::{Stack, Column, Row, Offset, Size, Padding};
+use crate::components::button::{Button, IconButton, ButtonState};
+use crate::layout::{Stack, Bin, Column, Row, Offset, Size, Padding};
 use crate::PelicanUI;
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 pub struct MobileKeyboard(Stack, Rectangle, KeyboardContent);
 impl Events for MobileKeyboard {}
 
@@ -15,27 +15,49 @@ impl MobileKeyboard {
     pub fn new(ctx: &mut Context) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.secondary;
         MobileKeyboard(
-            Stack(Offset::Start, Offset::Start, Size::Static(393), Size::Static(300), Padding::default()), 
+            Stack(Offset::Start, Offset::Start, Size::Fit, Size::Static(326), Padding::default()), 
             Rectangle::new(color),
             KeyboardContent::new(ctx)
         )
     }
 }
 
-#[derive(Clone, Debug, Component)]
-pub struct KeyboardContent(Column, IconButtonRow);
+#[derive(Debug, Component)]
+pub struct KeyboardContent(Column, KeyboardHeader, KeyRows);
 impl Events for KeyboardContent {}
 
 impl KeyboardContent {
     pub fn new(ctx: &mut Context) -> Self {
+        let theme = &ctx.get::<PelicanUI>().theme;
+        let (colors, text_size) = (theme.colors, theme.fonts.size.xl);
         KeyboardContent(
             Column::center(16),
-            IconButtonRow::new(ctx)
+            KeyboardHeader::new(ctx),
+            KeyRows::new(ctx)
         )
     }
 }
 
-#[derive(Clone, Debug, Component)]
+
+#[derive(Debug, Component)]
+pub struct KeyboardHeader(Column, IconButtonRow, Bin<Stack, Rectangle>);
+impl Events for KeyboardHeader {}
+
+impl KeyboardHeader {
+    pub fn new(ctx: &mut Context) -> Self {
+        let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
+        KeyboardHeader(
+            Column::center(0),
+            IconButtonRow::new(ctx),
+            Bin (
+                Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1), Padding::default()), 
+                Rectangle::new(color)
+            )
+        )
+    }
+}
+
+#[derive(Debug, Component)]
 pub struct IconButtonRow(Row, IconButton, IconButton, IconButton, IconButton);
 impl Events for IconButtonRow {}
 
@@ -50,6 +72,184 @@ impl IconButtonRow {
         )
     }
 }
+
+#[derive(Debug, Component)]
+pub struct KeyRows(Column, KeyRow, KeyRow, BottomRow, ModifierRow);
+impl Events for KeyRows {}
+
+impl KeyRows{
+    pub fn new(ctx: &mut Context) -> Self {
+        let top = vec!["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"];
+        let middle = vec!["a", "s", "d", "f", "g", "h", "j", "k", "l"];
+        let bottom = vec!["z", "x", "c", "v", "b", "n", "m"];
+        KeyRows (
+            Column::center(12), 
+            KeyRow::new(ctx, top),
+            KeyRow::new(ctx, middle),
+            BottomRow::new(ctx, bottom),
+            ModifierRow::new(ctx)
+        )
+    }
+}
+
+
+#[derive(Debug, Component)]
+pub struct KeyRow(Row, Vec<Key>);
+impl Events for KeyRow {}
+
+impl KeyRow {
+    pub fn new(ctx: &mut Context, keys: Vec<&'static str>) -> Self {
+        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.xl;
+        let keys = keys.iter().map(|k| Key::character(ctx, k)).collect();
+        KeyRow(Row(6, Offset::Center, Size::Fit, Padding(4, 0, 4, 0)), keys)
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct BottomRow(Row, Key, KeyRow, Key);
+impl Events for BottomRow {}
+
+impl BottomRow {
+    pub fn new(ctx: &mut Context, names: Vec<&'static str>) -> Self {
+        BottomRow(
+            Row(8, Offset::Center, Size::Fit, Padding(4, 0, 4, 0)),
+            Key::capslock(ctx),
+            KeyRow::new(ctx, names),
+            Key::backspace(ctx)
+        )
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct ModifierRow(Row, Key, Key, Key);
+impl Events for ModifierRow {}
+
+impl ModifierRow {
+    pub fn new(ctx: &mut Context) -> Self {
+        ModifierRow(
+            Row(12, Offset::Center, Size::Fit, Padding(4, 0, 4, 0)),
+            Key::paginator(ctx),
+            Key::spacebar(ctx),
+            Key::newline(ctx),
+        )
+    }
+}
+
+
+#[derive(Debug, Component)]
+pub struct Key(Stack, RoundedRectangle, KeyContent, #[skip] &'static str, #[skip] ButtonState);
+
+impl Key {
+    pub fn new(
+        ctx: &mut Context,
+        width: Size, 
+        key: Option<&'static str>, 
+        icon: Option<&'static str>,
+        padding: Option<u32>,
+        text_size: Option<u32>,
+        on_click: &'static str,
+    ) -> Self {
+        let offset = if padding.is_some() {Offset::End} else {Offset::Center};
+        Key(
+            Stack(Offset::Center, offset, width, Size::Static(48), Padding::default()),
+            RoundedRectangle::new(0, 4, ctx.get::<PelicanUI>().theme.colors.shades.lighten),
+            KeyContent::new(ctx, key, icon, text_size, padding), on_click, ButtonState::Default,
+        )
+    }
+
+    pub fn character(ctx: &mut Context, character: &'static str) -> Self {
+        let font_size = Some(ctx.get::<PelicanUI>().theme.fonts.size.xl);
+        Self::new(ctx, Size::Fit, Some(character), None, Some(12), font_size, "key")
+    }
+
+    pub fn backspace(ctx: &mut Context) -> Self {
+        Self::new(ctx, Size::Static(42), None, Some("backspace"), None, None, "backspace")
+    }
+
+    pub fn capslock(ctx: &mut Context) -> Self {
+        Self::new(ctx, Size::Static(42), None, Some("capslock"), None, None, "capslock")
+    }
+
+    pub fn newline(ctx: &mut Context) -> Self {
+        let font_size = Some(ctx.get::<PelicanUI>().theme.fonts.size.md);
+        Self::new(ctx, Size::Static(92), Some("return"), None, None, font_size, "newline")
+    }
+
+    pub fn paginator(ctx: &mut Context) -> Self {
+        let font_size = Some(ctx.get::<PelicanUI>().theme.fonts.size.xl);
+        Self::new(ctx, Size::Static(92), Some("•••"), None, None, font_size, "switched")
+    }
+
+    pub fn spacebar(ctx: &mut Context) -> Self {
+        let font_size = Some(ctx.get::<PelicanUI>().theme.fonts.size.md);
+        Self::new(ctx, Size::Fit, Some("space"), None, None, font_size, "space")
+    }
+}
+
+impl Events for Key {
+    fn on_mouse(&mut self, ctx: &mut Context, event: MouseEvent) -> bool {
+        let colors = ctx.get::<PelicanUI>().theme.colors;
+        if event.position.is_some() {println!("MOUSE EVENT: {:?}", self.4);}
+        
+        if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
+            println!("Pressed: {:?}", self.3);
+        }
+        self.4 = match self.4 {
+            ButtonState::Default if event.position.is_some() => ButtonState::Selected,
+            ButtonState::Selected => ButtonState::Default,
+            _ => self.4
+        };
+        *self.1.shape().color() = match self.4 {
+            ButtonState::Default => colors.shades.lighten,
+            ButtonState::Hover => colors.shades.lighten2,
+            ButtonState::Selected => colors.shades.lighten2,
+            ButtonState::Disabled => colors.shades.lighten,
+        };
+        false
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct KeyContent(Stack, Option<BasicText>, Option<Icon>);
+impl Events for KeyContent {}
+
+impl KeyContent {
+    pub fn new(
+        ctx: &mut Context, 
+        key: Option<&'static str>, 
+        icon: Option<&'static str>, 
+        text_size: Option<u32>,
+        p: Option<u32>,
+    ) -> Self {
+        let color = ctx.get::<PelicanUI>().theme.colors.text.heading;
+        let p = if let Some(p) = p {p} else {0};
+        KeyContent (
+            Stack(Offset::Center, Offset::Center, Size::Fit, Size::Fit, Padding(0, 0, 0, p)),
+            key.map(|k| Text::new(ctx, k, TextStyle::White, text_size.unwrap())),
+            icon.map(|i| Icon::new(ctx, i, color, 36))
+        )
+    }
+}
+
+
+
+// let top = match page {
+//     0 => vec!["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+//     1 => vec!["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+//     _ => vec!["[", "]", "{", "}", "(", ")", "<", ">", "+", "="]
+// };
+
+// let middle = match page {
+//     0 => vec!["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+//     1 => vec!["-", "/", ":", ";", "#", "%", "$", "&", "@", "\""],
+//     _ => vec!["_", "\\", "|", "~", "^", "*", "€", "£", "¥", "•"]
+// };
+
+// let bottom = match page {
+//     0 => vec!["z", "x", "c", "v", "b", "n", "m"],
+//     1 => vec![".", ",", "?", "!", "'"],
+//     _ => vec![".", ",", "?", "!", "'"]
+// };
 
 
 // pub struct NativeKeyboard();

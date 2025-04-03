@@ -57,10 +57,10 @@ impl Default for ShadesColor {
         ShadesColor {
             black: Color::from_hex("000000", 255),
             white: Color::from_hex("ffffff", 255),
-            lighten: Color::from_hex("ffffff", 20),
-            lighten2: Color::from_hex("ffffff", 40),
-            darken: Color::from_hex("000000", 20),
-            darken2: Color::from_hex("000000", 40),
+            lighten: Color::from_hex("ffffff", 110),
+            lighten2: Color::from_hex("ffffff", 180),
+            darken: Color::from_hex("000000", 110),
+            darken2: Color::from_hex("000000", 180),
             transparent: Color::from_hex("000000", 0),
         }
     }
