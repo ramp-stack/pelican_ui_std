@@ -36,19 +36,19 @@ impl Text {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 pub struct ExpandableText(pub Stack, pub BasicText);
 
 impl ExpandableText {
     pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: u32) -> Self {
         let (color, font) = style.get(ctx);
         ExpandableText(
-            Stack(Offset::default(), Offset::default(), Size::Fill(MinSize(0), MaxSize(u32::MAX)), Size::Fit, Padding::default()),
+            Stack(Offset::default(), Offset::default(), Size::fill(), Size::Fit, Padding::default()),
             BasicText::new(text, color, None, size, (size as f32*1.25) as u32, font)
         )
     }
 
-    pub fn value(&mut self) -> &mut String { self.1.value() }
+    pub fn value(&mut self) -> &mut String {self.1.value()}
 }
 
 impl Events for ExpandableText {

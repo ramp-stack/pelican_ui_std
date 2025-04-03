@@ -4,13 +4,13 @@ use crate::elements::shapes::{Outline, Circle};
 use crate::layout::{Stack, Offset, Size, Padding};
 use crate::PelicanUI;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum AvatarContent {
     Icon(&'static str, AvatarIconStyle),
     Image(resources::Image)
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum AvatarIconStyle {
     Primary,
     Secondary,
@@ -34,7 +34,7 @@ impl AvatarIconStyle {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 pub struct Avatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>, Option<Flair>);
 impl Events for Avatar {}
 
@@ -57,7 +57,7 @@ impl Avatar {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct AvatarIcon(Stack, Shape, Icon);
 impl Events for AvatarIcon {}
 
@@ -73,7 +73,7 @@ impl AvatarIcon {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct Flair(Stack, AvatarIcon, Shape);
 impl Events for Flair {}
 

@@ -14,7 +14,7 @@ pub enum ButtonWidth {
     Hug,
 }
 
-#[derive(Debug, Clone, Component)]
+#[derive(Debug, Component)]
 pub struct Button(Stack, OutlinedRectangle, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
 impl Button {
     pub fn new(
@@ -30,18 +30,21 @@ impl Button {
         offset: Offset,
         on_click: fn(&mut Context) -> (),
     ) -> Self {
-        let (h, p) = size.background();
+        let (height, padding) = size.background();
         let colors = state.color(ctx, style);
         let content = ButtonContent::new(ctx, avatar, icon_l, label, icon_r, size, colors.label);
 
         let width = match width {
-            ButtonWidth::Hug => Size::Static(content.size(ctx).min_width().0+(p*2)),
-            ButtonWidth::Expand => Size::Fill(content.size(ctx).min_width()+(p*2), MaxSize::MAX)
+            ButtonWidth::Hug => Size::custom(move |widths: Vec<(u32, u32)>|
+                (widths[1].0+(padding*2), widths[1].1+(padding*2))
+            ),
+            ButtonWidth::Expand => Size::custom(move |widths: Vec<(u32, u32)>|
+                (widths[1].0+(padding*2), u32::MAX)
+            ),
         };
         
-        let height = Size::Static(h);
-        let background = OutlinedRectangle::new(colors.background, colors.outline, width, height, h/2, 1);
-        let layout = Stack(offset, Offset::Center, Size::Fit, Size::Fit, Padding::default());
+        let background = OutlinedRectangle::new(colors.background, colors.outline, height/2, 1);
+        let layout = Stack(offset, Offset::Center, width, Size::Static(height), Padding::default());
 
         Button(layout, background, content, style, state, on_click)
     }
@@ -66,7 +69,7 @@ impl Events for Button {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct ButtonContent(Row, Option<Avatar>, Option<Icon>, Option<BasicText>, Option<Icon>);
 impl Events for ButtonContent {}
 

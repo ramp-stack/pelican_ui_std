@@ -9,40 +9,35 @@ impl Circle {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 pub struct OutlinedRectangle(Stack, RoundedRectangle, RoundedRectangle);
 impl Events for OutlinedRectangle {}
 
 impl OutlinedRectangle {
-    pub fn new(bg: Color, oc: Color, width: Size, height: Size, radius: u32, stroke: u32) -> Self {
+    pub fn new(bg: Color, oc: Color, radius: u32, stroke: u32) -> Self {
         OutlinedRectangle(
-            Stack(Offset::Center, Offset::Center, width, height, Padding::default()),
+            Stack::default(),
             RoundedRectangle::new(0, radius, bg),
             RoundedRectangle::new(stroke, radius, oc)
         )
     }
 
-    pub fn height(&mut self) -> &mut Size {self.0.height()}
     pub fn background(&mut self) -> &mut Color {self.1.shape().color()}
     pub fn outline(&mut self) -> &mut Color {self.2.shape().color()}
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 pub struct RoundedRectangle(Stack, Shape);
 
 impl RoundedRectangle {
     pub fn new(s: u32, r: u32, c: Color) -> Self {
         RoundedRectangle(
-            Stack(Offset::default(), Offset::default(), Self::get_size(None), Self::get_size(None), Padding::default()),
+            Stack::fill(),
             Shape(ShapeType::RoundedRectangle(s, (0, 0), r), c)
         )
     }
 
     pub fn shape(&mut self) -> &mut Shape { &mut self.1 }
-
-    fn get_size(s: Option<u32>) -> Size {
-        s.map(|s| Size::Static(s)).unwrap_or(Size::Fill(MinSize(0), MaxSize(u32::MAX)))
-    }
 }
 
 impl Events for RoundedRectangle {
@@ -54,7 +49,7 @@ impl Events for RoundedRectangle {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 pub struct Rectangle(Stack, Shape);
 
 impl Rectangle {
@@ -68,7 +63,7 @@ impl Rectangle {
     pub fn shape(&mut self) -> &mut Shape { &mut self.1 }
 
     fn get_size(s: Option<u32>) -> Size {
-        s.map(|s| Size::Static(s)).unwrap_or(Size::Fill(MinSize(0), MaxSize(u32::MAX)))
+        s.map(|s| Size::Static(s)).unwrap_or(Size::Fill(0, u32::MAX))
     }
 }
 

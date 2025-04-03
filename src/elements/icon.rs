@@ -2,7 +2,7 @@ use rust_on_rails::prelude::*;
 use crate::layout::Stack;
 use crate::PelicanUI;
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 pub struct Icon(Stack, pub Image);
 
 impl Icon {

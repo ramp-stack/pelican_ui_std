@@ -29,21 +29,42 @@ impl Offset {
     }
 }
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Default)]
 pub enum Size {
     #[default]
     Fit,
-    Fill(MinSize, MaxSize),
-    Static(u32)
+    Fill(u32, u32),
+    Static(u32),
+    Custom(Box<dyn Fn(Vec<(u32, u32)>) -> (u32, u32)>)
 }
 
 impl Size {
-    pub fn get(&self) -> Option<(MinSize, MaxSize)> {
+    pub fn fill() -> Self {Size::Fill(0, u32::MAX)}
+    pub fn custom(func: impl Fn(Vec<(u32, u32)>) -> (u32, u32) + 'static) -> Self {
+        Size::Custom(Box::new(func))
+    }
+
+    fn get(&self, items: Vec<(u32, u32)>, fit: fn(Vec<(u32, u32)>) -> (u32, u32)) -> (u32, u32) {
         match self {
-            Size::Fit => None,
-            Size::Fill(min, max) => Some((*min, *max)),
-            Size::Static(s) => Some((MinSize(*s), MaxSize(*s)))
+            Size::Fit => fit(items),
+            Size::Fill(min, max) => (*min, *max),
+            Size::Static(s) => (*s, *s),
+            Size::Custom(f) => f(items)
         }
+    }
+
+    fn max(items: Vec<(u32, u32)>) -> (u32, u32) {
+        items.into_iter().reduce(|s, i| (s.0.max(i.0), s.1.max(i.1))).unwrap_or_default()
+    }
+
+    fn add(items: Vec<(u32, u32)>) -> (u32, u32) {
+        items.into_iter().reduce(|s, i| (s.0.saturating_add(i.0), s.1.saturating_add(i.1))).unwrap_or_default()
+    }
+}
+
+impl std::fmt::Debug for Size {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Size(...)")
     }
 }
 
@@ -66,7 +87,7 @@ impl Padding {
     fn adjust_info(&self, info: SizeInfo) -> SizeInfo {
         let wp = self.0+self.2;
         let hp = self.1+self.3;
-        SizeInfo::new(info.min_width()+wp, info.min_height()+hp, info.max_width()+wp, info.max_height()+hp)
+        info.add(wp, hp)
     }
 }
 
@@ -124,19 +145,12 @@ impl UniformExpand {
 }
 
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Row(pub u32, pub Offset, pub Size, pub Padding);
 
 impl Row {
     pub fn center(spacing: u32) -> Self {
         Row(spacing, Offset::Center, Size::Fit, Padding::default())
-    }
-    fn fit_width(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
-        items.into_iter().reduce(|s, i| (s.0+i.0, s.1+i.1)).unwrap_or_default()
-    }
-
-    fn fit_height(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
-        items.into_iter().reduce(|s, i| (s.0.max(i.0), s.1.max(i.1))).unwrap_or_default()
     }
 }
 
@@ -145,7 +159,7 @@ impl Layout for Row {
     fn build(&self, _ctx: &mut Context, row_size: (u32, u32), items: Vec<SizeInfo>) -> Vec<((i32, i32), (u32, u32))> {
         let row_size = self.3.adjust_size(row_size);
 
-        let widths = UniformExpand::get(items.iter().map(|i| (i.min_width().0, i.max_width().0)).collect::<Vec<_>>(), row_size.0, self.0);
+        let widths = UniformExpand::get(items.iter().map(|i| (i.min_width(), i.max_width())).collect::<Vec<_>>(), row_size.0, self.0);
 
         let mut offset = 0;
         items.into_iter().zip(widths.into_iter()).map(|(i, width)| {
@@ -161,25 +175,18 @@ impl Layout for Row {
             ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
         ).unzip();
         let spacing = self.0*(widths.len() as u32-1);
-        let width = Self::fit_width(widths);
-        let height = self.2.get().unwrap_or_else(|| Self::fit_height(heights));
-        self.3.adjust_info(SizeInfo::new(width.0+spacing, height.0, width.1+spacing, height.1))
+        let width = Size::add(widths);
+        let height = self.2.get(heights, Size::max);
+        self.3.adjust_info(SizeInfo::new(width.0, height.0, width.1, height.1).add_width(spacing))
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Column(pub u32, pub Offset, pub Size, pub Padding);
 
 impl Column {
     pub fn center(spacing: u32) -> Self {
         Column(spacing, Offset::Center, Size::Fit, Padding::default())
-    }
-    fn fit_width(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
-        items.into_iter().reduce(|s, i| (s.0.max(i.0), s.1.max(i.1))).unwrap_or_default()
-    }
-
-    fn fit_height(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
-        items.into_iter().reduce(|s, i| (s.0+i.0, s.1+i.1)).unwrap_or_default()
     }
 }
 
@@ -188,7 +195,7 @@ impl Layout for Column {
     fn build(&self, _ctx: &mut Context, col_size: (u32, u32), items: Vec<SizeInfo>) -> Vec<((i32, i32), (u32, u32))> {
         let col_size = self.3.adjust_size(col_size);
 
-        let heights = UniformExpand::get(items.iter().map(|i| (i.min_height().0, i.max_height().0)).collect::<Vec<_>>(), col_size.1, self.0);
+        let heights = UniformExpand::get(items.iter().map(|i| (i.min_height(), i.max_height())).collect::<Vec<_>>(), col_size.1, self.0);
 
         let mut offset = 0;
         items.into_iter().zip(heights.into_iter()).map(|(i, height)| {
@@ -204,20 +211,21 @@ impl Layout for Column {
             ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
         ).unzip();
         let spacing = self.0*(heights.len() as u32-1);
-        let width = self.2.get().unwrap_or_else(|| Self::fit_width(widths));
-        let height = Self::fit_height(heights);
+        let width = self.2.get(widths, Size::max);
+        let height = Size::add(heights);
         self.3.adjust_info(SizeInfo::new(width.0, height.0+spacing, width.1, height.1+spacing))
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct Stack(pub Offset, pub Offset, pub Size, pub Size, pub Padding);
 impl Stack {
     pub fn center() -> Self {
         Stack(Offset::Center, Offset::Center, Size::Fit, Size::Fit, Padding::default())
     }
-    fn fit(items: Vec<(MinSize, MaxSize)>) -> (MinSize, MaxSize) {
-        items.into_iter().reduce(|s, i| (s.0.max(i.0), s.1.max(i.1))).unwrap_or_default()
+
+    pub fn fill() -> Self {
+        Stack(Offset::Center, Offset::Center, Size::fill(), Size::fill(), Padding::default())
     }
 
     pub fn height(&mut self) -> &mut Size {&mut self.3}
@@ -237,23 +245,25 @@ impl Layout for Stack {
         let (widths, heights): (Vec<_>, Vec<_>) = items.into_iter().map(|i|
             ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
         ).unzip();
-        let size = (
-            self.2.get().unwrap_or_else(|| Stack::fit(widths)),
-            self.3.get().unwrap_or_else(|| Stack::fit(heights))
-        );
-        self.4.adjust_info(SizeInfo::new(size.0.0, size.1.0, size.0.1, size.1.1))
+        let width = self.2.get(widths, Size::max);
+        let height = self.3.get(heights, Size::max);
+        self.4.adjust_info(SizeInfo::new(width.0, height.0, width.1, height.1))
     }
 }
 
-#[derive(Debug, Clone, Component)]
-pub struct Bin<L: Layout + Clone, D: Drawable + Clone>(pub L, pub D);
-impl<L: Layout + Clone, D: Drawable + Clone> Events for Bin<L, D> {}
+#[derive(Debug, Component)]
+pub struct Bin<L: Layout, D: Drawable>(pub L, pub D);
+impl<L: Layout, D: Drawable> Events for Bin<L, D> {}
 
-#[derive(Debug, Clone, Component)]
-pub struct Opt<D: Drawable + Clone + 'static>(Stack, Option<D>, #[skip] Option<D>);
-impl<D: Drawable + Clone + 'static> Events for Opt<D> {}
+impl<L: Layout, D: Drawable> Bin<L, D> {
+    pub fn inner(&mut self) -> &mut D {&mut self.1}
+}
 
-impl<D: Drawable + Clone + 'static> Opt<D> {
+#[derive(Debug, Component)]
+pub struct Opt<D: Drawable + 'static>(Stack, Option<D>, #[skip] Option<D>);
+impl<D: Drawable + 'static> Events for Opt<D> {}
+
+impl<D: Drawable + 'static> Opt<D> {
     pub fn new(item: D, display: bool) -> Self {
         match display {
             true => Opt(Stack::default(), Some(item), None),
@@ -272,11 +282,11 @@ impl<D: Drawable + Clone + 'static> Opt<D> {
     pub fn inner(&mut self) -> &mut D {self.1.as_mut().unwrap_or_else(|| self.2.as_mut().unwrap())}
 }
 
-#[derive(Debug, Clone, Component)]
-pub struct EitherOr<L: Drawable + Clone + 'static, R: Drawable + Clone + 'static>(Stack, Opt<L>, Opt<R>);
-impl<L: Drawable + Clone + 'static, R: Drawable + Clone + 'static> Events for EitherOr<L, R> {}
+#[derive(Debug, Component)]
+pub struct EitherOr<L: Drawable + 'static, R: Drawable + 'static>(Stack, Opt<L>, Opt<R>);
+impl<L: Drawable + 'static, R: Drawable + 'static> Events for EitherOr<L, R> {}
 
-impl<L: Drawable + Clone + 'static, R: Drawable + Clone + 'static> EitherOr<L, R> {
+impl<L: Drawable + 'static, R: Drawable + 'static> EitherOr<L, R> {
     pub fn new(left: L, right: R) -> Self {
         EitherOr(Stack::default(), Opt::new(left, true), Opt::new(right, false))
     }

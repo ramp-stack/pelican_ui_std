@@ -1,12 +1,16 @@
 use rust_on_rails::prelude::*;
 use crate::elements::icon::Icon;
 use crate::elements::shapes::OutlinedRectangle;
-use crate::layout::{Stack, Size};
+use crate::layout::{Stack, Offset, Size, Padding};
 
 use super::{ButtonStyle, ButtonSize, ButtonState};
 
-#[derive(Debug, Clone, Component)]
-pub struct IconButton(Stack, OutlinedRectangle, Icon, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
+#[derive(Component)]
+pub struct IconButton(
+        Stack, OutlinedRectangle, Icon,
+        #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>
+);
+
 impl IconButton {
     pub fn new(
         ctx: &mut Context,
@@ -14,7 +18,7 @@ impl IconButton {
         size: ButtonSize,
         style: ButtonStyle,
         state: ButtonState,
-        on_click: fn(&mut Context) -> (),
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let colors = state.color(ctx, style);
         let (size, icon_size, radius) = match (style, size) {
@@ -25,11 +29,13 @@ impl IconButton {
             _ => panic!("{:?} is not a valid style", style)
         };
 
-        let size = Size::Static(size);
         let icon = Icon::new(ctx, icon, colors.label, icon_size);
-        let background = OutlinedRectangle::new(colors.background, colors.outline, size, size, radius, 1);
+        let background = OutlinedRectangle::new(colors.background, colors.outline, radius, 1);
 
-        IconButton(Stack::center(), background, icon, style, state, on_click)
+
+        IconButton(Stack(
+            Offset::Center, Offset::Center, Size::Static(size), Size::Static(size), Padding::default()
+        ), background, icon, style, state, Box::new(on_click))
     }
 }
 
@@ -52,7 +58,9 @@ impl Events for IconButton {
 }
 
 impl IconButton {
-    pub fn input(ctx: &mut Context, icon: &'static str, on_click: fn(&mut Context) -> ()) -> Self {
+    pub fn input(
+        ctx: &mut Context, icon: &'static str, on_click: impl FnMut(&mut Context) + 'static
+    ) -> Self {
         IconButton::new(
             ctx,
             icon,
@@ -72,5 +80,11 @@ impl IconButton {
             ButtonState::Default,
             on_click
         )
+    }
+}
+
+impl std::fmt::Debug for IconButton {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "IconButton(...)")
     }
 }
