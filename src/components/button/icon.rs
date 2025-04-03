@@ -1,16 +1,14 @@
 use rust_on_rails::prelude::*;
 use crate::elements::icon::Icon;
 use crate::elements::shapes::RoundedRectangle;
-use crate::layout::Stack;
+use crate::layout::{Stack, Offset, Size, Padding};
 
 use super::{ButtonStyle, ButtonSize, ButtonState};
-
-pub type Function = Box<dyn FnMut(&mut Context)>;
 
 #[derive(Component)]
 pub struct IconButton(
         Stack, RoundedRectangle, RoundedRectangle, Icon,
-        #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Function
+        #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>
 );
 
 impl IconButton {
@@ -32,10 +30,12 @@ impl IconButton {
         };
 
         let icon = Icon::new(ctx, icon, colors.label, icon_size);
-        let background = RoundedRectangle::new(0, Some(size), Some(size), radius, colors.background);
-        let outline = RoundedRectangle::new(1, Some(size), Some(size), radius, colors.outline);
+        let background = RoundedRectangle::new(0, radius, colors.background);
+        let outline = RoundedRectangle::new(1, radius, colors.outline);
 
-        IconButton(Stack::center(), background, outline, icon, style, state, Box::new(on_click))
+        IconButton(Stack(
+            Offset::Center, Offset::Center, Size::Static(size), Size::Static(size), Padding::default()
+        ), background, outline, icon, style, state, Box::new(on_click))
     }
 }
 

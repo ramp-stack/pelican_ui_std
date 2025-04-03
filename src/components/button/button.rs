@@ -14,7 +14,7 @@ pub enum ButtonWidth {
     Hug,
 }
 
-#[derive(Debug, Clone, Component)]
+#[derive(Debug, Component)]
 pub struct Button(Stack, ButtonBackground, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
 impl Button {
     pub fn new(
@@ -35,8 +35,12 @@ impl Button {
         let content = ButtonContent::new(ctx, avatar, icon_l, label, icon_r, size, colors.label);
 
         let width = match width {
-            ButtonWidth::Hug => Size::Static(content.size(ctx).min_width().0+(padding*2)),
-            ButtonWidth::Expand => Size::Fill(content.size(ctx).min_width()+(padding*2), MaxSize::MAX)
+            ButtonWidth::Hug => Size::custom(move |widths: Vec<(u32, u32)>|
+                (widths[1].0+(padding*2), widths[1].1+(padding*2))
+            ),
+            ButtonWidth::Expand => Size::custom(move |widths: Vec<(u32, u32)>|
+                (widths[1].0+(padding*2), u32::MAX)
+            ),
         };
 
         let background = ButtonBackground::new(colors.background, colors.outline, width, height);
@@ -63,7 +67,7 @@ impl Events for Button {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct ButtonContent(Row, Option<Avatar>, Option<Icon>, Option<BasicText>, Option<Icon>);
 impl Events for ButtonContent {}
 
@@ -94,16 +98,16 @@ impl ButtonContent {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct ButtonBackground(Stack, RoundedRectangle, RoundedRectangle);
 impl Events for ButtonBackground {}
 
 impl ButtonBackground {
     pub fn new(bg: Color, oc: Color, width: Size, height: u32) -> Self {
         ButtonBackground(
-            Stack(Offset::Center, Offset::Center, width, Size::Fit, Padding::default()),
-            RoundedRectangle::new(0, None, Some(height), height/2, bg),
-            RoundedRectangle::new(1, None, Some(height), height/2, oc)
+            Stack(Offset::Center, Offset::Center, width, Size::Static(height), Padding::default()),
+            RoundedRectangle::new(0, height/2, bg),
+            RoundedRectangle::new(1, height/2, oc)
         )
     }
 

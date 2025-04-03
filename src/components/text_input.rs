@@ -3,7 +3,7 @@ use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::shapes::RoundedRectangle;
 use crate::elements::text::{Text,TextStyle, ExpandableText};
 use crate::components::button::IconButton;
-use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row};
+use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
 use crate::PelicanUI;
 
 use std::sync::mpsc::{self, Receiver};
@@ -57,11 +57,13 @@ impl InputField {
     ) -> Self {
         let (background, outline) = InputState::Default.get_color(ctx);
         let content = InputContent::new(ctx, placeholder, icon_button);
-        let width = Size::Fill(content.size(ctx).min_width(), MaxSize::MAX);
-        let height = content.size(ctx).min_height().0;
-        let background = InputBackground::new(background, outline, width, height);
+        let background = InputBackground::new(background, outline);
 
-        InputField(Stack::center(), background, content, InputState::Default, false)
+        InputField(Stack(
+            Offset::Center, Offset::End, Size::Fit,
+                Size::custom(|heights: Vec<(u32, u32)>| heights[1]),
+            Padding::default()
+        ), background, content, InputState::Default, false)
     }
 
     pub fn error(&mut self) -> &mut bool { &mut self.4 }
@@ -127,16 +129,16 @@ impl Events for InputField {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct InputBackground(Stack, RoundedRectangle, RoundedRectangle);
 impl Events for InputBackground {}
 
 impl InputBackground {
-    fn new(bg: Color, oc: Color, width: Size, height: u32) -> Self {
-        InputBackground(//TODO: Change RoundedRectangle to no longer accept width or height but always expand, Change size::Fit to Static(height)
-            Stack(Offset::Center, Offset::Center, width, Size::Fit, Padding::default()),
-            RoundedRectangle::new(0, None, Some(height), 8, bg),
-            RoundedRectangle::new(1, None, Some(height), 8, oc)
+    fn new(bg: Color, oc: Color) -> Self {
+        InputBackground(
+            Stack::fill(),
+            RoundedRectangle::new(0, 8, bg),
+            RoundedRectangle::new(1, 8, oc)
         )
     }
 
@@ -146,7 +148,7 @@ impl InputBackground {
 
 #[derive(Component)]
 struct InputContent(
-    Row, EitherOr<ExpandableText, ExpandableText>, Option<IconButton>,
+    Row, Bin<Stack, EitherOr<ExpandableText, ExpandableText>>, Option<IconButton>,
     #[skip] bool, #[skip] Option<(Receiver<u8>, Box<dyn FnMut(&mut Context, &mut String)>)>
 );
 
@@ -166,10 +168,13 @@ impl InputContent {
         }).unwrap_or((None, None));
 
         InputContent(
-            Row(16, Offset::Center, Size::Fit, Padding(16, 8, 8, 8)),
-            EitherOr::new(
-                ExpandableText::new(ctx, "", TextStyle::Primary, font_size),
-                ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size),
+            Row(16, Offset::End, Size::Fit, Padding(16, 8, 8, 8)),
+            Bin(
+                Stack(Offset::default(), Offset::End, Size::Fit, Size::Fit, Padding(8, 6, 8, 6)),
+                EitherOr::new(
+                    ExpandableText::new(ctx, "hello", TextStyle::Primary, font_size),
+                    ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size)
+                )
             ),
             icon_button,
             false,
@@ -177,7 +182,7 @@ impl InputContent {
         )
     }
 
-    pub fn input(&mut self) -> &mut String { self.1.left().value() }
+    pub fn input(&mut self) -> &mut String { self.1.inner().left().value() }
     pub fn focus(&mut self) -> &mut bool {&mut self.3}
 }
 
@@ -185,12 +190,12 @@ impl Events for InputContent {
     fn on_tick(&mut self, ctx: &mut Context) {
         if let Some((receiver, on_submit)) = self.4.as_mut() {
             if receiver.try_recv().is_ok() {
-                on_submit(ctx, self.1.left().value())
+                on_submit(ctx, self.1.inner().left().value())
             }
         }
 
-        let input = !self.1.left().value().is_empty();
-        self.1.display_left(input || self.3)
+        let input = !self.1.inner().left().value().is_empty();
+        self.1.inner().display_left(input || self.3)
     }
 }
 

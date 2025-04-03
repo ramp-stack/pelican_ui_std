@@ -1,5 +1,5 @@
 use rust_on_rails::prelude::*;
-use crate::layout::{Size, Padding, Offset, Stack};
+use crate::layout::Stack;
 // use crate::{ZERO, Stack};
 // use crate::layout::Align;
 // use crate::elements::text::{Text, TextStyle};
@@ -26,22 +26,18 @@ impl Circle {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 pub struct RoundedRectangle(Stack, Shape);
 
 impl RoundedRectangle {
-    pub fn new(s: u32, w: Option<u32>, h: Option<u32>, r: u32, c: Color) -> Self {
+    pub fn new(s: u32, r: u32, c: Color) -> Self {
         RoundedRectangle(
-            Stack(Offset::default(), Offset::default(), Self::get_size(w), Self::get_size(h), Padding::default()),
-            Shape(ShapeType::RoundedRectangle(s, (w.unwrap_or(0), h.unwrap_or(0)), r), c)
+            Stack::fill(),
+            Shape(ShapeType::RoundedRectangle(s, (0, 0), r), c)
         )
     }
 
     pub fn shape(&mut self) -> &mut Shape { &mut self.1 }
-
-    fn get_size(s: Option<u32>) -> Size {
-        s.map(|s| Size::Static(s)).unwrap_or(Size::Fill(MinSize(0), MaxSize(u32::MAX)))
-    }
 }
 
 impl Events for RoundedRectangle {
