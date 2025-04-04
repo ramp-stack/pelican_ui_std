@@ -15,7 +15,7 @@ pub enum ButtonWidth {
 }
 
 #[derive(Debug, Component)]
-pub struct Button(Stack, OutlinedRectangle, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
+pub struct Button(Stack, OutlinedRectangle, pub ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
 impl Button {
     pub fn new(
         ctx: &mut Context,
@@ -42,7 +42,7 @@ impl Button {
                 (widths[1].0+(padding*2), u32::MAX)
             ),
         };
-        
+
         let background = OutlinedRectangle::new(colors.background, colors.outline, height/2, 1);
         let layout = Stack(offset, Offset::Center, width, Size::Static(height), Padding::default());
 
@@ -61,7 +61,7 @@ impl Events for Button {
         }
         if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
             match self.4 {
-                ButtonState::Default | ButtonState::Hover => (self.5)(ctx),
+                ButtonState::Default | ButtonState::Hover | ButtonState::Selected => (self.5)(ctx),
                 _ => {}
             }
         }
@@ -70,7 +70,7 @@ impl Events for Button {
 }
 
 #[derive(Debug, Component)]
-struct ButtonContent(Row, Option<Avatar>, Option<Icon>, Option<BasicText>, Option<Icon>);
+pub struct ButtonContent(Row, Option<Avatar>, Option<Icon>, pub Option<BasicText>, Option<Icon>);
 impl Events for ButtonContent {}
 
 impl ButtonContent {
