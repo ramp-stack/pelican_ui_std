@@ -42,23 +42,25 @@ impl ListItem {
 }
 
 impl Events for ListItem {
-    fn on_mouse(&mut self, ctx: &mut Context, event: MouseEvent) -> bool {
-        let colors = ctx.get::<PelicanUI>().theme.colors;
-        if let Some(state) = self.3.handle(ctx, event) {
-            *self.1.shape().color() = match state {
-                ButtonState::Default => colors.background.primary,
-                ButtonState::Disabled => colors.background.primary,
-                ButtonState::Selected => colors.background.primary,
-                ButtonState::Hover => colors.background.secondary,
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(event) = event.downcast_ref::<MouseEvent>() {
+            let colors = ctx.get::<PelicanUI>().theme.colors;
+            if let Some(state) = self.3.handle(ctx, *event) {
+                *self.1.shape().color() = match state {
+                    ButtonState::Default => colors.background.primary,
+                    ButtonState::Disabled => colors.background.primary,
+                    ButtonState::Selected => colors.background.primary,
+                    ButtonState::Hover => colors.background.secondary,
+                }
             }
-        }
-        if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
-            match self.3 {
-                ButtonState::Default | ButtonState::Hover => (self.4)(ctx),
-                _ => {}
+            if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
+                match self.3 {
+                    ButtonState::Default | ButtonState::Hover | ButtonState::Selected => (self.4)(ctx),
+                    _ => {}
+                }
             }
-        }
-        false
+            false
+        } else {true}
     }
 }
 

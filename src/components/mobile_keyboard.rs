@@ -118,32 +118,33 @@ impl KeyRow {
 }
 
 #[derive(Debug, Component)]
-pub struct KeyboardRow(Row, Option<Capslock>, Option<Paginator>, Option<KeyRow>, Option<Key>);
+pub struct KeyboardRow(Row, Option<Capslock>, Option<Paginator>, Option<KeyRow>, Option<Key>, Option<Key>);
+// Capslock, Paginator, Character Row, Spacebar, Return
 impl Events for KeyboardRow {}
 
 impl KeyboardRow {
     fn top(ctx: &mut Context) -> Self {
         let key_row = top_keys(0).map(|keys| KeyRow::new(ctx, keys));
-        KeyboardRow(Row::center(0), None, None, key_row, None)
+        KeyboardRow(Row::center(0), None, None, key_row, None, None)
     }
 
     fn middle(ctx: &mut Context) -> Self {
         let key_row = mid_keys(0).map(|keys| KeyRow::new(ctx, keys));
-        KeyboardRow(Row::center(0), None, None, key_row, None)
+        KeyboardRow(Row::center(0), None, None, key_row, None, None)
     }
 
     fn bottom(ctx: &mut Context) -> Self {
         let capslock = Capslock::new(ctx);
         let backspace = Key::backspace(ctx);
         let key_row = bot_keys(0).map(|keys| KeyRow::new(ctx, keys));
-        KeyboardRow(Row::center(6), Some(capslock), None, key_row, None)
-        Self::new(ctx, 6, Some(bot_keys(0)), Some(capslock), None, Some(backspace))
+        KeyboardRow(Row::center(6), Some(capslock), None, key_row, Some(backspace))
     }
 
     fn modifier(ctx: &mut Context) -> Self {
-        let paginator = Key::paginator(ctx);
+        let paginator = Paginator(ctx);
         let spacebar = Key::spacebar(ctx);
         let newline = Key::newline(ctx);
+        KeyboardRow(Row::center(6), Some(paginator), None, None, Some(backspace))
         Self::new(ctx, 6, None, Some(paginator), Some(spacebar), Some(newline))
     }
 
