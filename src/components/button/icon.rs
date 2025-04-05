@@ -7,7 +7,7 @@ use super::{ButtonStyle, ButtonSize, ButtonState};
 
 #[derive(Component)]
 pub struct IconButton(
-        Stack, OutlinedRectangle, Icon,
+        Stack, OutlinedRectangle, Image,
         #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>
 );
 

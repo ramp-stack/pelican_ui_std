@@ -6,7 +6,7 @@ use crate::layout::{Row, Column, Offset, Size, Padding};
 use crate::PelicanUI;
 
 #[derive(Clone, Debug, Component)]
-pub struct AmountDisplay(Column, BasicText, Message);
+pub struct AmountDisplay(Column, BasicText, SubText);
 impl Events for AmountDisplay {}
 
 impl AmountDisplay {
@@ -22,16 +22,16 @@ impl AmountDisplay {
         AmountDisplay (
             Column(16, Offset::Center, Size::Fit, Padding(16, 64, 16, 64)),
             Text::new(ctx, usd, TextStyle::Heading, font_size),
-            Message::new(ctx, btc, err)
+            SubText::new(ctx, btc, err)
         )
     }
 }
 
 #[derive(Clone, Debug, Component)]
-struct Message(Row, Option<Icon>, BasicText);
-impl Events for Message {}
+struct SubText(Row, Option<Image>, BasicText);
+impl Events for SubText {}
 
-impl Message {
+impl SubText {
     fn new(ctx: &mut Context, btc: &'static str, err: Option<&'static str>) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (font_size, color) = (theme.fonts.size.lg, theme.colors.status.danger);
@@ -40,7 +40,7 @@ impl Message {
             None => (None, TextStyle::Secondary, btc)
         };
 
-        Message(
+        SubText(
             Row::center(8),
             icon, Text::new(ctx, text, style, font_size)
         )

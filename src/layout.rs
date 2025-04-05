@@ -140,7 +140,7 @@ impl UniformExpand {
                 }
             });
         }
-        sizes.into_iter().map(|s| s.0.floor() as u32).collect()
+        sizes.into_iter().map(|s| s.0.round() as u32).collect()
     }
 }
 
@@ -227,8 +227,6 @@ impl Stack {
     pub fn fill() -> Self {
         Stack(Offset::Center, Offset::Center, Size::fill(), Size::fill(), Padding::default())
     }
-
-    pub fn height(&mut self) -> &mut Size {&mut self.3}
 }
 
 impl Layout for Stack {

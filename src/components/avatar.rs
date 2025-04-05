@@ -58,7 +58,7 @@ impl Avatar {
 }
 
 #[derive(Debug, Component)]
-struct AvatarIcon(Stack, Shape, Icon);
+struct AvatarIcon(Stack, Shape, Image);
 impl Events for AvatarIcon {}
 
 impl AvatarIcon {

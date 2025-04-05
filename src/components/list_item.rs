@@ -2,13 +2,15 @@ use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::icon::Icon;
 use crate::elements::text::{Text, TextStyle};
-use crate::components::avatar::{Avatar, AvatarContent};
-use crate::layout::{Column, Row, Padding, Offset, Size};
+use crate::elements::shapes::Rectangle;
+use crate::components::button::ButtonState;
+use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
+use crate::layout::{Column, Stack, Row, Padding, Offset, Size};
 use crate::PelicanUI;
 
 
-#[derive(Clone, Debug)]
-pub struct ListItem(Row, Option<Icon>, Option<Avatar>, ListItemData);
+#[derive(Debug, Component)]
+pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] fn(&mut Context));
 
 impl ListItem {
     pub fn new(
@@ -21,30 +23,86 @@ impl ListItem {
         right_subtitle: Option<&'static str>,
         radio_button: Option<bool>,
         circle_icon: Option<AvatarContent>,
-        on_click: fn(&mut Context, (u32, u32)) -> (),
+        on_click: fn(&mut Context) -> (),
     ) -> Self {
-        ListItem (
+        let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
+        let content = ListItemContent::new(
+            ctx, title, flair, subtitle, description, right_title, 
+            right_subtitle, radio_button, circle_icon
+        );
+        let layout = Stack(
+            Offset::Start, Offset::Center, 
+            Size::custom(|widths: Vec<(u32, u32)>| (widths[1].0, u32::MAX)), 
+            Size::custom(|heights: Vec<(u32, u32)>| heights[1]), 
+            Padding::default()
+        );
+
+        ListItem(layout, Rectangle::new(color), content, ButtonState::Default, on_click)
+    }
+}
+
+impl Events for ListItem {
+    fn on_mouse(&mut self, ctx: &mut Context, event: MouseEvent) -> bool {
+        let colors = ctx.get::<PelicanUI>().theme.colors;
+        if let Some(state) = self.3.handle(ctx, event) {
+            *self.1.shape().color() = match state {
+                ButtonState::Default => colors.background.primary,
+                ButtonState::Disabled => colors.background.primary,
+                ButtonState::Selected => colors.background.primary,
+                ButtonState::Hover => colors.background.secondary,
+            }
+        }
+        if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
+            match self.3 {
+                ButtonState::Default | ButtonState::Hover => (self.4)(ctx),
+                _ => {}
+            }
+        }
+        false
+    }
+}
+
+
+#[derive(Debug, Component)]
+pub struct ListItemContent(Row, Option<RadioButton>, Option<Avatar>, ListItemData);
+impl Events for ListItemContent {}
+
+impl ListItemContent {
+    pub fn new(
+        ctx: &mut Context,
+        title: &'static str,
+        flair: Option<(&'static str, Color)>,
+        subtitle: Option<&'static str>,
+        description: Option<&'static str>,
+        right_title: Option<&'static str>,
+        right_subtitle: Option<&'static str>,
+        radio_button: Option<bool>,
+        circle_icon: Option<AvatarContent>,
+    ) -> Self {
+        ListItemContent(
             Row(16, Offset::Center, Size::Fit, Padding::default()),
             radio_button.map(|enabled| RadioButton::new(ctx, enabled)), 
-            circle_icon.clone().map(|data| Avatar::new(ctx, data, None, false, 48)),
+            circle_icon.map(|data| Avatar::new(ctx, data, None, false, 48)),
             ListItemData::new(ctx, title, flair, subtitle, description, right_title, right_subtitle),
         )
     }
 }
 
-#[derive(Clone, Debug)]
-struct RadioButton;
+#[derive(Debug, Component)]
+struct RadioButton(Row, Image);
+impl Events for RadioButton {}
 
 impl RadioButton {
-    pub fn new(ctx: &mut Context, is_enabled: bool) -> Icon {
+    pub fn new(ctx: &mut Context, is_enabled: bool) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.text.heading;
         let icon = if is_enabled { "radio_filled" } else { "radio "};
-        Icon::new(ctx, icon, color, 32)
+        RadioButton(Row::center(0), Icon::new(ctx, icon, color, 32))
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Component)]
 struct ListItemData(pub Row, pub LeftData, pub Option<RightData>);
+impl Events for ListItemData {}
 
 impl ListItemData {
     pub fn new(
@@ -63,8 +121,9 @@ impl ListItemData {
         )
     }
 }
-#[derive(Clone, Debug)]
-struct TitleRow(Row, BasicText, Option<Icon>);
+#[derive(Debug, Component)]
+struct TitleRow(Row, BasicText, Option<Image>);
+impl Events for TitleRow {}
 
 impl TitleRow {
     pub fn new(ctx: &mut Context, title: &'static str, flair: Option<(&'static str, Color)>) -> Self {
@@ -77,8 +136,9 @@ impl TitleRow {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Component)]
 struct LeftData(pub Column, pub TitleRow, pub Option<BasicText>, pub Option<BasicText>);
+impl Events for LeftData {}
 
 impl LeftData {
     pub fn new(
@@ -98,8 +158,9 @@ impl LeftData {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Component)]
 struct RightData(Column, BasicText, Option<BasicText>);
+impl Events for RightData {}
 
 impl RightData {
     pub fn new(ctx: &mut Context, title: &'static str, subtitle: Option<&'static str>) -> Self {
@@ -112,126 +173,83 @@ impl RightData {
     }
 }
 
-// pub enum AccountType { Spending, Savings }
-
 impl ListItem {
     pub fn contact(
         ctx: &mut Context, 
         data: AvatarContent, 
         name: &'static str, 
         nym: &'static str, 
-        on_click: fn(&mut Context, (u32, u32)) -> ()
+        on_click: fn(&mut Context) -> ()
     ) -> Self {
         ListItem::new(ctx, name, None, Some(nym), None, None, None, None, Some(data), on_click)
     }
 
-    // pub fn new_direct_message(data: AvatarData, name: &'static str, recent: &'static str) -> Self {
-    //     Self {
-    //         radio: None,
-    //         circle_icon: Some(data),
-    //         title: Some(name),
-    //         title_flair: None,
-    //         subtitle: None,
-    //         description: Some(recent),
-    //         title_right: None,
-    //         subtitle_right: None,
-    //     }
-    // }
+    pub fn direct_message(
+        ctx: &mut Context,
+        data: AvatarContent,
+        name: &'static str,
+        recent: &'static str,
+        on_click: fn(&mut Context) -> ()
+    ) -> Self {
+        ListItem::new(ctx, name, None, Some(recent), None, None, None, None, Some(data), on_click)
+    }
 
-    // pub fn new_group_message(names: Vec<&'static str>) -> Self {
-    //     let description = Box::leak(names.join(", ").into_boxed_str());
+    pub fn group_message(
+        ctx: &mut Context,
+        names: Vec<&'static str>, 
+        on_click: fn(&mut Context) -> ()
+    ) -> Self {
+        let description = Box::leak(names.join(", ").into_boxed_str());
+        let avatar = AvatarContent::Icon("group", AvatarIconStyle::Secondary);
+        ListItem::new(ctx, "Group Message", None, None, Some(description), None, None, None, Some(avatar), on_click)
+    }
 
-    //     Self {
-    //         radio: None,
-    //         circle_icon: Some(AvatarData::Icon(Icon::Group, IconStyle::Secondary)),
-    //         title: Some("Group Message"),
-    //         title_flair: None,
-    //         subtitle: None,
-    //         description: Some(description),
-    //         title_right: None,
-    //         subtitle_right: None,
-    //     }
-    // } 
+    pub fn room(
+        ctx: &mut Context,
+        data: AvatarContent,
+        name: &'static str,
+        members: &'static str,
+        description: &'static str,
+        on_click: fn(&mut Context) -> ()
+    ) -> Self {
+        ListItem::new(ctx, name, None, Some(members), Some(description), None, None, None, Some(data), on_click)
+    }
 
-    // pub fn new_room(data: AvatarData, name: &'static str, members: &'static str, desc: &'static str) -> Self {
-    //     Self {
-    //         radio: None,
-    //         circle_icon: Some(data),
-    //         title: Some(name),
-    //         title_flair: None,
-    //         subtitle: Some(members),
-    //         description: Some(desc),
-    //         title_right: None,
-    //         subtitle_right: None,
-    //     }
-    // } 
+    pub fn bitcoin(
+        ctx: &mut Context,
+        is_received: bool,
+        usd: f32,
+        date: &'static str,
+        on_click: fn(&mut Context) -> (),
+    ) -> Self {
+        let title = if is_received { "Received Bitcoin" } else { "Sent Bitcoin" };
+        let usd = format!("${:.2}", usd);
+        let usd = Box::leak(format!("&{:.2}", usd).into_boxed_str());
+        ListItem::new(ctx, title, None, Some(date), None, Some(usd), Some("Details"), None, None, on_click)
+    }
 
-    // pub fn new_bitcoin(is_received: bool, usd: &'static str, date: &'static str) -> Self {
-    //     let title = is_received { "Received Bitcoin" } else { "Sent Bitcoin" };
-    //     Self {
-    //         radio: None,
-    //         circle_icon: None,
-    //         title: Some(title),
-    //         title_flair: None,
-    //         subtitle: Some(date),
-    //         description: None,
-    //         title_right: Some(usd),
-    //         subtitle_right: Some("Details"),
-    //     }
-    // }
+    pub fn bitcoin_sending(
+        ctx: &mut Context,
+        is_received: bool,
+        usd: f32,
+        btc: f32,
+        date: &'static str,
+        on_click: fn(&mut Context) -> (),
+    ) -> Self {
+        let color = ctx.get::<PelicanUI>().theme.colors.status.warning;
+        let flair = ("warning", color);
+        let usd =  Box::leak(format!("${:.2}", usd).into_boxed_str());
+        let btc =  Box::leak(format!("${:.8} BTC", btc).into_boxed_str());
+        ListItem::new(ctx, "Sending Bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, on_click)
+    }
 
-    // pub fn new_bitcoin_sending(usd: &'static str, btc: &'static str, date: &'static str) -> Self {
-    //     Self {
-    //         radio: None,
-    //         circle_icon: None,
-    //         title: Some("Sending Bitcoin"),
-    //         title_flair: Some((Icon::Warning, COLORS.status.warning)),
-    //         subtitle: Some(date),
-    //         description: None,
-    //         title_right: Some(usd),
-    //         subtitle_right: Some(btc),
-    //     }
-    // }
-
-    // pub fn new_bitcoin_account(variant: AccountType, usd: &'static str, btc: &'static str) -> Self {
-    //     let (icon, subtitle) = match variant {
-    //         AccountType::Savings => (Icon::Safe, "Savings"),
-    //         AccountType::Spending => (Icon::Wallet, "Spending")
-    //     };
-
-    //     Self {
-    //         radio: None,
-    //         circle_icon: Some(AvatarData::Icon(icon, IconStyle::Brand)),
-    //         title: Some("Wallet"),
-    //         title_flair: None,
-    //         subtitle: Some(subtitle),
-    //         description: None,
-    //         title_right: None,
-    //         subtitle_right: None,
-    //     }
-    // }
-
-    // pub fn new_selection(selected: bool, title: &'static str, subtitle: &'static str) -> Self {
-    //     Self {
-    //         radio: Some(selected),
-    //         circle_icon: None,
-    //         title: Some(title),
-    //         title_flair: None,
-    //         subtitle: Some(subtitle),
-    //         description: None,
-    //         title_right: None,
-    //         subtitle_right: None,
-    //     }
-    // }
+    pub fn selection(
+        ctx: &mut Context,
+        selected: bool,
+        title: &'static str,
+        subtitle: &'static str,
+        on_click: fn(&mut Context) -> (),
+    ) -> Self {
+        ListItem::new(ctx, title, None, None, Some(subtitle), None, None, Some(selected), None, on_click)
+    }
 }
-
-// pub enum ListItem {
-//     Contact(RgbaImage, &'static str, &'static str), // Image, Name, Nym
-//     DirectMessage(RgbaImage, &'static str, &'static str), // Image, Name, Recent Message
-//     GroupMessage(Vec<&'static str>), // Members Names
-//     Room(RgbaImage, &'static str, &'static str, &'static str), // Image, Name, Members, Description
-//     Bitcoin(bool, &'static str, &'static str), // IsReceived, USD, Date
-//     SendingBitcoin(&'static str, &'static str, &'static str), // USD, BTC, Date
-//     BitcoinAccount(AccountType, &'static str, &'static str), // Account Type, USD, BTC
-//     Selection(bool, &'static str, &'static str), // Selected, Title, Subtitle
-// }

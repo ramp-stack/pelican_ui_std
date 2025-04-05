@@ -15,29 +15,16 @@ impl MobileKeyboard {
     pub fn new(ctx: &mut Context) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.secondary;
         MobileKeyboard(
-            Stack(Offset::Start, Offset::Start, Size::Fit, Size::Static(326), Padding::default()), 
+            Stack(
+                Offset::Start, Offset::Start, 
+                Size::Fill(200, u32::MAX), Size::custom(|heights: Vec<(u32, u32)>| heights[1]), 
+                Padding::default()
+            ), 
             Rectangle::new(color),
             KeyboardContent::new(ctx)
         )
     }
 }
-
-#[derive(Debug, Component)]
-pub struct KeyboardContent(Column, KeyboardHeader, KeyRows);
-impl Events for KeyboardContent {}
-
-impl KeyboardContent {
-    pub fn new(ctx: &mut Context) -> Self {
-        let theme = &ctx.get::<PelicanUI>().theme;
-        let (colors, text_size) = (theme.colors, theme.fonts.size.xl);
-        KeyboardContent(
-            Column::center(16),
-            KeyboardHeader::new(ctx),
-            KeyRows::new(ctx)
-        )
-    }
-}
-
 
 #[derive(Debug, Component)]
 pub struct KeyboardHeader(Column, IconButtonRow, Bin<Stack, Rectangle>);
@@ -74,24 +61,43 @@ impl IconButtonRow {
 }
 
 #[derive(Debug, Component)]
-pub struct KeyRows(Column, KeyRow, KeyRow, BottomRow, ModifierRow);
-impl Events for KeyRows {}
+pub struct KeyboardContent(Column, KeyboardHeader, KeyboardRow, KeyboardRow, KeyboardRow, KeyboardRow);
 
-impl KeyRows{
+impl KeyboardContent {
     pub fn new(ctx: &mut Context) -> Self {
-        let top = vec!["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"];
-        let middle = vec!["a", "s", "d", "f", "g", "h", "j", "k", "l"];
-        let bottom = vec!["z", "x", "c", "v", "b", "n", "m"];
-        KeyRows (
-            Column::center(12), 
-            KeyRow::new(ctx, top),
-            KeyRow::new(ctx, middle),
-            BottomRow::new(ctx, bottom),
-            ModifierRow::new(ctx)
+        let theme = &ctx.get::<PelicanUI>().theme;
+        let (colors, text_size) = (theme.colors, theme.fonts.size.xl);
+        KeyboardContent(
+            Column(0, Offset::Center, Size::Fit, Padding(8, 8, 8, 8)),
+            KeyboardHeader::new(ctx),
+            KeyboardRow::top(ctx),
+            KeyboardRow::middle(ctx),
+            KeyboardRow::bottom(ctx),
+            KeyboardRow::modifier(ctx)
         )
+    }
+
+    pub fn capslock_state(&mut self) -> bool {
+        if let KeyType::Capslock(on) = self.4.1.as_mut().unwrap().key_type() {*on} else {false}
+    }
+
+    pub fn paginator_page(&mut self) -> u32 {
+        if let KeyType::Paginator(page) = self.5.1.as_mut().unwrap().key_type() {*page} else {0}
     }
 }
 
+impl Events for KeyboardContent {
+    fn on_tick(&mut self, ctx: &mut Context) {
+        let theme = &ctx.get::<PelicanUI>().theme;
+        let caps_on = self.capslock_state();
+        let page = self.paginator_page();
+
+        self.2.update(top_keys(page), caps_on);
+        self.3.update(mid_keys(page), caps_on);
+        self.4.update(bot_keys(page), caps_on);
+        self.5.update(vec![], caps_on);
+    }
+}
 
 #[derive(Debug, Component)]
 pub struct KeyRow(Row, Vec<Key>);
@@ -99,296 +105,287 @@ impl Events for KeyRow {}
 
 impl KeyRow {
     pub fn new(ctx: &mut Context, keys: Vec<&'static str>) -> Self {
-        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.xl;
         let keys = keys.iter().map(|k| Key::character(ctx, k)).collect();
-        KeyRow(Row(6, Offset::Center, Size::Fit, Padding(4, 0, 4, 0)), keys)
+        KeyRow(Row::center(0), keys)
     }
+
+    pub fn keys(&mut self) -> &mut Vec<Key> {&mut self.1}
 }
 
 #[derive(Debug, Component)]
-pub struct BottomRow(Row, Key, KeyRow, Key);
-impl Events for BottomRow {}
+pub struct KeyboardRow(Row, Option<Key>, Option<Key>, Option<KeyRow>, Option<Key>);
+impl Events for KeyboardRow {}
 
-impl BottomRow {
-    pub fn new(ctx: &mut Context, names: Vec<&'static str>) -> Self {
-        BottomRow(
-            Row(8, Offset::Center, Size::Fit, Padding(4, 0, 4, 0)),
-            Key::capslock(ctx),
-            KeyRow::new(ctx, names),
-            Key::backspace(ctx)
-        )
+impl KeyboardRow {
+    fn new(
+        ctx: &mut Context,
+        spacing: u32,
+        key_row: Option<Vec<&'static str>>,
+        left_key: Option<Key>,
+        middle_key: Option<Key>,
+        right_key: Option<Key>
+    ) -> Self {
+        let row = Row(spacing, Offset::Center, Size::Fit, Padding::default());
+        let key_row = key_row.map(|keys| KeyRow::new(ctx, keys));
+        KeyboardRow(row, left_key, middle_key, key_row, right_key)
     }
+
+    fn top(ctx: &mut Context) -> Self {
+        Self::new(ctx, 0, Some(top_keys(0)), None, None, None)
+    }
+
+    fn middle(ctx: &mut Context) -> Self {
+        Self::new(ctx, 0, Some(mid_keys(0)), None, None, None)
+    }
+
+    fn bottom(ctx: &mut Context) -> Self {
+        let capslock = Key::capslock(ctx);
+        let backspace = Key::backspace(ctx);
+        Self::new(ctx, 6, Some(bot_keys(0)), Some(capslock), None, Some(backspace))
+    }
+
+    fn modifier(ctx: &mut Context) -> Self {
+        let paginator = Key::paginator(ctx);
+        let spacebar = Key::spacebar(ctx);
+        let newline = Key::newline(ctx);
+        Self::new(ctx, 6, None, Some(paginator), Some(spacebar), Some(newline))
+    }
+
+    fn update(&mut self, new: Vec<&'static str>, caps_on: bool) {
+        let format_text = |text: &str| {
+            match caps_on {
+                true => text.to_uppercase(),
+                false => text.to_lowercase(),
+            }
+        };
+    
+        if let Some(spacebar) = &mut self.2 {
+            if let Some(text) = spacebar.1.character().get_text().as_mut() {
+                *text.value() = format_text("space");
+            }
+        }
+    
+        if let Some(newline) = &mut self.4 {
+            if let Some(text) = newline.1.character().get_text().as_mut() {
+                *text.value() = format_text("return");
+            }
+        }
+
+        if let Some(keys) = &mut self.3 {
+            keys.keys().iter_mut().enumerate().for_each(|(i, k)| {
+                if let Some(text) = k.1.character().get_text().as_mut() {
+                    *text.value() = format_text(new[i]);
+                }
+            });
+        }
+    }
+
+    fn keys(&mut self) -> &mut Option<KeyRow> {&mut self.3}
 }
 
 #[derive(Debug, Component)]
-pub struct ModifierRow(Row, Key, Key, Key);
-impl Events for ModifierRow {}
-
-impl ModifierRow {
-    pub fn new(ctx: &mut Context) -> Self {
-        ModifierRow(
-            Row(12, Offset::Center, Size::Fit, Padding(4, 0, 4, 0)),
-            Key::paginator(ctx),
-            Key::spacebar(ctx),
-            Key::newline(ctx),
-        )
-    }
-}
-
-
-#[derive(Debug, Component)]
-pub struct Key(Stack, RoundedRectangle, KeyContent, #[skip] &'static str, #[skip] ButtonState);
+pub struct Key(Stack, KeyContent, #[skip] ButtonState, #[skip] KeyType);
 
 impl Key {
-    pub fn new(
-        ctx: &mut Context,
-        width: Size, 
-        key: Option<&'static str>, 
-        icon: Option<&'static str>,
-        padding: Option<u32>,
-        text_size: Option<u32>,
-        on_click: &'static str,
-    ) -> Self {
-        let offset = if padding.is_some() {Offset::End} else {Offset::Center};
-        Key(
-            Stack(Offset::Center, offset, width, Size::Static(48), Padding::default()),
-            RoundedRectangle::new(0, 4, ctx.get::<PelicanUI>().theme.colors.shades.lighten),
-            KeyContent::new(ctx, key, icon, text_size, padding), on_click, ButtonState::Default,
-        )
+    fn build(ctx: &mut Context, size: u32, offset: Offset, character: KeyCharacter, key_type: KeyType) -> Self {
+        let content = KeyContent::new(ctx, size, offset, character);
+        Key(Stack::default(), content, ButtonState::Default, key_type)
     }
 
     pub fn character(ctx: &mut Context, character: &'static str) -> Self {
-        let font_size = Some(ctx.get::<PelicanUI>().theme.fonts.size.xl);
-        Self::new(ctx, Size::Fit, Some(character), None, Some(12), font_size, "key")
-    }
-
-    pub fn backspace(ctx: &mut Context) -> Self {
-        Self::new(ctx, Size::Static(42), None, Some("backspace"), None, None, "backspace")
-    }
-
-    pub fn capslock(ctx: &mut Context) -> Self {
-        Self::new(ctx, Size::Static(42), None, Some("capslock"), None, None, "capslock")
-    }
-
-    pub fn newline(ctx: &mut Context) -> Self {
-        let font_size = Some(ctx.get::<PelicanUI>().theme.fonts.size.md);
-        Self::new(ctx, Size::Static(92), Some("return"), None, None, font_size, "newline")
-    }
-
-    pub fn paginator(ctx: &mut Context) -> Self {
-        let font_size = Some(ctx.get::<PelicanUI>().theme.fonts.size.xl);
-        Self::new(ctx, Size::Static(92), Some("•••"), None, None, font_size, "switched")
+        let content = KeyCharacter::char(ctx, character);
+        Self::build(ctx, 33, Offset::End, content, KeyType::Character(character))
     }
 
     pub fn spacebar(ctx: &mut Context) -> Self {
-        let font_size = Some(ctx.get::<PelicanUI>().theme.fonts.size.md);
-        Self::new(ctx, Size::Fit, Some("space"), None, None, font_size, "space")
+        let content = KeyCharacter::text(ctx, "space");
+        Self::build(ctx, u32::MAX, Offset::Center, content, KeyType::Character(" "))
     }
+
+    pub fn capslock(ctx: &mut Context) -> Self {
+        let content = KeyCharacter::icon(ctx, "capslock");
+        Self::build(ctx, 42, Offset::Center, content, KeyType::Capslock(false))
+    }
+
+    pub fn backspace(ctx: &mut Context) -> Self {
+        let content = KeyCharacter::icon(ctx, "backspace");
+        Self::build(ctx, 42, Offset::Center, content, KeyType::Backspace)
+    }
+
+    pub fn newline(ctx: &mut Context) -> Self {
+        let content = KeyCharacter::text(ctx, "return");
+        Self::build(ctx, 92, Offset::Center, content, KeyType::Newline)
+    }
+
+    pub fn paginator(ctx: &mut Context) -> Self {
+        let content = KeyCharacter::paginator(ctx, 0);
+        Self::build(ctx, 92, Offset::Center, content, KeyType::Paginator(0))
+    }
+
+    pub fn key_type(&mut self) -> &mut KeyType {&mut self.3}
+    pub fn content(&mut self) -> &mut KeyContent {&mut self.1}
 }
 
 impl Events for Key {
     fn on_mouse(&mut self, ctx: &mut Context, event: MouseEvent) -> bool {
         let colors = ctx.get::<PelicanUI>().theme.colors;
-        if event.position.is_some() {println!("MOUSE EVENT: {:?}", self.4);}
-        
-        if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
-            println!("Pressed: {:?}", self.3);
-        }
-        self.4 = match self.4 {
-            ButtonState::Default if event.position.is_some() => ButtonState::Selected,
-            ButtonState::Selected => ButtonState::Default,
-            _ => self.4
-        };
-        *self.1.shape().color() = match self.4 {
+        self.2 = handle_state(ctx, self.2, event);
+
+        *self.1.background() = match self.2 {
             ButtonState::Default => colors.shades.lighten,
-            ButtonState::Hover => colors.shades.lighten2,
-            ButtonState::Selected => colors.shades.lighten2,
-            ButtonState::Disabled => colors.shades.lighten,
+            _ => colors.shades.lighten2,
         };
+
+        if event.state == MouseState::Pressed && event.position.is_some() {
+            match self.3 {
+                KeyType::Character(_) => {},
+                KeyType::Paginator(p) => {
+                    let (highlight, dim) = (colors.text.heading, colors.text.secondary);
+                    let next = if p == 2 { 0 } else { p + 1 };
+
+                    let styles = match next {
+                        0 => (highlight, dim, dim),
+                        1 => (dim, highlight, dim),
+                        _ => (dim, dim, highlight),
+                    };
+
+                    self.3 = KeyType::Paginator(next);
+                    *self.1.character().2.as_mut().unwrap().color() = styles.0;
+                    *self.1.character().3.as_mut().unwrap().color() = styles.1;
+                    *self.1.character().4.as_mut().unwrap().color() = styles.2;
+                }
+                KeyType::Capslock(b) => {
+                    self.3 = KeyType::Capslock(!b);
+                    let icon = if !b { "capslock_on" } else { "capslock" };
+                    *self.1.character() = KeyCharacter::icon(ctx, icon);
+                }
+                KeyType::Newline => {},
+                KeyType::Backspace => {},
+            }
+        }
+
         false
     }
 }
 
+
 #[derive(Debug, Component)]
-pub struct KeyContent(Stack, Option<BasicText>, Option<Icon>);
+pub struct KeyContent(Stack, RoundedRectangle, KeyCharacter);
 impl Events for KeyContent {}
 
 impl KeyContent {
-    pub fn new(
-        ctx: &mut Context, 
-        key: Option<&'static str>, 
-        icon: Option<&'static str>, 
-        text_size: Option<u32>,
-        p: Option<u32>,
-    ) -> Self {
-        let color = ctx.get::<PelicanUI>().theme.colors.text.heading;
-        let p = if let Some(p) = p {p} else {0};
-        KeyContent (
-            Stack(Offset::Center, Offset::Center, Size::Fit, Size::Fit, Padding(0, 0, 0, p)),
-            key.map(|k| Text::new(ctx, k, TextStyle::White, text_size.unwrap())),
-            icon.map(|i| Icon::new(ctx, i, color, 36))
+    pub fn new(ctx: &mut Context, size: u32, offset: Offset, content: KeyCharacter) -> Self {
+        KeyContent(
+            Stack(Offset::Center, offset, Size::Fill(20, size), Size::Static(48), Padding(3, 6, 3, 6)),
+            RoundedRectangle::new(0, 4, ctx.get::<PelicanUI>().theme.colors.shades.lighten),
+            content
         )
     }
+
+    pub fn background(&mut self) -> &mut Color {self.1.shape().color()}
+    pub fn character(&mut self) -> &mut KeyCharacter {&mut self.2}
+}
+
+#[derive(Debug, Component)]
+pub struct KeyCharacter(Row, Option<Image>, Option<BasicText>, Option<BasicText>, Option<BasicText>);
+impl Events for KeyCharacter {}
+
+impl KeyCharacter {
+    pub fn char(ctx: &mut Context, key: &'static str) -> Self {
+        let size = ctx.get::<PelicanUI>().theme.fonts.size.xl;
+        KeyCharacter(
+            Row(0, Offset::Center, Size::Fit, Padding(0, 0, 0, 10)),
+            None,
+            Some(Text::new(ctx, key, TextStyle::Keyboard, size)),
+            None, None
+        )
+    }
+
+    pub fn text(ctx: &mut Context, key: &'static str) -> Self {
+        let size = ctx.get::<PelicanUI>().theme.fonts.size.md;
+        KeyCharacter(Row::center(0), None, Some(Text::new(ctx, key, TextStyle::Keyboard, size)), None, None)
+    }
+
+    pub fn icon(ctx: &mut Context, i: &'static str) -> Self {
+        let c = ctx.get::<PelicanUI>().theme.colors.text.heading;
+        KeyCharacter(Row::center(0), Some(Icon::new(ctx, i, c, 36)), None, None, None)
+    }
+
+    pub fn paginator(ctx: &mut Context, page: u32) -> Self {
+        let size = ctx.get::<PelicanUI>().theme.fonts.size.h2;
+        let (highlight, dim) = (TextStyle::White, TextStyle::Secondary);
+
+        let styles = match page {
+            0 => (highlight, dim, dim),
+            1 => (dim, highlight, dim),
+            _ => (dim, dim, highlight),
+        };
+
+        KeyCharacter(
+            Row::center(1),
+            None,
+            Some(Text::new(ctx, "•", styles.0, size)),
+            Some(Text::new(ctx, "•", styles.1, size)),
+            Some(Text::new(ctx, "•", styles.2, size)),
+        )
+    }
+
+    pub fn get_text(&mut self) -> &mut Option<BasicText> {&mut self.2}
 }
 
 
+pub fn handle_state(ctx: &mut Context, state: ButtonState, event: MouseEvent) -> ButtonState {
+    match state {
+        ButtonState::Default if event.position.is_some() => {
+            match event.state {
+                MouseState::Pressed => Some(ButtonState::Selected),
+                MouseState::Moved => Some(ButtonState::Selected),
+                MouseState::Released => Some(ButtonState::Default)
+            }
+        },
+        ButtonState::Selected => {
+            match event.state {
+                MouseState::Released => Some(ButtonState::Default),
+                MouseState::Moved if event.position.is_some() => Some(ButtonState::Selected),
+                MouseState::Moved if event.position.is_none() => Some(ButtonState::Default),
+                MouseState::Pressed if event.position.is_some() => Some(ButtonState::Selected),
+                MouseState::Pressed => Some(ButtonState::Default),
+                _ => None,
+            }
+        },
+        _ => None
+    }.unwrap_or(state)
+}
 
-// let top = match page {
-//     0 => vec!["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
-//     1 => vec!["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-//     _ => vec!["[", "]", "{", "}", "(", ")", "<", ">", "+", "="]
-// };
+#[derive(Debug)]
+enum KeyType {
+    Character(&'static str),
+    Paginator(u32),
+    Capslock(bool),
+    Newline,
+    Backspace,
+}
 
-// let middle = match page {
-//     0 => vec!["a", "s", "d", "f", "g", "h", "j", "k", "l"],
-//     1 => vec!["-", "/", ":", ";", "#", "%", "$", "&", "@", "\""],
-//     _ => vec!["_", "\\", "|", "~", "^", "*", "€", "£", "¥", "•"]
-// };
+fn top_keys(page: u32) -> Vec<&'static str> {
+    match page {
+        0 => vec!["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+        1 => vec!["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+        _ => vec!["[", "]", "{", "}", "(", ")", "<", ">", "+", "="]
+    }
+}
 
-// let bottom = match page {
-//     0 => vec!["z", "x", "c", "v", "b", "n", "m"],
-//     1 => vec![".", ",", "?", "!", "'"],
-//     _ => vec![".", ",", "?", "!", "'"]
-// };
+fn mid_keys(page: u32) -> Vec<&'static str> {
+    match page {
+        0 => vec!["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+        1 => vec!["/", "\\", "\"", "'", "~", ".", ",", "?", "!"],
+        _ => vec!["-", ":", ";", "#", "%", "$", "&", "^", "*",]
+    }  
+}
 
-
-// pub struct NativeKeyboard();
-
-// impl ComponentBuilder for NativeKeyboard {
-//     fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-//         let page_index = 1;
-//         let caps = false;
-
-//         let (top_row, middle_row, bottom_row) = generate_rows(page_index, caps);
-
-//         let paginator_key = |i: u32| if i == 0 { "•--" }  else if i == 1 { "-•-" } else { "--•" };
-    
-//         Stack {padding: ZERO, align: Align::Top, children: vec![
-//             (Child!(Shape(ShapeType::Rectangle(393, 300), COLORS.background.secondary, None)), ZERO),
-//             (Child!(Column { padding: ZERO, spacing: 0, align: Align::Center, children: vec![
-//                 (Child!(Row { padding: Vec2::new(12, 12), align: Align::Left, spacing: 16, children: vec![
-//                     (icon(36), false),
-//                     (icon(36), false),
-//                     (icon(36), false),
-//                     (icon(36), false),
-//                     (icon(36), false),
-//                     (Child!(Expand(false, 1, COLORS.background.secondary)), true),
-//                     (icon(36), false)
-//                 ]}), false),
-//                 (Child!(Expand(false, 1, COLORS.outline.secondary)), false),
-//                 (Child!(Padding(Vec2::new(5, 5), COLORS.background.secondary)), false),
-//                 (Child!(Column {spacing: 12, padding: Vec2::new(5, 5), align: Align::Center, children: vec![
-//                     (Child!(Row{spacing: 6, padding: Vec2::new(4, 0), align: Align::Left, children: top_row}), true),
-//                     (Child!(Row{spacing: 6, padding: Vec2::new(4, 0), align: Align::Left, children: middle_row}), true),
-//                     (Child!(Row{spacing: 6, padding: Vec2::new(4, 0), align: Align::Left, children: vec![
-//                         (Child!(Key("capslock")), false),
-//                         (Child!(Row{spacing: 6, padding: Vec2::new(8, 0), align: Align::Center, children: bottom_row}), true),
-//                         (Child!(Key("backspace")), false)
-//                     ]}), false),
-//                     (Child!(Row{spacing: 6, padding: Vec2::new(4, 0), align: Align::Left, children: vec![
-//                         (Child!(Key(paginator_key(page_index))), false),
-//                         (Child!(Key("space")), true),
-//                         (Child!(Key("return")), false)
-//                     ]}), false),
-//                 ]}), false)
-//             ]}), ZERO)
-//         ]}.build_children(ctx, max_size)
-//     }
-
-//     fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
-//     fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
-// }
-
-// pub struct Key(&'static str);
-
-// impl ComponentBuilder for Key {
-//     fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-
-//         let lg_key_text = |c: &'static str, ctx: &mut Context| 
-//             Child!(Text::primary_white(ctx, c, TextSize::xl()));
-
-//         let dk_key_text = |c: &'static str, ctx: &mut Context| 
-//             Child!(Text::secondary(ctx, c, TextSize::xl()));
-
-//         let sm_key_text = |c: &'static str, ctx: &mut Context| 
-//             Child!(Text::primary_white(ctx, c, TextSize::md()));
-    
-//         let mut paginator_key = |main_index: usize| {
-//             Child!(Row {spacing: 2, padding: ZERO, align: Align::Left, children: vec![
-//                 (if main_index == 0 { lg_key_text("•", ctx) } else { dk_key_text("•", ctx) }, false),
-//                 (if main_index == 1 { lg_key_text("•", ctx) } else { dk_key_text("•", ctx) }, false),
-//                 (if main_index == 2 { lg_key_text("•", ctx) } else { dk_key_text("•", ctx) }, false)
-//             ]})
-//         };
-
-//         let key_background = |max: Option<u32>| {
-//             match max.is_some() {
-//                 true => Child!(Shape(ShapeType::Rectangle(max.unwrap(), 42), COLORS.outline.secondary, None)),
-//                 false => Child!(Expand(false, 42, COLORS.outline.secondary))
-//             }
-//         };
-        
-//         let (content, offset, max_width) = match self.0 {
-//             "•--" => (paginator_key(0), 6, Some(92)),
-//             "-•-" => (paginator_key(1), 6, Some(92)),
-//             "--•" => (paginator_key(2), 6, Some(92)),
-//             "space" => (sm_key_text(self.0, ctx), 11, None),
-//             "return" => (sm_key_text(self.0, ctx), 11, Some(92)),
-//             _ => match self.0.len() <= 3 {
-//                 true => (lg_key_text(self.0, ctx), 4, None),
-//                 false =>(icon(32), 5, Some(44))
-//             }
-//         };
-
-//         Child!(Stack {padding: ZERO, align: Align::Top, children: vec![
-//             (key_background(max_width), Vec2::new(0, 0)),
-//             (content, Vec2::new(0, offset))
-//         ]}).build_children(ctx, max_size)
-//     }
-    
-
-//     fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
-//     fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
-// }
-
-
-// fn generate_rows(page: u32, caps: bool) -> (
-//     Vec<(Box<dyn ComponentBuilder>, bool)>, 
-//     Vec<(Box<dyn ComponentBuilder>, bool)>, 
-//     Vec<(Box<dyn ComponentBuilder>, bool)>
-// ) {
-//     let top_row = match page {
-//         0 => vec!["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
-//         1 => vec!["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-//         _ => vec!["[", "]", "{", "}", "(", ")", "<", ">", "+", "="]
-//     };
-
-//     let mid_row = match page {
-//         0 => vec!["a", "s", "d", "f", "g", "h", "j", "k", "l"],
-//         1 => vec!["-", "/", ":", ";", "#", "%", "$", "&", "@", "\""],
-//         _ => vec!["_", "\\", "|", "~", "^", "*", "€", "£", "¥", "•"]
-//     };
-
-//     let bot_row = match page {
-//         0 => vec!["z", "x", "c", "v", "b", "n", "m"],
-//         1 => vec![".", ",", "?", "!", "'"],
-//         _ => vec![".", ",", "?", "!", "'"]
-//     };
-
-//     (
-//         str_to_key(top_row, caps), 
-//         str_to_key(mid_row, caps), 
-//         str_to_key(bot_row, caps)
-//     )
-// }
-
-// pub fn str_to_key(keys: Vec<&'static str>, caps: bool) -> Vec<(Box<dyn ComponentBuilder>, bool)> {
-//     keys.iter().map(|key| {
-//         let key = if caps { key.to_string().to_uppercase() } else { key.to_string() };
-//         (Child!(Key(Box::leak(key.into_boxed_str()))), true)
-//     }).collect()
-// }
-
-// fn icon(s: u32) -> Box<dyn ComponentBuilder> {
-//     Child!(Shape(ShapeType::Rectangle(s, s), "ffffff", None))
-// }
+fn bot_keys(page: u32) -> Vec<&'static str> {
+    match page {
+        0 => vec!["z", "x", "c", "v", "b", "n", "m"],
+        1 => vec!["@", "|", "`", "˚", "€", "£", "¥"],
+        _ => vec!["™", "©", "•", "¶", "€", "£", "¥"]
+    }  
+}
