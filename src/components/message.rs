@@ -3,86 +3,151 @@ use crate::{ Child, ConstrainedBox, Row, Column, COLORS, ZERO, Align };
 use crate::theme::fonts::{Text, TextSize};
 use crate::components::UserIcon;
 
-pub struct TextMessage(pub MessageType, pub Vec<&'static str>, Option<Profile>);
-
-pub struct TextMessage {
-    style: MessageType,
-    messages: Vec<&'static str>,
-    sender: Profile,
-    time: DateTime,
+#[derive(Debug, PartialEq)]
+pub enum MessageType {
+    You,
+    Contact,
+    Group,
+    Rooms,
 }
 
-pub struct TextMessage(pub Row, pub CircleIcon, pub _TextMessage);
+#[derive(Debug)]
+pub struct Profile {
+    name: &'static str,
+    nym: &'static str,
+    description: &'static str,
+    avatar: AvatarContent,
+}
 
-impl TextMessage {
+#[derive(Debug, Component)]
+pub struct Message(Row, Avatar, MessageContent);
+impl Events for Message {}
+
+impl Message {
     pub fn new(
+        ctx: &mut Context,
         style: MessageType,
         messages: Vec<&'static str>,
         sender: Profile,
-        time: DateTime,
+        time: &'static str,
     ) -> Self {
-        TextMessage (
-            Row(8, Offset::Start, Size::Fit),
-            
+        let (name, offset, avatar) = match style {
+            MessageType::You => ("You", Offset::End, None),
+            MessageType::Rooms => (sender.name, Offset::Start, Some(sender.avatar)),
+            MessageType::Group => (sender.name, Offset::End, Some(sender.avatar)),
+            MessageType::Contact => (sender.name, Offset::End, Some(sender.avatar))
+        };
+
+        Message (
+            Row(8, offset, Size::Fit),
+            avatar.map(|data| Avatar::new(ctx, data, None, false, 24)),
+            MessageContent::new(ctx, style, messages, sender, time)
         )
     }
 }
 
-struct _TextMessage(pub Column, pub _MessageBubbles, pub _MessageData);
+#[derive(Debug, Component)]
+pub struct MessageContent(Column, Option<MessageData>, MessageBubbles, Option<MessageData>);
+impl Events for MessageContent {}
 
-struct _MessageBubbles(pub Column, pub Vec<_MessageBubble>);
+impl MessageContent {
+    pub fn new(
+        ctx: &mut Context,
+        style: MessageType,
+        messages: Vec<&'static str>,
+        sender: Profile,
+        time: &'static str,
+    ) -> Self {
 
-enum
+        let offset = match style {
+            MessageType::You => Offset::End,
+            _ => Offset::Start,
+        };
 
-impl ComponentBuilder for TextMessage {
-    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-        let mut row: Vec<Box<dyn ComponentBuilder>> = vec![];
-        let mut col: Vec<Box<dyn ComponentBuilder>> = vec![];
-
-        let (sender, align) = if self.0 == MessageType::You { ("You", Align::Right)} else { (sender.name, Align::Left) };
-
-        if self.style == MessageType::Rooms || self.0 == MessageType::Group {
-            row.push(CircleIcon(sender.profile_photo, None, false, 24)); // Profile Photo
+        let (top, bottom) = match style {
+            MessageType::Rooms => (Some(MessageData::new(ctx, style, sender.name, time)), None),
+            _ => (None, Some(MessageData::new(ctx, style, sender.name, time)))
         }
 
-        if self.0 == MessageType::Rooms {
-            col.push(Row(ZERO, 4, Align::Bottom, vec![
-                Text::heading(ctx, sender, TextSize::h5()), // Name
-                Text::secondary(ctx, self.time, TextSize::sm()) // Time/Date
-            ]));
-        } 
-
-        col.push(
-            Column(ZERO, 8, align, self.1
-                .iter()
-                .map(|msg| {
-                    MessageBubble(msg, self.style) // Message
-                })
-                .collect()
-            )
-        );
-
-        if self.0 != MessageType::Rooms {
-            col.push(Row(ZERO, 4, Align::Bottom, vec![
-                Text::secondary(ctx, sender, TextSize::sm()), // Name
-                Text::secondary(ctx, "·", TextSize::sm()),
-                Text::secondary(ctx, self.time, TextSize::sm()) // Time/Date
-            ]));
-        } 
-
-        row.push(Column(ZERO, 8, Align::Top, col));
-        
-        ConstrainedBox(300, Row(ZERO, 8, Align::Top, row)).build_children(ctx, max_size)
+        MessageContent(
+            Column(8, offset, Size::Fill(0, 300), Padding::default()),
+            top, MessageBubbles::new(ctx, style, messages), bottom
+        )
     }
-
-    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
 }
 
-pub struct Profile {
-    profile_photo: CircleIconData,
-    name: &'static str,
-    nym: &'static str,
+#[derive(Debug, Component)]
+pub struct MessageData(Row, BasicText, Option<BasicText>, BasicText);
+impl Events for MessageData {}
+
+impl MessageData {
+    pub fn new(
+        ctx: &mut Context,
+        style: MessageStyle,
+        name: &'static str,
+        time: &'static str,
+    ) -> Self {
+        let (title_style, title_size, divider) = match style {
+            MessageType::Rooms => (TextStyle::Heading, text_size.h5, true),
+            _ => (TextStyle::Secondary, text_size.sm, false),
+        }
+        MessageData(
+            Row(4, Offset::End, Size::Fit, Padding::default()),
+            Text::new(ctx, name, title_style, title_size),
+            divider.then(|| Text::new(ctx, "·", TextStyle::Secondary, text_size.sm)),
+            Text::new(ctx, time, TextStyle::Secondary, text_size.sm),
+        )
+    }
+}
+
+
+#[derive(Debug, Component)]
+pub struct MessageBubbles(Column, Vec<MessageBubble>);
+impl Events for MessageBubbles {}
+
+impl MessageBubbles {
+    pub fn new(
+        ctx: &mut Context,
+        messages: Vec<&'static str>,
+        style: MessageStyle,
+    ) -> Self {
+        let messages = message.iter().map(|m| MessageBubble::new(ctx, m, style));
+        MessageBubbles(Column::default(8), messages)
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct MessageBubble(Stack, Rectangle, BasicText);
+impl Events for MessageBubble {}
+
+impl MessageBubble {
+    pub fn new(
+        ctx: &mut Context,
+        message: &'static str,
+        style: MessageStyle,
+    ) -> Self {
+        let colors = ctx.get::<PelicanUI>().theme.colors;
+        let (bg_color, msg_color) = match style {
+            MessageType::You => (colors.background.primary, colors.outline.secondary),
+            MessageType::Rooms => (colors.background.primary, colors.outline.secondary),
+            MessageType::Group => (colors.background.primary, colors.outline.secondary),
+            MessageType::Content => (colors.background.primary, colors.outline.secondary),
+        };
+        let background = OutlinedRectangle::new(bg, oc, 16, 1);
+        let content = CardContent::new(ctx, avatar, title, subtitle, description);
+        let layout = Stack(
+            Offset::Center, Offset::Center, 
+            Size::custom(|widths: Vec<(u32, u32)>| (widths[1].0, u32::MAX)), 
+            Size::custom(|heights: Vec<(u32, u32)>| heights[1]), 
+            Padding::default()
+        );
+
+        MessageBubbles(
+            Stack::center()
+            Column(8, Offset::End, Size::Static(min_width), Padding::default()),
+            messages,
+        )
+    }
 }
 
 pub struct MessageBubble(&'static str, MessageType);
@@ -112,12 +177,6 @@ impl ComponentBuilder for MessageBubble {
 }
 
 
-#[derive(PartialEq)]
-pub enum MessageType {
-    You,
-    Contact,
-    Group,
-    Rooms,
-}
+
 
 pub struct DateTime(date: &'static str, time: &'static str);

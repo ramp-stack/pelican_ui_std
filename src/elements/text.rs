@@ -3,13 +3,14 @@ use rust_on_rails::prelude::Text as BasicText;
 use crate::layout::{Stack, Padding, Offset, Size};
 use crate::PelicanUI;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum TextStyle {
     Heading,
     Primary,
     Secondary,
     Error,
     White,
+    Keyboard,
     Label(Color),
 }
 
@@ -22,7 +23,8 @@ impl TextStyle {
             TextStyle::Secondary => (theme.colors.text.secondary, theme.fonts.fonts.text.clone()),
             TextStyle::Error => (theme.colors.text.danger, theme.fonts.fonts.text.clone()),
             TextStyle::White => (theme.colors.text.heading, theme.fonts.fonts.text.clone()),
-            TextStyle::Label(color) => (*color, theme.fonts.fonts.label.clone())
+            TextStyle::Keyboard => (theme.colors.text.heading, theme.fonts.fonts.keyboard.clone()),
+            TextStyle::Label(color) => (*color, theme.fonts.fonts.label.clone()),
         }
     }
 }

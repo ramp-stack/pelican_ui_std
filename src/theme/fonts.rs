@@ -24,23 +24,32 @@ pub struct Fonts {
     pub heading: resources::Font,
     pub text: resources::Font,
     pub label: resources::Font,
+    pub keyboard: resources::Font,
     pub emoji: resources::Font,
 }
 
 impl Fonts {
-    pub fn new(heading: resources::Font, text: resources::Font, label: resources::Font, emoji: resources::Font) -> Self {
-        Self { heading, text, label, emoji }
+    pub fn new(
+        heading: resources::Font, 
+        text: resources::Font, 
+        label: resources::Font, 
+        keyboard: resources::Font, 
+        emoji: resources::Font
+    ) -> Self {
+        Self { heading, text, label, keyboard, emoji }
     }
 
     pub fn default(ctx: &mut Context) -> Self {
         println!("loading font resources");
         let bold = resources::Font::new(ctx, ctx.load_file("fonts/outfit_bold.ttf").unwrap());
+        let medium = resources::Font::new(ctx, ctx.load_file("fonts/outfit_medium.ttf").unwrap());
         let regular = resources::Font::new(ctx, ctx.load_file("fonts/outfit_regular.ttf").unwrap());
         let emoji = resources::Font::new(ctx, ctx.load_file("fonts/noto_color_emoji.ttf").unwrap());
         Self {
             heading: bold.clone(),
             text: regular.clone(),
             label: bold.clone(),
+            keyboard: medium.clone(),
             emoji: emoji.clone()
         }
     }

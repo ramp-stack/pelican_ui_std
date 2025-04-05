@@ -24,7 +24,7 @@ pub enum ButtonState {
 }
 
 impl ButtonState {
-    fn handle(&mut self, _ctx: &mut Context, event: MouseEvent) -> Option<Self> {
+    pub fn handle(&mut self, _ctx: &mut Context, event: MouseEvent) -> Option<Self> {
         let state = match self {
             ButtonState::Default if event.position.is_some() => {
                 match event.state {

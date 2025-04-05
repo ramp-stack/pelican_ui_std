@@ -6,7 +6,7 @@ use crate::layout::{Row, Offset, Size, Padding};
 use crate::PelicanUI;
 
 #[derive(Clone, Debug, Component)]
-pub struct Alert(Row, Icon, BasicText);
+pub struct Alert(Row, Image, BasicText);
 impl Events for Alert {}
 
 impl Alert {

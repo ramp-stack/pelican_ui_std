@@ -18,6 +18,7 @@ impl IconResources {
         icons.insert("camera", resources::Image::svg(ctx, &ctx.load_file("icons/camera.svg").unwrap(), quality));
         icons.insert("cancel", resources::Image::svg(ctx, &ctx.load_file("icons/cancel.svg").unwrap(), quality));
         icons.insert("capslock", resources::Image::svg(ctx, &ctx.load_file("icons/capslock.svg").unwrap(), quality));
+        icons.insert("capslock_on", resources::Image::svg(ctx, &ctx.load_file("icons/capslock_on.svg").unwrap(), quality));
         icons.insert("checkmark", resources::Image::svg(ctx, &ctx.load_file("icons/checkmark.svg").unwrap(), quality));
         icons.insert("close", resources::Image::svg(ctx, &ctx.load_file("icons/close.svg").unwrap(), quality));
         icons.insert("copy", resources::Image::svg(ctx, &ctx.load_file("icons/copy.svg").unwrap(), quality));

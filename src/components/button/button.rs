@@ -72,7 +72,7 @@ impl Events for Button {
 }
 
 #[derive(Debug, Component)]
-pub struct ButtonContent(Row, Option<Avatar>, Option<Icon>, pub Option<BasicText>, Option<Icon>);
+struct ButtonContent(Row, Option<Avatar>, Option<Image>, Option<BasicText>, Option<Image>);
 impl Events for ButtonContent {}
 
 impl ButtonContent {

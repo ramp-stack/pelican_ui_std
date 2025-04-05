@@ -6,7 +6,7 @@ use crate::components::button::Button;
 use crate::layout::{Column, Row, Stack, Padding, Offset, Size};
 use crate::PelicanUI;
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 pub struct DataItem(Row, Option<Number>, DataItemContent);
 impl Events for DataItem {}
 
@@ -18,7 +18,7 @@ impl DataItem {
         text: Option<&'static str>,
         secondary: Option<&'static str>,
         table: Option<Vec<(&'static str, &'static str)>>,
-        quick_actions: Option<Vec<(&'static str, &'static str, fn(&mut Context, (u32, u32)) -> ())>>,
+        quick_actions: Option<Vec<Button>>,
     ) -> Self {
         DataItem (
             Row(32, Offset::Start, Size::Fit, Padding::default()),
@@ -28,7 +28,7 @@ impl DataItem {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct Number(Stack, BasicText, Shape);
 impl Events for Number {}
 
@@ -44,7 +44,7 @@ impl Number {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct DataItemContent(Column, BasicText, Option<BasicText>, Option<BasicText>, Option<Table>, Option<QuickActions>);
 impl Events for DataItemContent {}
 
@@ -55,7 +55,7 @@ impl DataItemContent {
         text: Option<&'static str>,
         secondary: Option<&'static str>,
         table: Option<Vec<(&'static str, &'static str)>>,
-        quick_actions: Option<Vec<(&'static str, &'static str, fn(&mut Context, (u32, u32)) -> ())>>,
+        quick_actions: Option<Vec<Button>>,
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         DataItemContent(
@@ -69,7 +69,7 @@ impl DataItemContent {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct Table(pub Column, pub Vec<Tabular>);
 impl Events for Table {}
 
@@ -82,7 +82,7 @@ impl Table {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct Tabular(Row, ExpandableText, BasicText);
 impl Events for Tabular {}
 
@@ -97,16 +97,13 @@ impl Tabular {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct QuickActions(Row, Vec<Button>); // Row should be wrap
 impl Events for QuickActions {}
 
 impl QuickActions {
-    fn new(ctx: &mut Context, items: Vec<(&'static str, &'static str, fn(&mut Context, (u32, u32)) -> ())>) -> Self {
-        QuickActions (
-            Row(8, Offset::Start, Size::Fit, Padding::default()),
-            items.iter().map(|(icon, label, on_click)| Button::secondary(ctx, Some(icon), label, None, *on_click)).collect()
-        )
+    fn new(ctx: &mut Context, buttons: Vec<Button>) -> Self {
+        QuickActions(Row(8, Offset::Start, Size::Fit, Padding::default()), buttons)
     }
 }
 
