@@ -36,10 +36,13 @@ impl TextInput {
 }
 
 impl Events for TextInput {
-    fn on_tick(&mut self, _ctx: &mut Context) {
-        let error = !self.3.right().value().is_empty();
-        self.3.display_left(!error);
-        *self.2.error() = error;
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(TickEvent) = event.downcast_ref() {
+            let error = !self.3.right().value().is_empty();
+            self.3.display_left(!error);
+            *self.2.error() = error;
+        }
+        true
     }
 }
 
@@ -67,70 +70,72 @@ impl InputField {
 }
 
 impl Events for InputField {
-    fn on_tick(&mut self, ctx: &mut Context) {
-        self.3 = match self.3 {
-            InputState::Default if self.4 => Some(InputState::Error),
-            InputState::Error if !self.4 => Some(InputState::Default),
-            _ => None
-        }.unwrap_or(self.3);
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(TickEvent) = event.downcast_ref() {
+            self.3 = match self.3 {
+                InputState::Default if self.4 => Some(InputState::Error),
+                InputState::Error if !self.4 => Some(InputState::Default),
+                _ => None
+            }.unwrap_or(self.3);
 
-        let (background, outline) = self.3.get_color(ctx);
-        *self.1.background() = background;
-        *self.1.outline() = outline;
-        *self.2.focus() = self.3 == InputState::Focus;
-    }
-
-    fn on_mouse(&mut self, _ctx: &mut Context, event: MouseEvent) -> bool {
-        self.3 = match self.3 {
-            InputState::Default => {
-                match event {
-                    MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
-                    _ => None
+            let (background, outline) = self.3.get_color(ctx);
+            *self.1.background() = background;
+            *self.1.outline() = outline;
+            *self.2.focus() = self.3 == InputState::Focus;
+        } else if let Some(event) = event.downcast_ref::<MouseEvent>() {
+            self.3 = match self.3 {
+                InputState::Default => {
+                    match event {
+                        MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
+                        _ => None
+                    }
+                },
+                InputState::Hover => {
+                    match event {
+                        MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
+                        MouseEvent{state: MouseState::Moved, position: None} if self.4 => Some(InputState::Error),
+                        MouseEvent{state: MouseState::Moved, position: None} => Some(InputState::Default),
+                        _ => None
+                    }
+                },
+                InputState::Focus => {
+                    match event {
+                        MouseEvent{state: MouseState::Pressed, position: None} if self.4 => Some(InputState::Error),
+                        MouseEvent{state: MouseState::Pressed, position: None} => Some(InputState::Default),
+                        _ => None
+                    }
+                },
+                InputState::Error => {
+                    match event {
+                        MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
+                        MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
+                        _ => None
+                    }
                 }
-            },
-            InputState::Hover => {
-                match event {
-                    MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
-                    MouseEvent{state: MouseState::Moved, position: None} if self.4 => Some(InputState::Error),
-                    MouseEvent{state: MouseState::Moved, position: None} => Some(InputState::Default),
-                    _ => None
-                }
-            },
-            InputState::Focus => {
-                match event {
-                    MouseEvent{state: MouseState::Pressed, position: None} if self.4 => Some(InputState::Error),
-                    MouseEvent{state: MouseState::Pressed, position: None} => Some(InputState::Default),
-                    _ => None
-                }
-            },
-            InputState::Error => {
-                match event {
-                    MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
-                    MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
-                    _ => None
-                }
+            }.unwrap_or(self.3);
+        } else if let Some(KeyboardEvent{state: KeyboardState::Pressed, key}) = event.downcast_ref() {
+            if self.3 == InputState::Focus {
+                let t = self.2.input();
+                match key {
+                    Key::Named(NamedKey::Enter) => *t +="\n",
+                    Key::Named(NamedKey::Space) => *t +=" ",
+                    Key::Named(NamedKey::Delete | NamedKey::Backspace) if !t.is_empty() =>
+                        *t = t[0..t.len() - 1].to_string(),
+                    Key::Character(c) => *t += c, // add character
+                    _ => {}
+                };
             }
-        }.unwrap_or(self.3);
+        }
         true
     }
-
-    fn on_keyboard(&mut self, _ctx: &mut Context, event: KeyboardEvent) -> bool {
-        if self.3 == InputState::Focus && event.state == KeyboardState::Pressed {
-            let t = self.2.input();
-            match event.key {
-                Key::Named(NamedKey::Delete | NamedKey::Backspace) => *t = if t.len()>0 {(&t[0..t.len() - 1]).to_string()} else {String::new()}, // delete char
-                Key::Character(c) => *t += &c, // add character
-                _ => {}
-            };
-        }
-        false
-    }
 }
+
+pub type SubmitCallback = Box<dyn FnMut(&mut Context, &mut String)>;
 
 #[derive(Component)]
 struct InputContent(
     Row, Bin<Stack, EitherOr<ExpandableText, ExpandableText>>, Option<IconButton>,
-    #[skip] bool, #[skip] Option<(Receiver<u8>, Box<dyn FnMut(&mut Context, &mut String)>)>
+    #[skip] bool, #[skip] Option<(Receiver<u8>, SubmitCallback)>
 );
 
 impl InputContent {
@@ -144,7 +149,7 @@ impl InputContent {
             let (sender, receiver) = mpsc::channel();
             (
                 Some(IconButton::input(ctx, icon, move |_| {sender.send(0).unwrap();})),
-                Some((receiver, Box::new(on_click) as Box<dyn FnMut(&mut Context, &mut String)>)),
+                Some((receiver, Box::new(on_click) as SubmitCallback)),
             )
         }).unwrap_or((None, None));
 
@@ -168,15 +173,18 @@ impl InputContent {
 }
 
 impl Events for InputContent {
-    fn on_tick(&mut self, ctx: &mut Context) {
-        if let Some((receiver, on_submit)) = self.4.as_mut() {
-            if receiver.try_recv().is_ok() {
-                on_submit(ctx, self.1.inner().left().value())
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(TickEvent) = event.downcast_ref() {
+            if let Some((receiver, on_submit)) = self.4.as_mut() {
+                if receiver.try_recv().is_ok() {
+                    on_submit(ctx, self.1.inner().left().value())
+                }
             }
-        }
 
-        let input = !self.1.inner().left().value().is_empty();
-        self.1.inner().display_left(input || self.3)
+            let input = !self.1.inner().left().value().is_empty();
+            self.1.inner().display_left(input || self.3)
+        }
+        true
     }
 }
 

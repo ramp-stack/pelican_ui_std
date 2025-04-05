@@ -52,8 +52,11 @@ impl ExpandableText {
 }
 
 impl Events for ExpandableText {
-    fn on_resize(&mut self, _ctx: &mut Context, size: (u32, u32)) {
-        let BasicText(_, _, min_width, _, _, _) = &mut self.1; 
-        *min_width = Some(size.0);
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(ResizeEvent(size)) = event.downcast_ref() {
+            let BasicText(_, _, min_width, _, _, _) = &mut self.1;
+            *min_width = Some(size.0);
+        }
+        true
     }
 }

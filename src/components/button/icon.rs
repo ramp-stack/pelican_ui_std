@@ -40,20 +40,22 @@ impl IconButton {
 }
 
 impl Events for IconButton {
-    fn on_mouse(&mut self, ctx: &mut Context, event: MouseEvent) -> bool {
-        if let Some(state) = self.4.handle(ctx, event) {
-            let colors = state.color(ctx, self.3);
-            *self.1.background() = colors.background;
-            *self.1.outline() = colors.outline;
-            *self.2.color() = Some(colors.label);
-        }
-        if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
-            match self.4 {
-                ButtonState::Default | ButtonState::Hover | ButtonState::Selected => (self.5)(ctx),
-                _ => {}
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(event) = event.downcast_ref::<MouseEvent>() {
+            if let Some(state) = self.4.handle(ctx, *event) {
+                let colors = state.color(ctx, self.3);
+                *self.1.background() = colors.background;
+                *self.1.outline() = colors.outline;
+                *self.2.color() = Some(colors.label);
             }
-        }
-        false
+            if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
+                match self.4 {
+                    ButtonState::Default | ButtonState::Hover | ButtonState::Selected => (self.5)(ctx),
+                    _ => {}
+                }
+            }
+            false
+        } else {true}
     }
 }
 

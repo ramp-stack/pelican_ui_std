@@ -15,7 +15,7 @@ impl Offset {
             Self::Start => 0,
             Self::Center => (max_size as i32 - item as i32) / 2,
             Self::End => max_size as i32 - item as i32,
-            Self::Static(s) => *s as i32,
+            Self::Static(s) => *s,
         }
     }
 
@@ -29,13 +29,16 @@ impl Offset {
     }
 }
 
+type CustomFunc = dyn Fn(Vec<(u32, u32)>) -> (u32, u32);
+type FitFunc = fn(Vec<(u32, u32)>) -> (u32, u32);
+
 #[derive(Default)]
 pub enum Size {
     #[default]
     Fit,
     Fill(u32, u32),
     Static(u32),
-    Custom(Box<dyn Fn(Vec<(u32, u32)>) -> (u32, u32)>)
+    Custom(Box<CustomFunc>)
 }
 
 impl Size {
@@ -44,7 +47,7 @@ impl Size {
         Size::Custom(Box::new(func))
     }
 
-    fn get(&self, items: Vec<(u32, u32)>, fit: fn(Vec<(u32, u32)>) -> (u32, u32)) -> (u32, u32) {
+    fn get(&self, items: Vec<(u32, u32)>, fit: FitFunc) -> (u32, u32) {
         match self {
             Size::Fit => fit(items),
             Size::Fill(min, max) => (*min, *max),
@@ -101,8 +104,8 @@ impl UniformExpand {
 
         let mut free_space = (max_size as i32 - min_size as i32).max(0) as f32;
         while free_space > 0.0 {
-            let (min_exp, count, next) = sizes.iter().fold((None, 0.0, free_space as f32), |(mut me, mut c, mut ne), size| {
-                let min = size.0 as f32;
+            let (min_exp, count, next) = sizes.iter().fold((None, 0.0, free_space), |(mut me, mut c, mut ne), size| {
+                let min = size.0;
                 let max = size.1 as f32;
                 if min < max { //I can expand
                     match me {
@@ -162,7 +165,7 @@ impl Layout for Row {
         let widths = UniformExpand::get(items.iter().map(|i| (i.min_width(), i.max_width())).collect::<Vec<_>>(), row_size.0, self.0);
 
         let mut offset = 0;
-        items.into_iter().zip(widths.into_iter()).map(|(i, width)| {
+        items.into_iter().zip(widths).map(|(i, width)| {
             let size = i.get((width, row_size.1));
             let off = self.3.adjust_offset((offset as i32, self.1.get(row_size.1, size.1)));
             offset += size.0+self.0;
@@ -198,7 +201,7 @@ impl Layout for Column {
         let heights = UniformExpand::get(items.iter().map(|i| (i.min_height(), i.max_height())).collect::<Vec<_>>(), col_size.1, self.0);
 
         let mut offset = 0;
-        items.into_iter().zip(heights.into_iter()).map(|(i, height)| {
+        items.into_iter().zip(heights).map(|(i, height)| {
             let size = i.get((col_size.0, height));
             let off = self.3.adjust_offset((self.1.get(col_size.0, size.0), offset as i32));
             offset += size.1+self.0;

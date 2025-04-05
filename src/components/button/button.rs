@@ -51,21 +51,23 @@ impl Button {
 }
 
 impl Events for Button {
-    fn on_mouse(&mut self, ctx: &mut Context, event: MouseEvent) -> bool {
-        if let Some(state) = self.4.handle(ctx, event) {
-            let colors = state.color(ctx, self.3);
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(event) = event.downcast_ref::<MouseEvent>() {
+            if let Some(state) = self.4.handle(ctx, *event) {
+                let colors = state.color(ctx, self.3);
 
-            self.2.set_color(colors.label);
-            *self.1.outline() = colors.outline;
-            *self.1.background() = colors.background;
-        }
-        if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
-            match self.4 {
-                ButtonState::Default | ButtonState::Hover | ButtonState::Selected => (self.5)(ctx),
-                _ => {}
+                self.2.set_color(colors.label);
+                *self.1.outline() = colors.outline;
+                *self.1.background() = colors.background;
             }
-        }
-        false
+            if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
+                match self.4 {
+                    ButtonState::Default | ButtonState::Hover | ButtonState::Selected => (self.5)(ctx),
+                    _ => {}
+                }
+            }
+            false
+        } else {true}
     }
 }
 
