@@ -61,7 +61,7 @@ impl IconButtonRow {
 }
 
 #[derive(Debug, Component)]
-pub struct KeyboardContent(Column, KeyboardHeader, KeyboardRow, KeyboardRow, KeyboardRow, KeyboardRow);
+pub struct KeyboardContent(Column, KeyboardHeader, KeyboardRow, KeyboardRow, KeyboardRow, KeyboardRow, #[skip] bool, #[skip] u8);
 
 impl KeyboardContent {
     pub fn new(ctx: &mut Context) -> Self {
@@ -84,18 +84,23 @@ impl KeyboardContent {
     pub fn paginator_page(&mut self) -> u32 {
         if let KeyType::Paginator(page) = self.5.1.as_mut().unwrap().key_type() {*page} else {0}
     }
+
+    pub fn update(&mut self) {
+        self.2.update(top_keys(self.7), self.6);
+        self.3.update(mid_keys(self.7), self.6);
+        self.4.update(bot_keys(self.7), self.6);
+        self.5.update(vec![], self.6);
+    }
 }
 
 impl Events for KeyboardContent {
     fn on_tick(&mut self, ctx: &mut Context) {
         let theme = &ctx.get::<PelicanUI>().theme;
-        let caps_on = self.capslock_state();
-        let page = self.paginator_page();
-
-        self.2.update(top_keys(page), caps_on);
-        self.3.update(mid_keys(page), caps_on);
-        self.4.update(bot_keys(page), caps_on);
-        self.5.update(vec![], caps_on);
+        // match event.key {
+        //     Key::Named(NamedKey::Delete | NamedKey::Backspace) => *t = if t.len()>0 {(&t[0..t.len() - 1]).to_string()} else {String::new()}, // delete char
+        //     Key::Character(c) => *t += &c, // add character
+        //     _ => {}
+        // };
     }
 }
 
@@ -113,34 +118,25 @@ impl KeyRow {
 }
 
 #[derive(Debug, Component)]
-pub struct KeyboardRow(Row, Option<Key>, Option<Key>, Option<KeyRow>, Option<Key>);
+pub struct KeyboardRow(Row, Option<Capslock>, Option<Paginator>, Option<KeyRow>, Option<Key>);
 impl Events for KeyboardRow {}
 
 impl KeyboardRow {
-    fn new(
-        ctx: &mut Context,
-        spacing: u32,
-        key_row: Option<Vec<&'static str>>,
-        left_key: Option<Key>,
-        middle_key: Option<Key>,
-        right_key: Option<Key>
-    ) -> Self {
-        let row = Row(spacing, Offset::Center, Size::Fit, Padding::default());
-        let key_row = key_row.map(|keys| KeyRow::new(ctx, keys));
-        KeyboardRow(row, left_key, middle_key, key_row, right_key)
-    }
-
     fn top(ctx: &mut Context) -> Self {
-        Self::new(ctx, 0, Some(top_keys(0)), None, None, None)
+        let key_row = top_keys(0).map(|keys| KeyRow::new(ctx, keys));
+        KeyboardRow(Row::center(0), None, None, key_row, None)
     }
 
     fn middle(ctx: &mut Context) -> Self {
-        Self::new(ctx, 0, Some(mid_keys(0)), None, None, None)
+        let key_row = mid_keys(0).map(|keys| KeyRow::new(ctx, keys));
+        KeyboardRow(Row::center(0), None, None, key_row, None)
     }
 
     fn bottom(ctx: &mut Context) -> Self {
-        let capslock = Key::capslock(ctx);
+        let capslock = Capslock::new(ctx);
         let backspace = Key::backspace(ctx);
+        let key_row = bot_keys(0).map(|keys| KeyRow::new(ctx, keys));
+        KeyboardRow(Row::center(6), Some(capslock), None, key_row, None)
         Self::new(ctx, 6, Some(bot_keys(0)), Some(capslock), None, Some(backspace))
     }
 
@@ -202,11 +198,6 @@ impl Key {
         Self::build(ctx, u32::MAX, Offset::Center, content, KeyType::Character(" "))
     }
 
-    pub fn capslock(ctx: &mut Context) -> Self {
-        let content = KeyCharacter::icon(ctx, "capslock");
-        Self::build(ctx, 42, Offset::Center, content, KeyType::Capslock(false))
-    }
-
     pub fn backspace(ctx: &mut Context) -> Self {
         let content = KeyCharacter::icon(ctx, "backspace");
         Self::build(ctx, 42, Offset::Center, content, KeyType::Backspace)
@@ -215,11 +206,6 @@ impl Key {
     pub fn newline(ctx: &mut Context) -> Self {
         let content = KeyCharacter::text(ctx, "return");
         Self::build(ctx, 92, Offset::Center, content, KeyType::Newline)
-    }
-
-    pub fn paginator(ctx: &mut Context) -> Self {
-        let content = KeyCharacter::paginator(ctx, 0);
-        Self::build(ctx, 92, Offset::Center, content, KeyType::Paginator(0))
     }
 
     pub fn key_type(&mut self) -> &mut KeyType {&mut self.3}
@@ -236,38 +222,88 @@ impl Events for Key {
             _ => colors.shades.lighten2,
         };
 
+        false
+    }
+}
+
+
+#[derive(Debug, Component)]
+pub struct Capslock(Stack, KeyContent, #[skip] ButtonState, #[skip] bool);
+
+impl Capslock {
+    fn new(ctx: &mut Context) -> Self {
+        let character = KeyCharacter::icon(ctx, "capslock");
+        let content = KeyContent::new(ctx, 42, Offset::Center, character);
+        Key(Stack::default(), content, ButtonState::Default, false)
+    }
+    pub fn key_type(&mut self) -> &mut KeyType {&mut self.3}
+    pub fn content(&mut self) -> &mut KeyContent {&mut self.1}
+}
+
+impl Events for Capslock {
+    fn on_mouse(&mut self, ctx: &mut Context, event: MouseEvent) -> bool {
+        let colors = ctx.get::<PelicanUI>().theme.colors;
+        self.2 = handle_state(ctx, self.2, event);
+
+        *self.1.background() = match self.2 {
+            ButtonState::Default => colors.shades.lighten,
+            _ => colors.shades.lighten2,
+        };
+
         if event.state == MouseState::Pressed && event.position.is_some() {
-            match self.3 {
-                KeyType::Character(_) => {},
-                KeyType::Paginator(p) => {
-                    let (highlight, dim) = (colors.text.heading, colors.text.secondary);
-                    let next = if p == 2 { 0 } else { p + 1 };
-
-                    let styles = match next {
-                        0 => (highlight, dim, dim),
-                        1 => (dim, highlight, dim),
-                        _ => (dim, dim, highlight),
-                    };
-
-                    self.3 = KeyType::Paginator(next);
-                    *self.1.character().2.as_mut().unwrap().color() = styles.0;
-                    *self.1.character().3.as_mut().unwrap().color() = styles.1;
-                    *self.1.character().4.as_mut().unwrap().color() = styles.2;
-                }
-                KeyType::Capslock(b) => {
-                    self.3 = KeyType::Capslock(!b);
-                    let icon = if !b { "capslock_on" } else { "capslock" };
-                    *self.1.character() = KeyCharacter::icon(ctx, icon);
-                }
-                KeyType::Newline => {},
-                KeyType::Backspace => {},
-            }
+            self.3 = !self.3;
+            let icon = if self.3 { "capslock_on" } else { "capslock" };
+            *self.1.character() = KeyCharacter::icon(ctx, icon);
         }
 
         false
     }
 }
 
+
+#[derive(Debug, Component)]
+pub struct Paginator(Stack, KeyContent, #[skip] ButtonState, #[skip] u8);
+
+impl Paginator {
+    fn new(ctx: &mut Context) -> Self {
+        let character = KeyCharacter::paginator(ctx, 0);
+        let content = KeyContent::new(ctx, 92, Offset::Center, character);
+        Key(Stack::default(), content, ButtonState::Default, 0)
+    }
+
+    pub fn key_type(&mut self) -> &mut KeyType {&mut self.3}
+    pub fn content(&mut self) -> &mut KeyContent {&mut self.1}
+}
+
+impl Events for Paginator {
+    fn on_mouse(&mut self, ctx: &mut Context, event: MouseEvent) -> bool {
+        let colors = ctx.get::<PelicanUI>().theme.colors;
+        self.2 = handle_state(ctx, self.2, event);
+
+        *self.1.background() = match self.2 {
+            ButtonState::Default => colors.shades.lighten,
+            _ => colors.shades.lighten2,
+        };
+
+        if event.state == MouseState::Pressed && event.position.is_some() {
+            let (highlight, dim) = (colors.text.heading, colors.text.secondary);
+            let next = if p == 2 { 0 } else { p + 1 };
+
+            let styles = match next {
+                0 => (highlight, dim, dim),
+                1 => (dim, highlight, dim),
+                _ => (dim, dim, highlight),
+            };
+
+            self.3 = KeyType::Paginator(next);
+            *self.1.character().2.as_mut().unwrap().color() = styles.0;
+            *self.1.character().3.as_mut().unwrap().color() = styles.1;
+            *self.1.character().4.as_mut().unwrap().color() = styles.2;
+        }
+
+        false
+    }
+}
 
 #[derive(Debug, Component)]
 pub struct KeyContent(Stack, RoundedRectangle, KeyCharacter);
@@ -357,14 +393,6 @@ pub fn handle_state(ctx: &mut Context, state: ButtonState, event: MouseEvent) ->
     }.unwrap_or(state)
 }
 
-#[derive(Debug)]
-enum KeyType {
-    Character(&'static str),
-    Paginator(u32),
-    Capslock(bool),
-    Newline,
-    Backspace,
-}
 
 fn top_keys(page: u32) -> Vec<&'static str> {
     match page {

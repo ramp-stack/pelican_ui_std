@@ -31,7 +31,7 @@ impl TextInput {
             )
         )
     }
-     
+
     pub fn error(&mut self) -> &mut String { self.3.right().value() }
 }
 
@@ -117,9 +117,10 @@ impl Events for InputField {
     fn on_keyboard(&mut self, _ctx: &mut Context, event: KeyboardEvent) -> bool {
         if self.3 == InputState::Focus && event.state == KeyboardState::Pressed {
             let t = self.2.input();
-            *t = match event.key.as_str() {
-                "\u{7f}" => if t.len()>0 {(&t[0..t.len() - 1]).to_string()} else {String::new()}, // delete char
-                c => t.clone().to_owned()+c // add character
+            match event.key {
+                Key::Named(NamedKey::Delete | NamedKey::Backspace) => *t = if t.len()>0 {(&t[0..t.len() - 1]).to_string()} else {String::new()}, // delete char
+                Key::Character(c) => *t += &c, // add character
+                _ => {}
             };
         }
         false
