@@ -37,6 +37,7 @@ impl Component for RoundedRectangle {
         SizeRequest::fill()
     }
     fn build(&mut self, _ctx: &mut Context, size: (u32, u32), _children: Vec<SizeRequest>) -> Vec<Area> {
+        if let ShapeType::RoundedRectangle(_, s, _) = &mut self.0.shape {*s = size}
         vec![Area{offset: (0, 0), size}]
     }
 }
@@ -60,6 +61,7 @@ impl Component for Rectangle {
         SizeRequest::fill()
     }
     fn build(&mut self, _ctx: &mut Context, size: (u32, u32), _children: Vec<SizeRequest>) -> Vec<Area> {
+        if let ShapeType::Rectangle(_, s) = &mut self.0.shape {*s = size}
         vec![Area{offset: (0, 0), size}]
     }
 }
