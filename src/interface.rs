@@ -218,33 +218,53 @@ impl HeaderIcon {
     }
 }
 
-#[derive(Debug, Component)]
-pub struct Bumper (Row, Vec<Child>);
+#[derive(Debug)]
+pub struct Bumper (Row, Vec<Box<dyn Drawable>>);
 impl Events for Bumper {}
 
 impl Bumper {
-    pub fn new(ctx: &mut Context, content: Vec<Child>) -> Self {
+    pub fn new(ctx: &mut Context, content: Vec<Box<dyn Drawable>>) -> Self {
         Bumper(Row(16, Offset::Center, Size::Fill(10, u32::MAX), Padding(24, 16, 24, 16)), content)
     }
 }
 
-#[derive(Debug, Component)]
-pub struct Content (Column, Vec<Child>);
+impl Component for Bumper {
+    fn children_mut(&mut self) -> Vec<&mut dyn Drawable> {
+        self.1.iter_mut().map(|c| &mut **c as &mut dyn Drawable).collect()
+    }
+    fn children(&self) -> Vec<&dyn Drawable> {
+        self.1.iter().map(|c| &**c as & dyn Drawable).collect()
+    }
+    fn request_size(&self, ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
+        self.0.request_size(ctx, children)
+    }
+    fn build(&mut self, ctx: &mut Context, size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
+        self.0.build(ctx, size, children)
+    }
+}
+
+#[derive(Debug)]
+pub struct Content (Column, Vec<Box<dyn Drawable>>);
 impl Events for Content {}
 
 impl Content {
-    pub fn new(ctx: &mut Context, content: Vec<Child>) -> Self {
+    pub fn new(ctx: &mut Context, content: Vec<Box<dyn Drawable>>) -> Self {
         Content(Column(24, Offset::Center, Size::Fill(10, u32::MAX), Padding::default()), content)
     }
 }
 
-#[derive(Debug, Component)]
-pub struct Child (pub Stack, pub Box<dyn Drawable>);
-impl Events for Child {}
 
-impl Child {
-    pub fn new(d: impl Drawable + 'static) -> Self {
-        Child(Stack::default(), Box::new(d)) 
+impl Component for Content {
+    fn children_mut(&mut self) -> Vec<&mut dyn Drawable> {
+        self.1.iter_mut().map(|c| &mut **c as &mut dyn Drawable).collect()
     }
-    pub fn inner(&mut self) -> &mut D {&mut self.1}
+    fn children(&self) -> Vec<&dyn Drawable> {
+        self.1.iter().map(|c| &**c as & dyn Drawable).collect()
+    }
+    fn request_size(&self, ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
+        self.0.request_size(ctx, children)
+    }
+    fn build(&mut self, ctx: &mut Context, size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
+        self.0.build(ctx, size, children)
+    }
 }

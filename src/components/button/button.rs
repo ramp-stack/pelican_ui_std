@@ -54,6 +54,7 @@ impl Events for Button {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if let Some(state) = self.4.handle(ctx, *event) {
+                println!("GOT STATE: {:?}", state);
                 let colors = state.color(ctx, self.3);
 
                 self.2.set_color(colors.label);
