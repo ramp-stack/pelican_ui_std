@@ -9,12 +9,6 @@ use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent, AvatarRo
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::PelicanUI;
 
-#[cfg(any(target_os = "ios", target_os = "android"))]
-const IS_MOBILE: bool = true;
-#[cfg(not(any(target_os = "ios", target_os = "android")))]
-const IS_MOBILE: bool = false;
-
-
 #[derive(Debug, Component)]
 pub struct Interface (Stack, Option<MobileInterface>, Option<DesktopInterface>);
 impl Events for Interface {}
@@ -24,7 +18,7 @@ impl Interface {
         ctx: &mut Context,
         page: Page,
     ) -> Self {
-        let (mobile, desktop) = match IS_MOBILE {
+        let (mobile, desktop) = match crate::config::IS_MOBILE {
             true => (Some(MobileInterface::new(ctx, page)), None),
             false => (None, Some(DesktopInterface::new(ctx, page)))
         };
