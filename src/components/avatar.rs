@@ -1,5 +1,5 @@
 use rust_on_rails::prelude::*;
-use crate::elements::icon::Icon;
+use crate::elements::images::Icon;
 use crate::elements::shapes::{Outline, Circle};
 use crate::layout::{Stack, Offset, Size, Padding};
 use crate::PelicanUI;

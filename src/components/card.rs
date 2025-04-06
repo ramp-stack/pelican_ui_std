@@ -42,6 +42,7 @@ impl Events for Card {
                     ButtonState::Default => colors.background.primary,
                     ButtonState::Disabled => colors.background.primary,
                     ButtonState::Selected => colors.background.primary,
+                    ButtonState::Pressed => colors.background.primary,
                     ButtonState::Hover => colors.background.secondary,
                 }
             }

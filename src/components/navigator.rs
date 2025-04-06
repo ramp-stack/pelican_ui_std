@@ -17,7 +17,7 @@
 //         // Image(ShapeType::Rectangle(icon_size, 8), image),
 
 //         let buttons: Vec<(Box<dyn ComponentBuilder>, bool)> = self.0.iter().enumerate().map(|(_index, (name, _))| {
-//             // if index as u16 == self.1 { print!("selected") } else { print!{"not Selected"}}
+//             // if index as u16 == self.1 { print!("selected") } else { print!{"not Pressed"}}
 //             (Child!(Button::ghost(*name, Size::Large, Width::Expand, None, Align::Left)), true)
 //         }).collect();
 

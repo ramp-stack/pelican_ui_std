@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::icon::Icon;
+use crate::elements::images::Icon;
 use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::Rectangle;
 use crate::components::button::ButtonState;
@@ -50,12 +50,13 @@ impl Events for ListItem {
                     ButtonState::Default => colors.background.primary,
                     ButtonState::Disabled => colors.background.primary,
                     ButtonState::Selected => colors.background.primary,
+                    ButtonState::Pressed => colors.background.primary,
                     ButtonState::Hover => colors.background.secondary,
                 }
             }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.3 {
-                    ButtonState::Default | ButtonState::Hover | ButtonState::Selected => (self.4)(ctx),
+                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.4)(ctx),
                     _ => {}
                 }
             }

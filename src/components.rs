@@ -13,8 +13,8 @@ pub use text_input::*;
 // pub mod qr_code;
 // pub use qr_code::*;
 
-// pub mod amount_display;
-// pub use amount_display::*;
+pub mod amount_display;
+pub use amount_display::*;
 
 pub mod card;
 pub use card::*;
@@ -28,5 +28,5 @@ pub use list_item::*;
 // pub mod numeric_keypad;
 // pub use numeric_keypad::*;
 
-// pub mod mobile_keyboard;
-// pub use mobile_keyboard::*;
+pub mod mobile_keyboard;
+pub use mobile_keyboard::*;

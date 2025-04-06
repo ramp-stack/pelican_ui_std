@@ -1,5 +1,5 @@
 use rust_on_rails::prelude::*;
-use crate::elements::icon::Icon;
+use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::layout::{Stack, Offset, Size, Padding};
 
@@ -50,7 +50,7 @@ impl Events for IconButton {
             }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {
-                    ButtonState::Default | ButtonState::Hover | ButtonState::Selected => (self.5)(ctx),
+                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.5)(ctx),
                     _ => {}
                 }
             }
@@ -61,7 +61,9 @@ impl Events for IconButton {
 
 impl IconButton {
     pub fn input(
-        ctx: &mut Context, icon: &'static str, on_click: impl FnMut(&mut Context) + 'static
+        ctx: &mut Context, 
+        icon: &'static str, 
+        on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
         IconButton::new(
             ctx,
@@ -73,13 +75,34 @@ impl IconButton {
         )
     }
 
-    pub fn keyboard(ctx: &mut Context, icon: &'static str, on_click: fn(&mut Context) -> ()) -> Self {
+    pub fn keyboard(
+        ctx: &mut Context, 
+        icon: &'static str, 
+        on_click: fn(&mut Context) -> ()
+    ) -> Self {
         IconButton::new(
             ctx,
             icon,
             ButtonSize::Medium,
             ButtonStyle::Ghost,
             ButtonState::Default,
+            on_click
+        )
+    }
+
+    pub fn navigation(
+        ctx: &mut Context, 
+        icon: &'static str, 
+        selected: bool,
+        on_click: fn(&mut Context) -> ()
+    ) -> Self {
+        let state = if selected {ButtonState::Selected} else {ButtonState::Default};
+        IconButton::new(
+            ctx,
+            icon,
+            ButtonSize::Medium,
+            ButtonStyle::Ghost,
+            state,
             on_click
         )
     }
