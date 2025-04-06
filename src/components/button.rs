@@ -20,6 +20,7 @@ pub enum ButtonState {
     Default,
     Disabled,
     Selected,
+    Pressed,
     Hover,
 }
 
@@ -28,12 +29,12 @@ impl ButtonState {
         let state = match self {
             ButtonState::Default if event.position.is_some() => {
                 match event.state {
-                    MouseState::Pressed => Some(ButtonState::Selected),
+                    MouseState::Pressed => Some(ButtonState::Pressed),
                     MouseState::Moved => Some(ButtonState::Hover),
                     _ => None
                 }
             },
-            ButtonState::Selected => {
+            ButtonState::Pressed => {
                 match event.state {
                     MouseState::Released if event.position.is_some() => Some(ButtonState::Hover),
                     MouseState::Moved if event.position.is_none() => Some(ButtonState::Default),
@@ -42,7 +43,7 @@ impl ButtonState {
             },
             ButtonState::Hover => {
                 match event.state {
-                    MouseState::Pressed if event.position.is_some() => Some(ButtonState::Selected),
+                    MouseState::Pressed if event.position.is_some() => Some(ButtonState::Pressed),
                     MouseState::Moved if event.position.is_none() => Some(ButtonState::Default),
                     _ => None
                 }
@@ -59,16 +60,19 @@ impl ButtonState {
             (ButtonStyle::Primary, ButtonState::Default) => schemes.primary_default,
             (ButtonStyle::Primary, ButtonState::Disabled) => schemes.primary_disabled,
             (ButtonStyle::Primary, ButtonState::Hover) => schemes.primary_hover,
+            (ButtonStyle::Primary, ButtonState::Pressed) => schemes.primary_pressed,
             (ButtonStyle::Primary, ButtonState::Selected) => schemes.primary_selected,
 
             (ButtonStyle::Secondary, ButtonState::Default) => schemes.secondary_default,
             (ButtonStyle::Secondary, ButtonState::Disabled) => schemes.secondary_disabled,
             (ButtonStyle::Secondary, ButtonState::Hover) => schemes.secondary_hover,
+            (ButtonStyle::Secondary, ButtonState::Pressed) => schemes.secondary_pressed,
             (ButtonStyle::Secondary, ButtonState::Selected) => schemes.secondary_selected,
 
             (ButtonStyle::Ghost, ButtonState::Default) => schemes.ghost_default,
             (ButtonStyle::Ghost, ButtonState::Disabled) => schemes.ghost_disabled,
             (ButtonStyle::Ghost, ButtonState::Hover) => schemes.ghost_hover,
+            (ButtonStyle::Ghost, ButtonState::Pressed) => schemes.ghost_pressed,
             (ButtonStyle::Ghost, ButtonState::Selected) => schemes.ghost_selected,
         }
     }

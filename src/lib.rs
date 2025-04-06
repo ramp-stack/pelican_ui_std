@@ -2,6 +2,7 @@ pub mod theme;
 pub mod layout;
 pub mod elements;
 pub mod components;
+// pub mod interface;
 
 use rust_on_rails::prelude::*;
 
@@ -24,9 +25,10 @@ impl PelicanUI {
 }
 
 pub mod prelude {
+    // pub use crate::interface::*;
     pub use crate::layout::*;
     pub use crate::components::*;
-    //pub use crate::elements::icon::Icon;
+    //pub use crate::elements::images::Icon;
     // pub use crate::elements::text::{Text, TextStyle};
     pub use crate::theme::Theme;
     pub use crate::PelicanUI;
@@ -49,3 +51,5 @@ pub mod custom {
 	//     FontSize,
 	// };
 }
+
+

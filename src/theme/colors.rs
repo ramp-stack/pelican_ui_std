@@ -141,16 +141,19 @@ pub struct ButtonColors {
     pub primary_disabled: ButtonColorScheme,
     pub primary_hover: ButtonColorScheme,
     pub primary_selected: ButtonColorScheme,
+    pub primary_pressed: ButtonColorScheme,
 
     pub secondary_default: ButtonColorScheme,
     pub secondary_disabled: ButtonColorScheme,
     pub secondary_hover: ButtonColorScheme,
     pub secondary_selected: ButtonColorScheme,
+    pub secondary_pressed: ButtonColorScheme,
 
     pub ghost_default: ButtonColorScheme,
     pub ghost_disabled: ButtonColorScheme,
     pub ghost_hover: ButtonColorScheme,
     pub ghost_selected: ButtonColorScheme,
+    pub ghost_pressed: ButtonColorScheme,
 }
 
 impl Default for ButtonColors {
@@ -176,6 +179,11 @@ impl Default for ButtonColors {
                 label: Color::from_hex("ffffff", 255),
                 outline: Color::from_hex("000000", 0),
             },
+            primary_pressed: ButtonColorScheme {
+                background: Color::from_hex("b71e23", 255),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("000000", 0),
+            },
 
             secondary_default: ButtonColorScheme {
                 background: Color::from_hex("000000", 0),
@@ -197,6 +205,11 @@ impl Default for ButtonColors {
                 label: Color::from_hex("ffffff", 255),
                 outline: Color::from_hex("585250", 255),
             },
+            secondary_pressed: ButtonColorScheme {
+                background: Color::from_hex("000000", 0),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("585250", 255),
+            },
 
             ghost_default: ButtonColorScheme {
                 background: Color::from_hex("000000", 0),
@@ -214,6 +227,11 @@ impl Default for ButtonColors {
                 outline: Color::from_hex("000000", 0),
             },
             ghost_selected: ButtonColorScheme {
+                background: Color::from_hex("262322", 255),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("000000", 0),
+            },
+            ghost_pressed: ButtonColorScheme {
                 background: Color::from_hex("262322", 255),
                 label: Color::from_hex("ffffff", 255),
                 outline: Color::from_hex("000000", 0),

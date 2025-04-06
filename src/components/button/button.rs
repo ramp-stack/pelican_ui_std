@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::icon::Icon;
+use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text, TextStyle};
 use crate::components::avatar::{Avatar, AvatarContent};
@@ -32,14 +32,14 @@ impl Button {
     ) -> Self {
         let (height, padding) = size.background();
         let colors = state.color(ctx, style);
-        let content = ButtonContent::new(ctx, avatar, icon_l, label, icon_r, size, colors.label);
+        let content = ButtonContent::new(ctx, avatar, icon_l, label, icon_r, size, colors.label, padding);
 
         let width = match width {
             ButtonWidth::Hug => Size::custom(move |widths: Vec<(u32, u32)>|
-                (widths[1].0+(padding*2), widths[1].1+(padding*2))
+                (widths[1].0+(padding*2), widths[1].1)
             ),
             ButtonWidth::Expand => Size::custom(move |widths: Vec<(u32, u32)>|
-                (widths[1].0+(padding*2), u32::MAX)
+                (widths[1].0, u32::MAX)
             ),
         };
 
@@ -62,7 +62,7 @@ impl Events for Button {
             }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {
-                    ButtonState::Default | ButtonState::Hover | ButtonState::Selected => (self.5)(ctx),
+                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.5)(ctx),
                     _ => {}
                 }
             }
@@ -83,11 +83,12 @@ impl ButtonContent {
         label: Option<&'static str>,
         icon_r: Option<&'static str>,
         size: ButtonSize,
-        color: Color
+        color: Color,
+        padding: u32,
     ) -> Self {
         let (text_size, icon_size, spacing) = size.content(ctx);
         ButtonContent(
-            Row::center(spacing),
+            Row(spacing, Offset::Center, Size::Fit, Padding(padding, 0, padding, 0)),
             avatar.map(|content| Avatar::new(ctx, content, None, false, icon_size)),
             icon_l.map(|icon| Icon::new(ctx, icon, color, icon_size)),
             label.map(|label| Text::new(ctx, label, TextStyle::Label(color), text_size)),
@@ -202,7 +203,7 @@ impl Button {
             ButtonSize::Large,
             ButtonWidth::Expand,
             ButtonStyle::Ghost,
-            if selected {ButtonState::Selected} else {ButtonState::Default},
+            if selected {ButtonState::Pressed} else {ButtonState::Default},
             Offset::Start,
             on_click
         )
@@ -224,7 +225,7 @@ impl Button {
             ButtonSize::Large,
             ButtonWidth::Expand,
             ButtonStyle::Ghost,
-            if selected {ButtonState::Selected} else {ButtonState::Default},
+            if selected {ButtonState::Pressed} else {ButtonState::Default},
             Offset::Start,
             on_click
         )

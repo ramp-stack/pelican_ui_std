@@ -1,11 +1,11 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::icon::Icon;
+use crate::elements::images::Icon;
 use crate::elements::text::{Text, TextStyle};
 use crate::layout::{Row, Column, Offset, Size, Padding};
 use crate::PelicanUI;
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 pub struct AmountDisplay(Column, BasicText, SubText);
 impl Events for AmountDisplay {}
 
@@ -27,7 +27,7 @@ impl AmountDisplay {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct SubText(Row, Option<Image>, BasicText);
 impl Events for SubText {}
 
