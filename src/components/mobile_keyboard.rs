@@ -3,7 +3,7 @@ use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::shapes::{Rectangle, RoundedRectangle};
 use crate::elements::images::Icon;
 use crate::elements::text::{Text, TextStyle};
-use crate::components::button::{Button, IconButton, ButtonState};
+use crate::components::button::{IconButton, ButtonState};
 use crate::layout::{Stack, Bin, Column, Row, Offset, Size, Padding};
 use crate::PelicanUI;
 
@@ -66,10 +66,10 @@ impl IconButtonRow {
     pub fn new(ctx: &mut Context) -> Self {
         IconButtonRow(
             Row(16, Offset::Start, Size::Fit, Padding(12, 12, 12, 12)), 
-            IconButton::keyboard(ctx, "emoji", |ctx: &mut Context| ()),
-            IconButton::keyboard(ctx, "gif", |ctx: &mut Context| ()),
-            IconButton::keyboard(ctx, "photos", |ctx: &mut Context| ()),
-            IconButton::keyboard(ctx, "camera", |ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "emoji", |_ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "gif", |_ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "photos", |_ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "camera", |_ctx: &mut Context| ()),
         )
     }
 }
@@ -79,8 +79,6 @@ pub struct KeyboardContent(Column, KeyboardHeader, KeyboardRow, KeyboardRow, Key
 
 impl KeyboardContent {
     pub fn new(ctx: &mut Context) -> Self {
-        let theme = &ctx.get::<PelicanUI>().theme;
-        let (colors, text_size) = (theme.colors, theme.fonts.size.xl);
         let (sender, receiver) = mpsc::channel();
         KeyboardContent(
             Column(0, Offset::Center, Size::Fit, Padding(8, 8, 8, 8)),
@@ -104,7 +102,7 @@ impl KeyboardContent {
 }
 
 impl Events for KeyboardContent {
-    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             match self.6.try_recv() {
                 Ok(0) => {println!("CAPSLOCK"); self.update();},
@@ -189,7 +187,6 @@ impl KeyboardRow {
         }
     }
 
-    fn keys(&mut self) -> &mut Option<KeyRow> {&mut self.3}
     fn capslock(&mut self) -> &mut Option<Capslock> {&mut self.1}
     fn paginator(&mut self) -> &mut Option<Paginator> {&mut self.2}
 }
@@ -438,7 +435,7 @@ impl KeyCharacter {
 }
 
 
-pub fn handle_state(ctx: &mut Context, state: ButtonState, event: MouseEvent) -> ButtonState {
+pub fn handle_state(_ctx: &mut Context, state: ButtonState, event: MouseEvent) -> ButtonState {
     match state {
         ButtonState::Default if event.position.is_some() => {
             match event.state {

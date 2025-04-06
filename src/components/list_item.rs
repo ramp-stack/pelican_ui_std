@@ -235,7 +235,6 @@ impl ListItem {
 
     pub fn bitcoin_sending(
         ctx: &mut Context,
-        is_received: bool,
         usd: f32,
         btc: f32,
         date: &'static str,

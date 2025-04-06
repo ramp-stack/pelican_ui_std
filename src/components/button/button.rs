@@ -15,7 +15,7 @@ pub enum ButtonWidth {
 }
 
 #[derive(Debug, Component)]
-pub struct Button(Stack, OutlinedRectangle, pub ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
+pub struct Button(Stack, OutlinedRectangle, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
 impl Button {
     pub fn new(
         ctx: &mut Context,
