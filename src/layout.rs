@@ -201,7 +201,8 @@ impl Layout for Column {
         let spacing = self.0*(heights.len() as u32-1);
         let width = self.2.get(widths, Size::max);
         let height = Size::add(heights);
-        self.3.adjust_request(SizeRequest::new(width.0, height.0+spacing, width.1, height.1+spacing))
+        self.3.adjust_request(SizeRequest::new(width.0, height.0, width.1, height.1).add_height(spacing))
+
     }
 
     fn build(&self, _ctx: &mut Context, col_size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {

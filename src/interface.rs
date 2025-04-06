@@ -2,11 +2,11 @@ use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::images::{Icon, Brand};
 use crate::elements::text::{Text, TextStyle};
-use crate::elements::shapes::Rectangle;
+use crate::elements::shapes::{Rectangle};
 use crate::components::mobile_keyboard::MobileKeyboard;
 use crate::components::button::{ButtonState, Button, IconButton};
-use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
-use crate::layout::{Column, Stack, Row, Padding, Offset, Size};
+use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent, AvatarRow};
+use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::PelicanUI;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -50,7 +50,7 @@ impl Events for DesktopInterface {}
 impl DesktopInterface {
     pub fn new(ctx: &mut Context, page: Page) -> Self {
         let navigator = DesktopNavigator::new(ctx);
-        DesktopInterface(Row::center(0), navigator, page)
+        DesktopInterface(Row(0, Offset::Start, Size::Fit, Padding::default()), navigator, page)
     }
 }
 
@@ -70,24 +70,42 @@ impl MobileNavigator {
 }
 
 #[derive(Debug, Component)]
-struct DesktopNavigator(Column, Image, Vec<Button>, Button);
+struct DesktopNavigator(Column, Image, ButtonColumn, Bin<Stack, Rectangle>, Button);
 impl Events for DesktopNavigator {}
 
 impl DesktopNavigator {
     pub fn new(ctx: &mut Context) -> Self {
-        let wordmark = ctx.get::<PelicanUI>().theme.brand.wordmark.clone();
+        let theme = &ctx.get::<PelicanUI>().theme;
+        let (wordmark, color) = (theme.brand.wordmark.clone(), theme.colors.shades.transparent);
+        let bitcoin = Button::navigation(ctx, "wallet", "Bitcoin", true, |ctx: &mut Context| println!("Bitcoin"));
+        let messages = Button::navigation(ctx, "messages", "Messages", false, |ctx: &mut Context| println!("Messaging"));
+        let rooms = Button::navigation(ctx, "door", "Rooms", false, |ctx: &mut Context| println!("Rooms"));
         DesktopNavigator(
             Column(32, Offset::Center, Size::Fill(100, 200), Padding(16, 32, 16, 32)),
             Brand::new(ctx, wordmark, (81, 45)),
-            vec![
-                Button::navigation(ctx, "wallet", "Bitcoin", true, |ctx: &mut Context| println!("Bitcoin")),
-                Button::navigation(ctx, "messages", "Messages", false, |ctx: &mut Context| println!("Messaging")),
-                Button::navigation(ctx, "door", "Rooms", false, |ctx: &mut Context| println!("Rooms")),
-            ],
+            ButtonColumn::new(ctx, vec![bitcoin, messages, rooms]),
+            Bin (
+                Stack(Offset::Center, Offset::Center, Size::Fill(100, 200), Size::Fill(100, u32::MAX),  Padding::default()), 
+                Rectangle::new(color)
+            ),
             Button::photo(ctx, "My Profile", AvatarContent::Icon("profile", AvatarIconStyle::Secondary), false, |ctx: &mut Context| println!("Profile"))
         )
     }
 }
+
+#[derive(Debug, Component)]
+struct ButtonColumn(Column, Vec<Button>);
+impl Events for ButtonColumn {}
+
+impl ButtonColumn {
+    pub fn new(ctx: &mut Context, buttons: Vec<Button>) -> Self {
+        ButtonColumn(
+            Column(8, Offset::Center, Size::Fit, Padding::default()),
+            buttons
+        )
+    }
+}
+
 
 #[derive(Debug, Component)]
 pub struct Page (Column, Header, Content, Option<Bumper>, Option<MobileKeyboard>);
@@ -190,22 +208,6 @@ impl HeaderContent {
 }
 
 #[derive(Debug, Component)]
-struct AvatarRow(Row, Vec<Avatar>);
-impl Events for AvatarRow {}
-
-impl AvatarRow {
-    pub fn new(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {
-        let text_size = &ctx.get::<PelicanUI>().theme.fonts.size.h5;
-        AvatarRow(
-            Row::center(0), 
-            avatars.into_iter().map(|avatar| Avatar::new(ctx, avatar, None, true, 32)).collect()
-        )
-    }
-}
-
-
-
-#[derive(Debug, Component)]
 struct HeaderIcon(Stack, Option<IconButton>);
 impl Events for HeaderIcon {}
 
@@ -249,7 +251,8 @@ impl Events for Content {}
 
 impl Content {
     pub fn new(ctx: &mut Context, content: Vec<Box<dyn Drawable>>) -> Self {
-        Content(Column(24, Offset::Center, Size::Fill(10, u32::MAX), Padding::default()), content)
+        let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[1].0, 512));
+        Content(Column(24, Offset::Center, width, Padding::default()), content)
     }
 }
 

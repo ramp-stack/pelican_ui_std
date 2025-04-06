@@ -1,7 +1,7 @@
 use rust_on_rails::prelude::*;
 use crate::elements::images::Icon;
 use crate::elements::shapes::{Outline, Circle};
-use crate::layout::{Stack, Offset, Size, Padding};
+use crate::layout::{Stack, Offset, Size, Row, Padding};
 use crate::PelicanUI;
 
 #[derive(Debug)]
@@ -84,6 +84,20 @@ impl Flair {
             Stack::center(),
             AvatarIcon::new(ctx, name, style, size),
             Outline::circle(size, black)
+        )
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct AvatarRow(Row, Vec<Avatar>);
+impl Events for AvatarRow {}
+
+impl AvatarRow {
+    pub fn new(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {
+        let text_size = &ctx.get::<PelicanUI>().theme.fonts.size.h5;
+        AvatarRow(
+            Row::center(0), 
+            avatars.into_iter().map(|avatar| Avatar::new(ctx, avatar, None, true, 32)).collect()
         )
     }
 }
