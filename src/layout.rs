@@ -87,10 +87,10 @@ impl Padding {
         (offset.0+self.0 as i32, offset.1+self.1 as i32)
     }
 
-    fn adjust_info(&self, info: SizeInfo) -> SizeInfo {
+    fn adjust_request(&self, request: SizeRequest) -> SizeRequest {
         let wp = self.0+self.2;
         let hp = self.1+self.3;
-        info.add(wp, hp)
+        request.add(wp, hp)
     }
 }
 
@@ -157,30 +157,29 @@ impl Row {
     }
 }
 
-
 impl Layout for Row {
-    fn build(&self, _ctx: &mut Context, row_size: (u32, u32), items: Vec<SizeInfo>) -> Vec<((i32, i32), (u32, u32))> {
-        let row_size = self.3.adjust_size(row_size);
-
-        let widths = UniformExpand::get(items.iter().map(|i| (i.min_width(), i.max_width())).collect::<Vec<_>>(), row_size.0, self.0);
-
-        let mut offset = 0;
-        items.into_iter().zip(widths).map(|(i, width)| {
-            let size = i.get((width, row_size.1));
-            let off = self.3.adjust_offset((offset as i32, self.1.get(row_size.1, size.1)));
-            offset += size.0+self.0;
-            (off, size)
-        }).collect()
-    }
-
-    fn size(&self, _ctx: &mut Context, items: Vec<SizeInfo>) -> SizeInfo {
-        let (widths, heights): (Vec<_>, Vec<_>) = items.into_iter().map(|i|
+    fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
+        let (widths, heights): (Vec<_>, Vec<_>) = children.into_iter().map(|i|
             ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
         ).unzip();
         let spacing = self.0*(widths.len() as u32-1);
         let width = Size::add(widths);
         let height = self.2.get(heights, Size::max);
-        self.3.adjust_info(SizeInfo::new(width.0, height.0, width.1, height.1).add_width(spacing))
+        self.3.adjust_request(SizeRequest::new(width.0, height.0, width.1, height.1).add_width(spacing))
+    }
+
+    fn build(&self, _ctx: &mut Context, row_size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
+        let row_size = self.3.adjust_size(row_size);
+
+        let widths = UniformExpand::get(children.iter().map(|i| (i.min_width(), i.max_width())).collect::<Vec<_>>(), row_size.0, self.0);
+
+        let mut offset = 0;
+        children.into_iter().zip(widths).map(|(i, width)| {
+            let size = i.get((width, row_size.1));
+            let off = self.3.adjust_offset((offset as i32, self.1.get(row_size.1, size.1)));
+            offset += size.0+self.0;
+            Area{offset: off, size}
+        }).collect()
     }
 }
 
@@ -195,28 +194,28 @@ impl Column {
 
 
 impl Layout for Column {
-    fn build(&self, _ctx: &mut Context, col_size: (u32, u32), items: Vec<SizeInfo>) -> Vec<((i32, i32), (u32, u32))> {
-        let col_size = self.3.adjust_size(col_size);
-
-        let heights = UniformExpand::get(items.iter().map(|i| (i.min_height(), i.max_height())).collect::<Vec<_>>(), col_size.1, self.0);
-
-        let mut offset = 0;
-        items.into_iter().zip(heights).map(|(i, height)| {
-            let size = i.get((col_size.0, height));
-            let off = self.3.adjust_offset((self.1.get(col_size.0, size.0), offset as i32));
-            offset += size.1+self.0;
-            (off, size)
-        }).collect()
-    }
-
-    fn size(&self, _ctx: &mut Context, items: Vec<SizeInfo>) -> SizeInfo {
-        let (widths, heights): (Vec<_>, Vec<_>) = items.into_iter().map(|i|
+    fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
+        let (widths, heights): (Vec<_>, Vec<_>) = children.into_iter().map(|i|
             ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
         ).unzip();
         let spacing = self.0*(heights.len() as u32-1);
         let width = self.2.get(widths, Size::max);
         let height = Size::add(heights);
-        self.3.adjust_info(SizeInfo::new(width.0, height.0+spacing, width.1, height.1+spacing))
+        self.3.adjust_request(SizeRequest::new(width.0, height.0+spacing, width.1, height.1+spacing))
+    }
+
+    fn build(&self, _ctx: &mut Context, col_size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
+        let col_size = self.3.adjust_size(col_size);
+
+        let heights = UniformExpand::get(children.iter().map(|i| (i.min_height(), i.max_height())).collect::<Vec<_>>(), col_size.1, self.0);
+
+        let mut offset = 0;
+        children.into_iter().zip(heights).map(|(i, height)| {
+            let size = i.get((col_size.0, height));
+            let off = self.3.adjust_offset((self.1.get(col_size.0, size.0), offset as i32));
+            offset += size.1+self.0;
+            Area{offset: off, size}
+        }).collect()
     }
 }
 
@@ -233,22 +232,22 @@ impl Stack {
 }
 
 impl Layout for Stack {
-    fn build(&self, _ctx: &mut Context, stack_size: (u32, u32), items: Vec<SizeInfo>) -> Vec<((i32, i32), (u32, u32))> {
-        let stack_size = self.4.adjust_size(stack_size);
-        items.into_iter().map(|i| {
-            let size = i.get(stack_size);
-            let offset = (self.0.get(stack_size.0, size.0), self.1.get(stack_size.1, size.1));
-            (self.4.adjust_offset(offset), size)
-        }).collect()
-    }
-
-    fn size(&self, _ctx: &mut Context, items: Vec<SizeInfo>) -> SizeInfo {
-        let (widths, heights): (Vec<_>, Vec<_>) = items.into_iter().map(|i|
-            ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
+    fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
+        let (widths, heights): (Vec<_>, Vec<_>) = children.into_iter().map(|r|
+            ((r.min_width(), r.max_width()), (r.min_height(), r.max_height()))
         ).unzip();
         let width = self.2.get(widths, Size::max);
         let height = self.3.get(heights, Size::max);
-        self.4.adjust_info(SizeInfo::new(width.0, height.0, width.1, height.1))
+        self.4.adjust_request(SizeRequest::new(width.0, height.0, width.1, height.1))
+    }
+
+    fn build(&self, _ctx: &mut Context, stack_size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
+        let stack_size = self.4.adjust_size(stack_size);
+        children.into_iter().map(|i| {
+            let size = i.get(stack_size);
+            let offset = (self.0.get(stack_size.0, size.0), self.1.get(stack_size.1, size.1));
+            Area{offset: self.4.adjust_offset(offset), size}
+        }).collect()
     }
 }
 

@@ -2,29 +2,15 @@
 use rust_on_rails::prelude::*;
 use std::collections::HashMap;
 
-#[derive(Copy, Clone)]
-pub struct ColorResources { 
-    pub background: BackgroundColor, 
-    pub outline: OutlineColor, 
+#[derive(Copy, Clone, Default)]
+pub struct ColorResources {
+    pub background: BackgroundColor,
+    pub outline: OutlineColor,
     pub status: StatusColor,
     pub text: TextColor,
     pub button: ButtonColors,
     pub brand: BrandColor,
     pub shades: ShadesColor,
-}
-
-impl Default for ColorResources {
-    fn default() -> Self {
-        ColorResources {
-            background: BackgroundColor::default(),
-            outline: OutlineColor::default(),
-            status: StatusColor::default(),
-            text: TextColor::default(),
-            brand: BrandColor::default(),
-            shades: ShadesColor::default(),
-            button: ButtonColors::default(),
-        } 
-    }
 }
 
 impl ColorResources {

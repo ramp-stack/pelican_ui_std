@@ -43,7 +43,7 @@ impl Avatar {
         let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
 
         let (circle_icon, image) = match content {
-            AvatarContent::Image(image) => (None, Some(Image(ShapeType::Ellipse(0, (size, size)), image, None))),
+            AvatarContent::Image(image) => (None, Some(Image{shape: ShapeType::Ellipse(0, (size, size)), image, color: None})),
             AvatarContent::Icon(name, style) => (Some(AvatarIcon::new(ctx, name, style, size)), None)
         };
 

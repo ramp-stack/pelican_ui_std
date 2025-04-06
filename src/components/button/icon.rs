@@ -46,7 +46,7 @@ impl Events for IconButton {
                 let colors = state.color(ctx, self.3);
                 *self.1.background() = colors.background;
                 *self.1.outline() = colors.outline;
-                *self.2.color() = Some(colors.label);
+                self.2.color = Some(colors.label);
             }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {

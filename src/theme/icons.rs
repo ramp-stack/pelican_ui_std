@@ -66,14 +66,14 @@ impl IconResources {
     }
 
     pub fn get(&self, name: &'static str) -> resources::Image {
-        self.0.get(name).expect(&format!("Could not find icon {:?}", name)).clone()
+        self.0.get(name).unwrap_or_else(|| panic!("Could not find icon {:?}", name)).clone()
     }
 
     pub fn add_icon(&mut self, icon_name: &'static str, icon: resources::Image) {
-        if self.0.get(&icon_name).is_some() {
-            println!("add_icon(): Icon with name {:?} already exists. Use 'set_icon()' instead.", icon_name);
+        if let std::collections::hash_map::Entry::Vacant(e) = self.0.entry(icon_name) {
+            e.insert(icon);
         } else {
-            self.0.insert(icon_name, icon);
+            println!("add_icon(): Icon with name {:?} already exists. Use 'set_icon()' instead.", icon_name);
         }
     }
 

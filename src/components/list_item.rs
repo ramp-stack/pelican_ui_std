@@ -43,10 +43,12 @@ impl ListItem {
 
 impl Events for ListItem {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        println!("event: {:?}", event);
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
+            println!("mouse: {:?}", event);
             let colors = ctx.get::<PelicanUI>().theme.colors;
             if let Some(state) = self.3.handle(ctx, *event) {
-                *self.1.shape().color() = match state {
+                self.1.shape().color = match state {
                     ButtonState::Default => colors.background.primary,
                     ButtonState::Disabled => colors.background.primary,
                     ButtonState::Selected => colors.background.primary,
@@ -177,10 +179,10 @@ impl RightData {
 
 impl ListItem {
     pub fn contact(
-        ctx: &mut Context, 
-        data: AvatarContent, 
-        name: &'static str, 
-        nym: &'static str, 
+        ctx: &mut Context,
+        data: AvatarContent,
+        name: &'static str,
+        nym: &'static str,
         on_click: fn(&mut Context) -> ()
     ) -> Self {
         ListItem::new(ctx, name, None, Some(nym), None, None, None, None, Some(data), on_click)
@@ -198,7 +200,7 @@ impl ListItem {
 
     pub fn group_message(
         ctx: &mut Context,
-        names: Vec<&'static str>, 
+        names: Vec<&'static str>,
         on_click: fn(&mut Context) -> ()
     ) -> Self {
         let description = Box::leak(names.join(", ").into_boxed_str());

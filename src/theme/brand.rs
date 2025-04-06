@@ -45,7 +45,7 @@ impl Illustrations {
     }
 
     pub fn get(&self, name: &'static str) -> resources::Image {
-        self.0.get(name).expect(&format!("Could not find illustration {:?}", name)).clone()
+        self.0.get(name).unwrap_or_else(|| panic!("Could not find illustration {:?}", name)).clone()
     }
 
     pub fn add_icon(&mut self, name: &'static str, illustration: resources::Image) {

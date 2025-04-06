@@ -96,9 +96,9 @@ impl ButtonContent {
     }
 
     fn set_color(&mut self, color: Color) {
-        if let Some(icon) = &mut self.2 { *icon.color() = Some(color); }
-        if let Some(text) = &mut self.3 { *text.color() = color; }
-        if let Some(icon) = &mut self.4 { *icon.color() = Some(color); }
+        if let Some(icon) = &mut self.2 { icon.color = Some(color); }
+        if let Some(text) = &mut self.3 { text.color = color; }
+        if let Some(icon) = &mut self.4 { icon.color = Some(color); }
     }
 }
 

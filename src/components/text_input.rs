@@ -32,13 +32,13 @@ impl TextInput {
         )
     }
 
-    pub fn error(&mut self) -> &mut String { self.3.right().value() }
+    pub fn error(&mut self) -> &mut String { &mut self.3.right().text }
 }
 
 impl Events for TextInput {
     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
-            let error = !self.3.right().value().is_empty();
+            let error = !self.3.right().text.is_empty();
             self.3.display_left(!error);
             *self.2.error() = error;
         }
@@ -86,6 +86,7 @@ impl Events for InputField {
             self.3 = match self.3 {
                 InputState::Default => {
                     match event {
+                        MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
                         MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
                         _ => None
                     }
@@ -168,7 +169,7 @@ impl InputContent {
         )
     }
 
-    pub fn input(&mut self) -> &mut String { self.1.inner().left().value() }
+    pub fn input(&mut self) -> &mut String { self.1.inner().left().text() }
     pub fn focus(&mut self) -> &mut bool {&mut self.3}
 }
 
@@ -177,11 +178,11 @@ impl Events for InputContent {
         if let Some(TickEvent) = event.downcast_ref() {
             if let Some((receiver, on_submit)) = self.4.as_mut() {
                 if receiver.try_recv().is_ok() {
-                    on_submit(ctx, self.1.inner().left().value())
+                    on_submit(ctx, self.1.inner().left().text())
                 }
             }
 
-            let input = !self.1.inner().left().value().is_empty();
+            let input = !self.1.inner().left().text().is_empty();
             self.1.inner().display_left(input || self.3)
         }
         true

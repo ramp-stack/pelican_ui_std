@@ -1,6 +1,5 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::layout::{Stack, Padding, Offset, Size};
 use crate::PelicanUI;
 
 #[derive(Clone, Copy, Debug)]
@@ -38,27 +37,29 @@ impl Text {
     }
 }
 
-#[derive(Debug, Component)]
-pub struct ExpandableText(pub Stack, pub BasicText);
+#[derive(Debug)]
+pub struct ExpandableText(pub BasicText);
 
 impl ExpandableText {
+    pub fn text(&mut self) -> &mut String {&mut self.0.text}
+
     pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: u32) -> Self {
         let (color, font) = style.get(ctx);
-        ExpandableText(
-            Stack(Offset::default(), Offset::default(), Size::fill(), Size::Fit, Padding::default()),
-            BasicText::new(text, color, None, size, (size as f32*1.25) as u32, font)
-        )
+        ExpandableText(BasicText::new(text, color, None, size, (size as f32*1.25) as u32, font))
     }
-
-    pub fn value(&mut self) -> &mut String {self.1.value()}
 }
 
-impl Events for ExpandableText {
-    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(ResizeEvent(size)) = event.downcast_ref() {
-            let BasicText(_, _, min_width, _, _, _) = &mut self.1;
-            *min_width = Some(size.0);
-        }
-        true
+impl Events for ExpandableText {}
+impl Component for ExpandableText {
+    fn children_mut(&mut self) -> Vec<&mut dyn Drawable> {vec![&mut self.0]}
+    fn children(&self) -> Vec<&dyn Drawable> {vec![&self.0]}
+    fn request_size(&self, ctx: &mut Context, _children: Vec<SizeRequest>) -> SizeRequest {
+        let request = self.0.request_size(ctx);
+        SizeRequest::new(0, request.min_height(), u32::MAX, request.max_height())
+    }
+    fn build(&mut self, _ctx: &mut Context, size: (u32, u32), _children: Vec<SizeRequest>) -> Vec<Area> {
+        let BasicText{max_width, ..} = &mut self.0;
+        *max_width = Some(size.0);
+        vec![Area{offset: (0, 0), size}]
     }
 }
