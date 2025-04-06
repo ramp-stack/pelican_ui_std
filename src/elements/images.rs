@@ -1,5 +1,4 @@
 use rust_on_rails::prelude::*;
-use crate::layout::Stack;
 use crate::PelicanUI;
 
 #[derive(Clone, Debug)]
@@ -18,8 +17,7 @@ pub struct Brand;
 
 impl Brand {
     pub fn new(ctx: &mut Context, image: resources::Image, size: (u32, u32)) -> Image {
-        let color = ctx.get::<PelicanUI>().theme.colors.shades.white;
-        Image{shape: ShapeType::Rectangle(0, (size.0, size.1)), image, color: Some(color)}
+        Image{shape: ShapeType::Rectangle(0, (size.0, size.1)), image, color: None}
     }
 }
 impl Events for Brand {}

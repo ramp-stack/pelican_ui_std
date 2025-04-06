@@ -64,7 +64,7 @@ impl DataItemContent {
             text.map(|t| Text::new(ctx, t, TextStyle::Primary, font_size.md)),
             secondary.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm)),
             table.map(|tabulars| Table::new(ctx, tabulars)),
-            quick_actions.map(|actions| QuickActions::new(ctx, actions)),
+            quick_actions.map(|actions| QuickActions::new(actions)),
         )
     }
 }
@@ -92,7 +92,7 @@ impl Tabular {
         Tabular (
             Row(0, Offset::Start, Size::Fit, Padding::default()),
             ExpandableText::new(ctx, name, TextStyle::Primary, font_size),
-            Text::new(ctx, name, TextStyle::Primary, font_size),
+            Text::new(ctx, data, TextStyle::Primary, font_size),
         )
     }
 }
@@ -102,7 +102,7 @@ struct QuickActions(Row, Vec<Button>); // Row should be wrap
 impl Events for QuickActions {}
 
 impl QuickActions {
-    fn new(ctx: &mut Context, buttons: Vec<Button>) -> Self {
+    fn new(buttons: Vec<Button>) -> Self {
         QuickActions(Row(8, Offset::Start, Size::Fit, Padding::default()), buttons)
     }
 }

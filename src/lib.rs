@@ -1,8 +1,9 @@
+pub mod config;
 pub mod theme;
 pub mod layout;
 pub mod elements;
 pub mod components;
-// pub mod interface;
+pub mod interface;
 
 use rust_on_rails::prelude::*;
 
@@ -25,7 +26,7 @@ impl PelicanUI {
 }
 
 pub mod prelude {
-    // pub use crate::interface::*;
+    pub use crate::interface::*;
     pub use crate::layout::*;
     pub use crate::components::*;
     //pub use crate::elements::images::Icon;

@@ -155,7 +155,7 @@ impl LeftData {
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.xs;
         LeftData (
-            Column(4, Offset::Start, Size::Fit, Padding::default()),
+            Column(4, Offset::Start, Size::custom(|widths: Vec<(u32, u32)>| (widths[1].0, u32::MAX)), Padding::default()),
             TitleRow::new(ctx, title, flair),
             subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size)),
             description.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size)),
@@ -228,14 +228,12 @@ impl ListItem {
         on_click: fn(&mut Context) -> (),
     ) -> Self {
         let title = if is_received { "Received Bitcoin" } else { "Sent Bitcoin" };
-        let usd = format!("${:.2}", usd);
-        let usd = Box::leak(format!("&{:.2}", usd).into_boxed_str());
+        let usd = Box::leak(format!("{:.2}", usd).into_boxed_str());
         ListItem::new(ctx, title, None, Some(date), None, Some(usd), Some("Details"), None, None, on_click)
     }
 
     pub fn bitcoin_sending(
         ctx: &mut Context,
-        is_received: bool,
         usd: f32,
         btc: f32,
         date: &'static str,
