@@ -252,6 +252,55 @@ impl Layout for Stack {
     }
 }
 
+
+#[derive(Debug)]
+pub struct Wrap(pub u32, pub u32, pub Offset, pub Offset, pub Padding);
+// width spacing, height spacing, vertical offset, horizontal offset, width, padding
+impl Wrap {
+    pub fn center(w_spacing: u32, h_spacing: u32) -> Self {
+        Wrap(w_spacing, h_spacing, Offset::Center, Offset::Center, Padding::default())
+    }
+}
+
+impl Layout for Wrap {
+    fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
+
+        let ((min_w, max_w), heights): ((Vec<_>, Vec<_>), Vec<_>) = children.into_iter().map(|i|
+            ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
+        ).unzip();
+
+        let w_spacing = self.0*(min_w.len() as u32-1);
+        let h_spacing = self.1*(heights.len() as u32-1);
+
+        let min_width = min_w.into_iter().reduce(|s, i| s.max(i)).unwrap_or_default();
+        let max_width = max_w.into_iter().reduce(|s, i| s.saturating_add(i)).unwrap_or_default();
+
+        let height = Size::add(heights);
+
+        self.4.adjust_request(SizeRequest::new(min_width, height.0, max_width, height.1).add(w_spacing, h_spacing))
+    }
+
+    fn build(&self, _ctx: &mut Context, maximum_size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
+        let mut taken_width = self.4.1;
+        let mut height_offset = self.4.2;
+        let mut current_row: Vec<SizeRequest> = Vec::new();
+        children.iter().map(|child| {
+            let returned = if (taken_width + child.min_width()) > maximum_size.0 {
+                let heights: Vec<_> = current_row.iter().map(|c| c.min_height()).collect();
+                height_offset += heights.into_iter().reduce(|s, i| s.max(i)).unwrap_or_default() + self.1;
+                taken_width = self.4.1;
+                Area {offset: (taken_width as i32, height_offset as i32), size: (child.min_width(), child.min_height())}
+            } else {
+                Area {offset: (taken_width as i32, height_offset as i32), size: (child.min_width(), child.min_height())}
+            };
+
+            taken_width += child.min_width() + self.0; 
+            current_row.push(*child);
+            returned
+        }).collect()
+    }
+}
+
 #[derive(Debug, Component)]
 pub struct Bin<L: Layout, D: Drawable>(pub L, pub D);
 impl<L: Layout, D: Drawable> Events for Bin<L, D> {}

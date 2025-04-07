@@ -94,7 +94,6 @@ impl Events for AvatarRow {}
 
 impl AvatarRow {
     pub fn new(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {
-        let text_size = &ctx.get::<PelicanUI>().theme.fonts.size.h5;
         AvatarRow(
             Row::center(0), 
             avatars.into_iter().map(|avatar| Avatar::new(ctx, avatar, None, true, 32)).collect()

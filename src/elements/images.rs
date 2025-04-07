@@ -16,7 +16,7 @@ impl Events for Icon {}
 pub struct Brand;
 
 impl Brand {
-    pub fn new(ctx: &mut Context, image: resources::Image, size: (u32, u32)) -> Image {
+    pub fn new(image: resources::Image, size: (u32, u32)) -> Image {
         Image{shape: ShapeType::Rectangle(0, (size.0, size.1)), image, color: None}
     }
 }

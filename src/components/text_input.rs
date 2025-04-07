@@ -3,13 +3,51 @@ use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text,TextStyle, ExpandableText};
 use crate::components::button::IconButton;
-use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
+use crate::layout::{EitherOr, Opt, Padding, Column, Stack, Offset, Size, Row, Bin};
 use crate::PelicanUI;
 
 use std::sync::mpsc::{self, Receiver};
 
 #[derive(Debug, Component)]
-pub struct TextInput(Column, Option<BasicText>, InputField, EitherOr<BasicText, BasicText>); // Should be EitherOr<Option<BasicText>, BasicText>
+pub enum SubText {
+    Help(EitherOr<BasicText, BasicText>),
+    Error(Opt<BasicText>),
+}
+
+impl SubText {
+    pub fn new(ctx: &mut Context, help_text: Option<&'static str>) -> Self {
+        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
+        match help_text {
+            Some(text) => SubText::Help(EitherOr::new(
+                Text::new(ctx, text, TextStyle::Secondary, font_size), 
+                Text::new(ctx, "", TextStyle::Error, font_size)
+            )),
+            None => SubText::Error(Opt::new(Text::new(ctx, "", TextStyle::Error, font_size), false))
+        }
+    } 
+    pub fn error(&mut self) -> &mut String {
+        match self {
+            SubText::Help(either_or) => &mut either_or.right().text,
+            SubText::Error(opt) => &mut opt.inner().text
+        }
+    }
+}
+
+impl Events for SubText {
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(TickEvent) = event.downcast_ref() {
+            let error = !self.error().is_empty();
+            match self {
+                SubText::Help(either_or) => either_or.display_left(error),
+                SubText::Error(opt) => opt.display(error)
+            }
+        }
+        true
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct TextInput(Column, Option<BasicText>, InputField, SubText);
 
 impl TextInput {
     pub fn new(
@@ -25,22 +63,15 @@ impl TextInput {
             Column(16, Offset::Start, Size::Fit, Padding::default()),
             label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5)),
             InputField::new(ctx, placeholder, icon_button),
-            EitherOr::new(
-                Text::new(ctx, help_text.unwrap_or(""), TextStyle::Secondary, font_size.sm),
-                Text::new(ctx, "", TextStyle::Error, font_size.sm)
-            )
+            SubText::new(ctx, help_text)
         )
     }
-
-    pub fn error(&mut self) -> &mut String { &mut self.3.right().text }
 }
 
 impl Events for TextInput {
     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
-            let error = !self.3.right().text.is_empty();
-            self.3.display_left(!error);
-            *self.2.error() = error;
+            *self.2.error() = !self.3.error().is_empty();
         }
         true
     }
