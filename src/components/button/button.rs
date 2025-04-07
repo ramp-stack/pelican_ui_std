@@ -4,7 +4,7 @@ use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text, TextStyle};
 use crate::components::avatar::{Avatar, AvatarContent};
-use crate::layout::{Stack, Offset, Size, Padding, Row};
+use crate::layout::{Stack, Offset, Size, Padding, Row, Column};
 
 use super::{ButtonState, ButtonStyle, ButtonSize};
 
@@ -36,7 +36,7 @@ impl Button {
 
         let width = match width {
             ButtonWidth::Hug => Size::custom(move |widths: Vec<(u32, u32)>|
-                (widths[1].0+(padding*2), widths[1].1)
+                (widths[1].0, widths[1].1)
             ),
             ButtonWidth::Expand => Size::custom(move |widths: Vec<(u32, u32)>|
                 (widths[1].0, u32::MAX)
@@ -204,7 +204,7 @@ impl Button {
             ButtonSize::Large,
             ButtonWidth::Expand,
             ButtonStyle::Ghost,
-            if selected {ButtonState::Pressed} else {ButtonState::Default},
+            if selected {ButtonState::Selected} else {ButtonState::Default},
             Offset::Start,
             on_click
         )
@@ -230,5 +230,39 @@ impl Button {
             Offset::Start,
             on_click
         )
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct ButtonColumn(Column, Vec<Button>);
+impl Events for ButtonColumn {}
+
+impl ButtonColumn {
+    pub fn new(ctx: &mut Context, buttons: Vec<Button>) -> Self {
+        ButtonColumn(Column::center(8), buttons)
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct QuickActions(Stack, QuickActionsContent);
+impl Events for QuickActions {}
+
+impl QuickActions {
+    pub fn new(ctx: &mut Context, buttons: Vec<Button>) -> Self {
+        let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[0].0, u32::MAX));
+        QuickActions(
+            Stack(Offset::Start, Offset::Start, width, Size::Fit, Padding::default()),
+            QuickActionsContent::new(ctx, buttons)
+        )
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct QuickActionsContent(Row, Vec<Button>);
+impl Events for QuickActionsContent {}
+
+impl QuickActionsContent {
+    pub fn new(ctx: &mut Context, buttons: Vec<Button>) -> Self {
+        QuickActionsContent(Row::center(8), buttons)
     }
 }

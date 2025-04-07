@@ -89,14 +89,29 @@ impl IconButton {
             on_click
         )
     }
-
+    
     pub fn navigation(
+        ctx: &mut Context, 
+        icon: &'static str, 
+        on_click: fn(&mut Context) -> ()
+    ) -> Self {
+        IconButton::new(
+            ctx,
+            icon,
+            ButtonSize::Medium,
+            ButtonStyle::Ghost,
+            ButtonState::Default,
+            on_click
+        )
+    }
+
+    pub fn tab_nav(
         ctx: &mut Context, 
         icon: &'static str, 
         selected: bool,
         on_click: fn(&mut Context) -> ()
     ) -> Self {
-        let state = if selected {ButtonState::Selected} else {ButtonState::Default};
+        let state = if selected {ButtonState::Default} else {ButtonState::UnSelected};
         IconButton::new(
             ctx,
             icon,

@@ -9,7 +9,7 @@ use crate::PelicanUI;
 use std::sync::mpsc::{self, Receiver};
 
 #[derive(Debug, Component)]
-pub struct TextInput(Column, Option<BasicText>, InputField, EitherOr<BasicText, BasicText>);
+pub struct TextInput(Column, Option<BasicText>, InputField, EitherOr<BasicText, BasicText>); // Should be EitherOr<Option<BasicText>, BasicText>
 
 impl TextInput {
     pub fn new(
@@ -26,7 +26,7 @@ impl TextInput {
             label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5)),
             InputField::new(ctx, placeholder, icon_button),
             EitherOr::new(
-                Text::new(ctx, help_text.unwrap_or("NONE"), TextStyle::Secondary, font_size.sm),
+                Text::new(ctx, help_text.unwrap_or(""), TextStyle::Secondary, font_size.sm),
                 Text::new(ctx, "", TextStyle::Error, font_size.sm)
             )
         )
@@ -159,7 +159,7 @@ impl InputContent {
             Bin(
                 Stack(Offset::default(), Offset::End, Size::Fit, Size::Fit, Padding(8, 6, 8, 6)),
                 EitherOr::new(
-                    ExpandableText::new(ctx, "hello", TextStyle::Primary, font_size),
+                    ExpandableText::new(ctx, "", TextStyle::Primary, font_size),
                     ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size)
                 )
             ),

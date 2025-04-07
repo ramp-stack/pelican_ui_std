@@ -30,7 +30,7 @@ pub mod prelude {
     pub use crate::layout::*;
     pub use crate::components::*;
     //pub use crate::elements::images::Icon;
-    // pub use crate::elements::text::{Text, TextStyle};
+    pub use crate::elements::text::{Text, TextStyle};
     pub use crate::theme::Theme;
     pub use crate::PelicanUI;
 }

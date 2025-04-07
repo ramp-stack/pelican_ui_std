@@ -4,7 +4,7 @@ use crate::elements::images::{Icon, Brand};
 use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::{Rectangle};
 use crate::components::mobile_keyboard::MobileKeyboard;
-use crate::components::button::{ButtonState, Button, IconButton};
+use crate::components::button::{ButtonState, Button, IconButton, ButtonColumn};
 use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent, AvatarRow};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::PelicanUI;
@@ -33,18 +33,31 @@ impl Events for MobileInterface {}
 impl MobileInterface {
     pub fn new(ctx: &mut Context, page: Page) -> Self {
         let navigator = MobileNavigator::new(ctx);
-        MobileInterface(Column::center(0), page, navigator)
+        let insets = safe_area_insets();
+        MobileInterface(
+            Column(0, Offset::Center, Size::Fit, Padding(0, insets.0 as u32, 0, insets.1 as u32)), 
+            page, navigator
+        )
     }
 }
 
 #[derive(Debug, Component)]
-struct DesktopInterface(Row, DesktopNavigator, Page);
+struct DesktopInterface(Row, DesktopNavigator, Bin<Stack, Rectangle>, Page);
 impl Events for DesktopInterface {}
 
 impl DesktopInterface {
     pub fn new(ctx: &mut Context, page: Page) -> Self {
         let navigator = DesktopNavigator::new(ctx);
-        DesktopInterface(Row(0, Offset::Start, Size::Fit, Padding::default()), navigator, page)
+        let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
+        DesktopInterface(
+            Row(0, Offset::Start, Size::Fit, Padding::default()),
+            navigator, 
+            Bin (
+                Stack(Offset::default(), Offset::default(), Size::Static(1),  Size::Fit, Padding::default()), 
+                Rectangle::new(color)
+            ),
+           page
+        )
     }
 }
 
@@ -54,11 +67,11 @@ impl Events for MobileNavigator {}
 
 impl MobileNavigator {
     pub fn new(ctx: &mut Context) -> Self {
-        MobileNavigator(Row::center(64), vec![
-            IconButton::navigation(ctx, "wallet", true, |ctx: &mut Context| println!("Bitcoin")),
-            IconButton::navigation(ctx, "messages", false, |ctx: &mut Context| println!("Messaging")),
-            IconButton::navigation(ctx, "door", false, |ctx: &mut Context| println!("Rooms")),
-            IconButton::navigation(ctx, "profile", false, |ctx: &mut Context| println!("Profile"))
+        MobileNavigator(Row(48, Offset::Center, Size::Fit, Padding(0, 8, 0, 8)), vec![
+            IconButton::tab_nav(ctx, "wallet", true, |ctx: &mut Context| println!("Bitcoin")),
+            IconButton::tab_nav(ctx, "messages", false, |ctx: &mut Context| println!("Messaging")),
+            IconButton::tab_nav(ctx, "door", false, |ctx: &mut Context| println!("Rooms")),
+            IconButton::tab_nav(ctx, "profile", false, |ctx: &mut Context| println!("Profile"))
         ])
     }
 }
@@ -87,22 +100,11 @@ impl DesktopNavigator {
     }
 }
 
-#[derive(Debug, Component)]
-struct ButtonColumn(Column, Vec<Button>);
-impl Events for ButtonColumn {}
 
-impl ButtonColumn {
-    pub fn new(ctx: &mut Context, buttons: Vec<Button>) -> Self {
-        ButtonColumn(
-            Column(8, Offset::Center, Size::Fit, Padding::default()),
-            buttons
-        )
-    }
-}
 
 
 #[derive(Debug, Component)]
-pub struct Page (Column, Header, Content, Option<Bumper>, Option<MobileKeyboard>);
+pub struct Page (Column, Header, Content, Option<Bumper>); // todo mobilekeyboard into interface
 impl Events for Page {}
 
 impl Page {
@@ -111,14 +113,13 @@ impl Page {
         header: Header,
         content: Content,
         bumper: Option<Bumper>,
-        keyboard: Option<MobileKeyboard>,
     ) -> Self {
+        let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[1].0, u32::MAX));
         Page(
-            Column(0, Offset::Center, Size::Fill(0, u32::MAX), Padding::default()),
+            Column(12, Offset::Center, width, Padding::default()),
             header,
             content,
             bumper,
-            keyboard,
         )
     }
 }
@@ -174,8 +175,9 @@ impl Events for HeaderContent {}
 impl HeaderContent {
     pub fn home(ctx: &mut Context, title: &'static str) -> Self {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size.h3;
+        let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[0].0, u32::MAX));
         HeaderContent(
-            Column::center(10), 
+            Column(10, Offset::Center, width, Padding::default()), 
             Text::new(ctx, title, TextStyle::Heading, text_size),
             None,
         )
@@ -183,8 +185,9 @@ impl HeaderContent {
 
     pub fn stack(ctx: &mut Context, title: &'static str) -> Self {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size.h4;
+        let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[0].0, u32::MAX));
         HeaderContent(
-            Column::center(10), 
+            Column(10, Offset::Center, width, Padding::default()),  
             Text::new(ctx, title, TextStyle::Heading, text_size),
             None,
         )
@@ -193,8 +196,9 @@ impl HeaderContent {
     pub fn chat(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
         let title = if avatars.len() > 1 {"Ella Couch"} else {"Group Message"};
+        let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[0].0, u32::MAX));
         HeaderContent(
-            Column::center(10), 
+            Column(10, Offset::Center, width, Padding::default()), 
             Text::new(ctx, title, TextStyle::Heading, text_size),
             Some(AvatarRow::new(ctx, avatars)),
         )
@@ -214,54 +218,67 @@ impl HeaderIcon {
     }
 }
 
-#[derive(Debug)]
-pub struct Bumper (Row, Vec<Box<dyn Drawable>>);
+#[derive(Debug, Component)]
+pub struct Bumper (Stack, BumperContent);
 impl Events for Bumper {}
 
 impl Bumper {
     pub fn new(ctx: &mut Context, content: Vec<Box<dyn Drawable>>) -> Self {
-        Bumper(Row(16, Offset::Center, Size::Fill(10, u32::MAX), Padding(24, 16, 24, 16)), content)
+        let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[0].0, 512));
+        Bumper(
+            Stack(Offset::Center, Offset::Start, width, Size::Fit, Padding(24, 16, 24, 16)),
+            BumperContent::new(ctx, content)
+        )
     }
 }
 
-impl Component for Bumper {
-    fn children_mut(&mut self) -> Vec<&mut dyn Drawable> {
-        self.1.iter_mut().map(|c| &mut **c as &mut dyn Drawable).collect()
-    }
-    fn children(&self) -> Vec<&dyn Drawable> {
-        self.1.iter().map(|c| &**c as & dyn Drawable).collect()
-    }
-    fn request_size(&self, ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
-        self.0.request_size(ctx, children)
-    }
-    fn build(&mut self, ctx: &mut Context, size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
-        self.0.build(ctx, size, children)
+#[derive(Debug, Component)]
+pub struct BumperContent (Row, Vec<Box<dyn Drawable>>);
+impl Events for BumperContent {}
+
+impl BumperContent {
+    pub fn new(ctx: &mut Context, content: Vec<Box<dyn Drawable>>) -> Self {
+        BumperContent(Row::center(16), content)
     }
 }
 
-#[derive(Debug)]
-pub struct Content (Column, Vec<Box<dyn Drawable>>);
+#[derive(Debug, Component)]
+pub struct Content (Stack, ContentChildren);
 impl Events for Content {}
 
 impl Content {
     pub fn new(ctx: &mut Context, content: Vec<Box<dyn Drawable>>) -> Self {
-        let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[1].0, 512));
-        Content(Column(24, Offset::Center, width, Padding::default()), content)
+        let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[0].0, 512));
+        let height = Size::custom(move |heights: Vec<(u32, u32)>|(heights[0].0, u32::MAX));
+        Content(
+            Stack(Offset::Center, Offset::Start, width, height, Padding(24, 16, 24, 16)),
+            ContentChildren::new(ctx, content),
+        )
     }
 }
 
+#[derive(Debug, Component)]
+pub struct ContentChildren (Column, Vec<Box<dyn Drawable>>);
+impl Events for ContentChildren {}
 
-impl Component for Content {
-    fn children_mut(&mut self) -> Vec<&mut dyn Drawable> {
-        self.1.iter_mut().map(|c| &mut **c as &mut dyn Drawable).collect()
+impl ContentChildren {
+    pub fn new(ctx: &mut Context, content: Vec<Box<dyn Drawable>>) -> Self {
+        ContentChildren(Column::center(24), content)
     }
-    fn children(&self) -> Vec<&dyn Drawable> {
-        self.1.iter().map(|c| &**c as & dyn Drawable).collect()
-    }
-    fn request_size(&self, ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
-        self.0.request_size(ctx, children)
-    }
-    fn build(&mut self, ctx: &mut Context, size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
-        self.0.build(ctx, size, children)
+}
+
+extern "C" {
+    fn get_safe_area_insets() -> *const f64;
+}
+
+pub fn safe_area_insets() -> (f64, f64, f64, f64) {
+    unsafe {
+        let ptr = get_safe_area_insets();
+        (
+            *ptr.add(0), // top
+            *ptr.add(1), // bottom
+            *ptr.add(2), // left
+            *ptr.add(3), // right
+        )
     }
 }

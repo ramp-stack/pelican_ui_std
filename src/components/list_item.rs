@@ -46,16 +46,6 @@ impl Events for ListItem {
         println!("event: {:?}", event);
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             println!("mouse: {:?}", event);
-            let colors = ctx.get::<PelicanUI>().theme.colors;
-            if let Some(state) = self.3.handle(ctx, *event) {
-                self.1.shape().color = match state {
-                    ButtonState::Default => colors.background.primary,
-                    ButtonState::Disabled => colors.background.primary,
-                    ButtonState::Selected => colors.background.primary,
-                    ButtonState::Pressed => colors.background.primary,
-                    ButtonState::Hover => colors.background.secondary,
-                }
-            }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.3 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.4)(ctx),
