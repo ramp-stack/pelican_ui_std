@@ -30,8 +30,12 @@ impl ButtonState {
         let state = match self {
             ButtonState::Default if event.position.is_some() => {
                 match event.state {
-                    MouseState::Pressed => Some(ButtonState::Pressed),
-                    MouseState::Moved => Some(ButtonState::Hover),
+                    MouseState::Pressed => {
+                        #[cfg(target_os = "ios")]
+                        crate::vibrate();
+                        Some(ButtonState::Pressed)
+                    },
+                    MouseState::Moved => Some(if crate::config::IS_MOBILE {ButtonState::Default} else {ButtonState::Hover}),
                     _ => None
                 }
             },

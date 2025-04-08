@@ -22,10 +22,10 @@ impl IconButton {
     ) -> Self {
         let colors = state.color(ctx, style);
         let (size, icon_size, radius) = match (style, size) {
-            (ButtonStyle::Secondary, ButtonSize::Large) => (48, 32, 12),
-            (ButtonStyle::Secondary, ButtonSize::Medium) => (32, 20, 8),
-            (ButtonStyle::Ghost, ButtonSize::Large) => (48, 48, 12),
-            (ButtonStyle::Ghost, ButtonSize::Medium) => (32, 32, 8),
+            (ButtonStyle::Secondary, ButtonSize::Large) => (52, 32, 12),
+            (ButtonStyle::Secondary, ButtonSize::Medium) => (36, 20, 8),
+            (ButtonStyle::Ghost, ButtonSize::Large) => (52, 48, 12),
+            (ButtonStyle::Ghost, ButtonSize::Medium) => (36, 32, 8),
             _ => panic!("{:?} is not a valid style", style)
         };
 

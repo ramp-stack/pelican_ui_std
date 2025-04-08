@@ -175,12 +175,12 @@ impl Default for ButtonColors {
                 outline: Color::from_hex("000000", 0),
             },
             primary_selected: ButtonColorScheme {
-                background: Color::from_hex("b71e23", 255),
+                background: Color::from_hex("da282e", 255),
                 label: Color::from_hex("ffffff", 255),
                 outline: Color::from_hex("000000", 0),
             },
             primary_pressed: ButtonColorScheme {
-                background: Color::from_hex("b71e23", 255),
+                background: Color::from_hex("da282e", 255),
                 label: Color::from_hex("ffffff", 255),
                 outline: Color::from_hex("000000", 0),
             },
@@ -201,12 +201,12 @@ impl Default for ButtonColors {
                 outline: Color::from_hex("585250", 255),
             },
             secondary_selected: ButtonColorScheme {
-                background: Color::from_hex("000000", 0),
+                background: Color::from_hex("262322", 255),
                 label: Color::from_hex("ffffff", 255),
                 outline: Color::from_hex("585250", 255),
             },
             secondary_pressed: ButtonColorScheme {
-                background: Color::from_hex("000000", 0),
+                background: Color::from_hex("262322", 255),
                 label: Color::from_hex("ffffff", 255),
                 outline: Color::from_hex("585250", 255),
             },

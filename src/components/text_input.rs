@@ -1,12 +1,46 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
+// use cli_clipboard::{ClipboardContext, ClipboardProvider};
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text,TextStyle, ExpandableText};
 use crate::components::button::IconButton;
+use crate::events::{SummonKeyboardEvent, HideKeyboardEvent};
 use crate::layout::{EitherOr, Opt, Padding, Column, Stack, Offset, Size, Row, Bin};
 use crate::PelicanUI;
 
 use std::sync::mpsc::{self, Receiver};
+
+
+#[derive(Debug, Component)]
+pub struct TextInput(Column, Option<BasicText>, InputField, SubText);
+
+impl TextInput {
+    pub fn new(
+        ctx: &mut Context,
+        label: Option<&'static str>,
+        placeholder: &'static str,
+        help_text: Option<&'static str>,
+        icon_button: Option<(&'static str, impl FnMut(&mut Context, &mut String) + 'static)>,
+    ) -> Self {
+        let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
+
+        TextInput(
+            Column(16, Offset::Start, Size::Fit, Padding::default()),
+            label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5)),
+            InputField::new(ctx, placeholder, icon_button),
+            SubText::new(ctx, help_text)
+        )
+    }
+}
+
+impl Events for TextInput {
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(TickEvent) = event.downcast_ref() {
+            *self.2.error() = !self.3.error().is_empty();
+        }
+        true
+    }
+}
 
 #[derive(Debug, Component)]
 pub enum SubText {
@@ -46,36 +80,6 @@ impl Events for SubText {
     }
 }
 
-#[derive(Debug, Component)]
-pub struct TextInput(Column, Option<BasicText>, InputField, SubText);
-
-impl TextInput {
-    pub fn new(
-        ctx: &mut Context,
-        label: Option<&'static str>,
-        placeholder: &'static str,
-        help_text: Option<&'static str>,
-        icon_button: Option<(&'static str, impl FnMut(&mut Context, &mut String) + 'static)>,
-    ) -> Self {
-        let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
-
-        TextInput(
-            Column(16, Offset::Start, Size::Fit, Padding::default()),
-            label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5)),
-            InputField::new(ctx, placeholder, icon_button),
-            SubText::new(ctx, help_text)
-        )
-    }
-}
-
-impl Events for TextInput {
-    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(TickEvent) = event.downcast_ref() {
-            *self.2.error() = !self.3.error().is_empty();
-        }
-        true
-    }
-}
 
 #[derive(Debug, Component)]
 struct InputField(Stack, OutlinedRectangle, InputContent, #[skip] InputState, #[skip] bool);
@@ -92,7 +96,10 @@ impl InputField {
 
         InputField(Stack(
             Offset::Center, Offset::End, Size::fill(),
-                Size::custom(|heights: Vec<(u32, u32)>| heights[1]),
+            Size::custom(|heights: Vec<(u32, u32)>| (
+                if heights[1].0 > 48 {heights[1].0} else {48},
+                if heights[1].1 > 48 {heights[1].1} else {48}
+            )),
             Padding::default()
         ), background, content, InputState::Default, false)
     }
@@ -113,11 +120,15 @@ impl Events for InputField {
             *self.1.background() = background;
             *self.1.outline() = outline;
             *self.2.focus() = self.3 == InputState::Focus;
+        } else if let Some(_event) = event.downcast_ref::<HideKeyboardEvent>() {
+            if self.3 == InputState::Focus {
+                if self.4 { self.3 = InputState::Error } else { self.3 = InputState::Default }
+            }
         } else if let Some(event) = event.downcast_ref::<MouseEvent>() {
             self.3 = match self.3 {
                 InputState::Default => {
                     match event {
-                        MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
+                        MouseEvent{state: MouseState::Pressed, position: Some(_)} => {ctx.trigger_event(SummonKeyboardEvent); Some(InputState::Focus)},
                         MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
                         _ => None
                     }
@@ -132,8 +143,8 @@ impl Events for InputField {
                 },
                 InputState::Focus => {
                     match event {
-                        MouseEvent{state: MouseState::Pressed, position: None} if self.4 => Some(InputState::Error),
-                        MouseEvent{state: MouseState::Pressed, position: None} => Some(InputState::Default),
+                        MouseEvent{state: MouseState::Pressed, position: None} if self.4 && !crate::config::IS_MOBILE => Some(InputState::Error),
+                        MouseEvent{state: MouseState::Pressed, position: None} if !crate::config::IS_MOBILE => Some(InputState::Default),
                         _ => None
                     }
                 },
@@ -148,7 +159,12 @@ impl Events for InputField {
         } else if let Some(KeyboardEvent{state: KeyboardState::Pressed, key}) = event.downcast_ref() {
             if self.3 == InputState::Focus {
                 let t = self.2.input();
+
                 match key {
+                    // Key::Named(NamedKey::Paste) | Key::Character(c) if c == ""  => {
+                    //     let mut ctx = ClipboardContext::new().unwrap();
+                    //     *self.2.input() = ctx.get_contents().unwrap();
+                    // },
                     Key::Named(NamedKey::Enter) => *t +="\n",
                     Key::Named(NamedKey::Space) => *t +=" ",
                     Key::Named(NamedKey::Delete | NamedKey::Backspace) if !t.is_empty() =>

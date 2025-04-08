@@ -283,20 +283,19 @@ impl Layout for Wrap {
     fn build(&self, _ctx: &mut Context, maximum_size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
         let mut taken_width = self.4.1;
         let mut height_offset = self.4.2;
-        let mut current_row: Vec<SizeRequest> = Vec::new();
+        let mut items: Vec<SizeRequest> = Vec::new();
         children.iter().map(|child| {
-            let returned = if (taken_width + child.min_width()) > maximum_size.0 {
-                let heights: Vec<_> = current_row.iter().map(|c| c.min_height()).collect();
+            if (taken_width + child.min_width()) > maximum_size.0 {
+                let heights: Vec<_> = items.iter().map(|c| c.min_height()).collect();
                 height_offset += heights.into_iter().reduce(|s, i| s.max(i)).unwrap_or_default() + self.1;
                 taken_width = self.4.1;
-                Area {offset: (taken_width as i32, height_offset as i32), size: (child.min_width(), child.min_height())}
-            } else {
-                Area {offset: (taken_width as i32, height_offset as i32), size: (child.min_width(), child.min_height())}
             };
 
+            let area = Area {offset: (taken_width as i32, height_offset as i32), size: (child.min_width(), child.min_height())};
+
             taken_width += child.min_width() + self.0; 
-            current_row.push(*child);
-            returned
+            items.push(*child);
+            area
         }).collect()
     }
 }

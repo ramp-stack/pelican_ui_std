@@ -1,25 +1,15 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
+use rust_on_rails::prelude::Key as WinitKey;
 use crate::elements::shapes::{Rectangle, RoundedRectangle};
 use crate::elements::images::Icon;
+use crate::events::HideKeyboardEvent;
 use crate::elements::text::{Text, TextStyle};
 use crate::components::button::{IconButton, ButtonState};
 use crate::layout::{Stack, Bin, Column, Row, Offset, Size, Padding};
 use crate::PelicanUI;
 
 use std::sync::mpsc::{self, Receiver, Sender};
-
-#[cfg(target_os = "ios")]
-extern "C" {
-    fn trigger_haptic();
-    // fn get_application_support_dir() -> *const std::os::raw::c_char;
-}
-#[cfg(target_os = "ios")]
-fn vibrate()  {
-    unsafe {
-        trigger_haptic();
-    }
-}
 
 #[derive(Component, Debug)]
 pub struct MobileKeyboard(Stack, Rectangle, KeyboardContent);
@@ -48,10 +38,10 @@ impl KeyboardHeader {
     pub fn new(ctx: &mut Context) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
         KeyboardHeader(
-            Column::center(0),
+            Column(0, Offset::Start, Size::Fit, Padding::default()),
             IconButtonRow::new(ctx),
             Bin (
-                Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1), Padding::default()), 
+                Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1), Padding(0,0,0,2)), 
                 Rectangle::new(color)
             )
         )
@@ -59,17 +49,23 @@ impl KeyboardHeader {
 }
 
 #[derive(Component, Debug)]
-pub struct IconButtonRow(Row, IconButton, IconButton, IconButton, IconButton);
+pub struct IconButtonRow(Row, IconButton, IconButton, IconButton, IconButton, Bin<Stack, Rectangle>, IconButton );
 impl Events for IconButtonRow {}
 
 impl IconButtonRow {
     pub fn new(ctx: &mut Context) -> Self {
+        let color = ctx.get::<PelicanUI>().theme.colors.shades.transparent;
         IconButtonRow(
-            Row(16, Offset::Start, Size::Fit, Padding(12, 12, 12, 12)), 
+            Row(16, Offset::Start, Size::Fit, Padding(12, 6, 12, 6)), 
             IconButton::keyboard(ctx, "emoji", |_ctx: &mut Context| ()),
             IconButton::keyboard(ctx, "gif", |_ctx: &mut Context| ()),
             IconButton::keyboard(ctx, "photos", |_ctx: &mut Context| ()),
             IconButton::keyboard(ctx, "camera", |_ctx: &mut Context| ()),
+            Bin (
+                Stack(Offset::Center, Offset::Center, Size::Fill(1, u32::MAX), Size::Static(1),  Padding::default()), 
+                Rectangle::new(color)
+            ),
+            IconButton::keyboard(ctx, "down_arrow", |ctx: &mut Context| ctx.trigger_event(HideKeyboardEvent)),
         )
     }
 }
@@ -183,6 +179,8 @@ impl KeyboardRow {
                 if let Some(text) = k.1.character().get_text().as_mut() {
                     text.text = format_text(new[i]);
                 }
+                let key = format_text(new[i]);
+                k.3 = WinitKey::Character(SmolStr::new(key.as_str()));
             });
         }
     }
@@ -192,31 +190,31 @@ impl KeyboardRow {
 }
 
 #[derive(Component, Debug)]
-pub struct Key(Stack, KeyContent, #[skip] ButtonState);
+pub struct Key(Stack, KeyContent, #[skip] ButtonState, #[skip] WinitKey);
 
 impl Key {
-    pub fn character(ctx: &mut Context, character: &'static str) -> Self {
-        let character = KeyCharacter::char(ctx, character);
+    pub fn character(ctx: &mut Context, c: &'static str) -> Self {
+        let character = KeyCharacter::char(ctx, c);
         let content = KeyContent::new(ctx, 33, Offset::End, character);
-        Key(Stack::default(), content, ButtonState::Default)
+        Key(Stack::default(), content, ButtonState::Default, WinitKey::Character(SmolStr::new_static(c)))
     }
 
     pub fn spacebar(ctx: &mut Context) -> Self {
         let character = KeyCharacter::text(ctx, "space");
         let content = KeyContent::new(ctx, u32::MAX, Offset::Center, character);
-        Key(Stack::default(), content, ButtonState::Default)
+        Key(Stack::default(), content, ButtonState::Default, WinitKey::Named(NamedKey::Space))
     }
 
     pub fn backspace(ctx: &mut Context) -> Self {
         let character = KeyCharacter::icon(ctx, "backspace");
         let content = KeyContent::new(ctx, 42, Offset::Center, character);
-        Key(Stack::default(), content, ButtonState::Default)
+        Key(Stack::default(), content, ButtonState::Default, WinitKey::Named(NamedKey::Backspace))
     }
 
     pub fn newline(ctx: &mut Context) -> Self {
         let character = KeyCharacter::text(ctx, "return");
         let content = KeyContent::new(ctx, 92, Offset::Center, character);
-        Key(Stack::default(), content, ButtonState::Default)
+        Key(Stack::default(), content, ButtonState::Default, WinitKey::Named(NamedKey::Enter))
     }
 
     pub fn content(&mut self) -> &mut KeyContent {&mut self.1}
@@ -238,11 +236,8 @@ impl Events for Key {
                 match self.2 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
                         #[cfg(target_os = "ios")]
-                        vibrate();
-                        // TRIGGER KEYBOARD EVENTS
-                        // if let Some(on_click) = self.3 {
-                        //     (on_click)(ctx);
-                        // }
+                        crate::vibrate();
+                        ctx.trigger_event(KeyboardEvent{state: KeyboardState::Pressed, key: self.3.clone()})
                     },
                     _ => {}
                 }
@@ -297,7 +292,7 @@ impl Events for Capslock {
                 match self.2 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
                         #[cfg(target_os = "ios")]
-                        vibrate();
+                        crate::vibrate();
                         self.4.send(0).unwrap();
                     }
                     _ => {}
@@ -342,7 +337,7 @@ impl Events for Paginator {
 
             if event.state == MouseState::Pressed && event.position.is_some() {
                 #[cfg(target_os = "ios")]
-                vibrate();
+                crate::vibrate();
 
                 let (highlight, dim) = (colors.text.heading, colors.text.secondary);
                 let next = if self.3 == 2 { 0 } else { self.3 + 1 };
@@ -454,6 +449,8 @@ pub fn handle_state(_ctx: &mut Context, state: ButtonState, event: MouseEvent) -
         _ => None
     }.unwrap_or(state)
 }
+
+
 
 
 fn top_keys(page: u32) -> Vec<&'static str> {

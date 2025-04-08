@@ -1,3 +1,4 @@
+pub mod events;
 pub mod config;
 pub mod theme;
 pub mod layout;
@@ -8,6 +9,18 @@ pub mod interface;
 use rust_on_rails::prelude::*;
 
 use crate::theme::Theme;
+
+#[cfg(target_os = "ios")]
+extern "C" {
+    fn trigger_haptic();
+    // fn get_application_support_dir() -> *const std::os::raw::c_char;
+}
+#[cfg(target_os = "ios")]
+fn vibrate()  {
+    unsafe {
+        trigger_haptic();
+    }
+}
 
 #[derive(Plugin)]
 pub struct PelicanUI {

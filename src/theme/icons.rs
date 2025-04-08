@@ -13,6 +13,8 @@ impl IconResources {
         icons.insert("add", resources::Image::svg(ctx, &ctx.load_file("icons/add.svg").unwrap(), quality));
         icons.insert("app_store", resources::Image::svg(ctx, &ctx.load_file("icons/app_store.svg").unwrap(), quality));
         icons.insert("back", resources::Image::svg(ctx, &ctx.load_file("icons/back.svg").unwrap(), quality));
+        icons.insert("back_arrow", resources::Image::svg(ctx, &ctx.load_file("icons/back_arrow.svg").unwrap(), quality));
+        icons.insert("back_to", resources::Image::svg(ctx, &ctx.load_file("icons/back_arrow.svg").unwrap(), quality));
         icons.insert("backspace", resources::Image::svg(ctx, &ctx.load_file("icons/backspace.svg").unwrap(), quality));
         icons.insert("bitcoin", resources::Image::svg(ctx, &ctx.load_file("icons/bitcoin.svg").unwrap(), quality));
         icons.insert("camera", resources::Image::svg(ctx, &ctx.load_file("icons/camera.svg").unwrap(), quality));
@@ -23,6 +25,7 @@ impl IconResources {
         icons.insert("close", resources::Image::svg(ctx, &ctx.load_file("icons/close.svg").unwrap(), quality));
         icons.insert("copy", resources::Image::svg(ctx, &ctx.load_file("icons/copy.svg").unwrap(), quality));
         icons.insert("credential", resources::Image::svg(ctx, &ctx.load_file("icons/credential.svg").unwrap(), quality));
+        icons.insert("down_arrow", resources::Image::svg(ctx, &ctx.load_file("icons/down_arrow.svg").unwrap(), quality));
         icons.insert("delete", resources::Image::svg(ctx, &ctx.load_file("icons/delete.svg").unwrap(), quality));
         icons.insert("door", resources::Image::svg(ctx, &ctx.load_file("icons/door.svg").unwrap(), quality));
         icons.insert("down", resources::Image::svg(ctx, &ctx.load_file("icons/down.svg").unwrap(), quality));
