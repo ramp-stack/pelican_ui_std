@@ -55,7 +55,7 @@ impl Events for Header {}
 impl Header {
     pub fn home(ctx: &mut Context, title: &'static str) -> Self {
         Header(
-            Row(16, Offset::Center, Size::Fit, Padding(24, 24, 24, 24)),
+            Row(16, Offset::Center, Size::Fit, Padding(24, 16, 24, 16)),
             HeaderIcon::new(None), 
             HeaderContent::home(ctx, title),
             HeaderIcon::new(None)
@@ -69,7 +69,7 @@ impl Header {
         right: Option<IconButton>
     ) -> Self {
         Header(
-            Row(16, Offset::Center, Size::Fit, Padding(24, 24, 24, 24)),
+            Row(16, Offset::Center, Size::Fit, Padding(24, 16, 24, 16)),
             HeaderIcon::new(left), 
             HeaderContent::stack(ctx, title), 
             HeaderIcon::new(right)
@@ -83,7 +83,7 @@ impl Header {
         avatars: Vec<AvatarContent>,
     ) -> Self {
         Header(
-            Row(16, Offset::Center, Size::Fit, Padding(24, 24, 24, 24)),
+            Row(16, Offset::Center, Size::Fit, Padding(24, 16, 24, 16)),
             HeaderIcon::new(left), 
             HeaderContent::chat(ctx, avatars), 
             HeaderIcon::new(right)

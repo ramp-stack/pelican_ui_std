@@ -13,6 +13,9 @@ pub use text_input::*;
 // pub mod qr_code;
 // pub use qr_code::*;
 
+pub mod qr_scanner;
+pub use qr_scanner::*;
+
 pub mod amount_display;
 pub use amount_display::*;
 

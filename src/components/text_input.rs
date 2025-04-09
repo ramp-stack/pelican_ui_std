@@ -12,7 +12,7 @@ use std::sync::mpsc::{self, Receiver};
 
 
 #[derive(Debug, Component)]
-pub struct TextInput(Column, Option<BasicText>, InputField, SubText);
+pub struct TextInput(Column, Option<BasicText>, InputField, Option<BasicText>, Option<BasicText>);
 
 impl TextInput {
     pub fn new(
@@ -28,57 +28,71 @@ impl TextInput {
             Column(16, Offset::Start, Size::Fit, Padding::default()),
             label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5)),
             InputField::new(ctx, placeholder, icon_button),
-            SubText::new(ctx, help_text)
+            help_text.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm)),
+            None,
+            // SubText::new(ctx, help_text)
         )
+    }
+
+    pub fn set_error(&mut self, ctx: &mut Context, error: &'static str) {
+        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
+        self.4 = Some(Text::new(ctx, error, TextStyle::Error, font_size));
+        self.3 = None;
+    }
+
+    pub fn remove_error(&mut self, ctx: &mut Context, help: &'static str) {
+        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
+        self.3 = Some(Text::new(ctx, help, TextStyle::Secondary, font_size));
+        self.4 = None;
     }
 }
 
 impl Events for TextInput {
     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
-            *self.2.error() = !self.3.error().is_empty();
+            *self.2.error() = self.3.is_some();
         }
         true
     }
 }
 
-#[derive(Debug, Component)]
-pub enum SubText {
-    Help(EitherOr<BasicText, BasicText>),
-    Error(Opt<BasicText>),
-}
+// #[derive(Debug, Component)]
+// pub enum SubText {
+//     Help(EitherOr<BasicText, BasicText>),
+//     Error(Opt<BasicText>),
+// }
 
-impl SubText {
-    pub fn new(ctx: &mut Context, help_text: Option<&'static str>) -> Self {
-        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
-        match help_text {
-            Some(text) => SubText::Help(EitherOr::new(
-                Text::new(ctx, text, TextStyle::Secondary, font_size), 
-                Text::new(ctx, "", TextStyle::Error, font_size)
-            )),
-            None => SubText::Error(Opt::new(Text::new(ctx, "", TextStyle::Error, font_size), false))
-        }
-    } 
-    pub fn error(&mut self) -> &mut String {
-        match self {
-            SubText::Help(either_or) => &mut either_or.right().text,
-            SubText::Error(opt) => &mut opt.inner().text
-        }
-    }
-}
+// impl SubText {
+//     pub fn new(ctx: &mut Context, help_text: Option<&'static str>) -> Self {
+//         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
+//         match help_text {
+//             Some(text) => SubText::Help(EitherOr::new(
+//                 Text::new(ctx, text, TextStyle::Secondary, font_size), 
+//                 Text::new(ctx, "", TextStyle::Error, font_size)
+//             )),
+//             None => SubText::Error(Opt::new(Text::new(ctx, "", TextStyle::Error, font_size), false))
+//         }
+//     } 
+//     pub fn error(&mut self) -> &mut String {
+//         match self {
+//             SubText::Help(either_or) => &mut either_or.right().text,
+//             SubText::Error(opt) => &mut opt.inner().text
+//         }
+//     }
+// }
 
-impl Events for SubText {
-    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(TickEvent) = event.downcast_ref() {
-            let error = !self.error().is_empty();
-            match self {
-                SubText::Help(either_or) => either_or.display_left(error),
-                SubText::Error(opt) => opt.display(error)
-            }
-        }
-        true
-    }
-}
+// impl Events for SubText {
+//     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
+//         if let Some(TickEvent) = event.downcast_ref() {
+//             let error = !self.error().is_empty();
+//             match self {
+//                 SubText::Help(either_or) => either_or.display_left(error),
+//                 SubText::Error(opt) => opt.display(error)
+//             }
+//         }
+//         true
+//     }
+// }
 
 
 #[derive(Debug, Component)]

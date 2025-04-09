@@ -15,6 +15,7 @@ pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[sk
 impl ListItem {
     pub fn new(
         ctx: &mut Context,
+        caret: bool,
         title: &'static str,
         flair: Option<(&'static str, Color)>,
         subtitle: Option<&'static str>,
@@ -27,14 +28,14 @@ impl ListItem {
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
         let content = ListItemContent::new(
-            ctx, title, flair, subtitle, description, right_title, 
+            ctx, caret, title, flair, subtitle, description, right_title, 
             right_subtitle, radio_button, circle_icon
         );
         let layout = Stack(
             Offset::Start, Offset::Center, 
             Size::custom(|widths: Vec<(u32, u32)>| (widths[1].0, u32::MAX)), 
             Size::custom(|heights: Vec<(u32, u32)>| heights[1]), 
-            Padding::default()
+            Padding(0, 16, 0, 16)
         );
 
         ListItem(layout, Rectangle::new(color), content, ButtonState::Default, on_click)
@@ -43,9 +44,7 @@ impl ListItem {
 
 impl Events for ListItem {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        println!("event: {:?}", event);
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            println!("mouse: {:?}", event);
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.3 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.4)(ctx),
@@ -59,12 +58,13 @@ impl Events for ListItem {
 
 
 #[derive(Debug, Component)]
-pub struct ListItemContent(Row, Option<RadioButton>, Option<Avatar>, ListItemData);
+pub struct ListItemContent(Row, Option<RadioButton>, Option<Avatar>, ListItemData, Option<Image>);
 impl Events for ListItemContent {}
 
 impl ListItemContent {
     pub fn new(
         ctx: &mut Context,
+        caret: bool,
         title: &'static str,
         flair: Option<(&'static str, Color)>,
         subtitle: Option<&'static str>,
@@ -74,11 +74,13 @@ impl ListItemContent {
         radio_button: Option<bool>,
         circle_icon: Option<AvatarContent>,
     ) -> Self {
+        let color = ctx.get::<PelicanUI>().theme.colors.text.secondary;
         ListItemContent(
             Row(16, Offset::Center, Size::Fit, Padding::default()),
             radio_button.map(|enabled| RadioButton::new(ctx, enabled)), 
             circle_icon.map(|data| Avatar::new(ctx, data, None, false, 48)),
             ListItemData::new(ctx, title, flair, subtitle, description, right_title, right_subtitle),
+            caret.then(|| Icon::new(ctx, "forward", color, 16)),
         )
     }
 }
@@ -168,6 +170,16 @@ impl RightData {
     }
 }
 
+#[derive(Debug, Component)]
+pub struct ListItemGroup(Column, Vec<ListItem>);
+impl Events for ListItemGroup {}
+
+impl ListItemGroup {
+    pub fn new(ctx: &mut Context, items: Vec<ListItem>) -> Self {
+        ListItemGroup(Column::center(0), items)
+    }
+}
+
 impl ListItem {
     pub fn contact(
         ctx: &mut Context,
@@ -176,7 +188,7 @@ impl ListItem {
         nym: &'static str,
         on_click: fn(&mut Context) -> ()
     ) -> Self {
-        ListItem::new(ctx, name, None, Some(nym), None, None, None, None, Some(data), on_click)
+        ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), on_click)
     }
 
     pub fn direct_message(
@@ -186,7 +198,7 @@ impl ListItem {
         recent: &'static str,
         on_click: fn(&mut Context) -> ()
     ) -> Self {
-        ListItem::new(ctx, name, None, Some(recent), None, None, None, None, Some(data), on_click)
+        ListItem::new(ctx, true, name, None, Some(recent), None, None, None, None, Some(data), on_click)
     }
 
     pub fn group_message(
@@ -196,7 +208,7 @@ impl ListItem {
     ) -> Self {
         let description = Box::leak(names.join(", ").into_boxed_str());
         let avatar = AvatarContent::Icon("group", AvatarIconStyle::Secondary);
-        ListItem::new(ctx, "Group Message", None, None, Some(description), None, None, None, Some(avatar), on_click)
+        ListItem::new(ctx, true, "Group Message", None, None, Some(description), None, None, None, Some(avatar), on_click)
     }
 
     pub fn room(
@@ -207,7 +219,7 @@ impl ListItem {
         description: &'static str,
         on_click: fn(&mut Context) -> ()
     ) -> Self {
-        ListItem::new(ctx, name, None, Some(members), Some(description), None, None, None, Some(data), on_click)
+        ListItem::new(ctx, true, name, None, Some(members), Some(description), None, None, None, Some(data), on_click)
     }
 
     pub fn bitcoin(
@@ -219,7 +231,7 @@ impl ListItem {
     ) -> Self {
         let title = if is_received { "Received Bitcoin" } else { "Sent Bitcoin" };
         let usd = Box::leak(format!("{:.2}", usd).into_boxed_str());
-        ListItem::new(ctx, title, None, Some(date), None, Some(usd), Some("Details"), None, None, on_click)
+        ListItem::new(ctx, true, title, None, Some(date), None, Some(usd), Some("Details"), None, None, on_click)
     }
 
     pub fn bitcoin_sending(
@@ -233,7 +245,7 @@ impl ListItem {
         let flair = ("warning", color);
         let usd =  Box::leak(format!("${:.2}", usd).into_boxed_str());
         let btc =  Box::leak(format!("${:.8} BTC", btc).into_boxed_str());
-        ListItem::new(ctx, "Sending Bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, on_click)
+        ListItem::new(ctx, true, "Sending Bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, on_click)
     }
 
     pub fn selection(
@@ -243,6 +255,6 @@ impl ListItem {
         subtitle: &'static str,
         on_click: fn(&mut Context) -> (),
     ) -> Self {
-        ListItem::new(ctx, title, None, None, Some(subtitle), None, None, Some(selected), None, on_click)
+        ListItem::new(ctx, false, title, None, None, Some(subtitle), None, None, Some(selected), None, on_click)
     }
 }

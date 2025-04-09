@@ -30,7 +30,10 @@ struct MobileInterface(Column, Page, Option<MobileNavigator>, Option<MobileKeybo
 impl MobileInterface {
     pub fn new(ctx: &mut Context, page: Page) -> Self {
         let _navigator = MobileNavigator::new(ctx);
+        #[cfg(target_os = "ios")]
         let insets = safe_area_insets();
+        #[cfg(not(target_os = "ios"))]
+        let insets = (0, 0, 0, 0);
         MobileInterface(
             Column(0, Offset::Center, Size::Fit, Padding(0, insets.0 as u32, 0, insets.1 as u32)), 
             page, None, None
@@ -114,11 +117,11 @@ pub struct Content (Stack, ContentChildren);
 impl Events for Content {}
 
 impl Content {
-    pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
+    pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
         let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[0].0, 375));
         let height = Size::custom(move |heights: Vec<(u32, u32)>|(heights[0].0, u32::MAX));
         Content(
-            Stack(Offset::Center, Offset::Start, width, height, Padding(24, 16, 24, 16)),
+            Stack(Offset::Center, offset, width, height, Padding(24, 0, 24, 0)),
             ContentChildren::new(content),
         )
     }
@@ -134,10 +137,12 @@ impl ContentChildren {
     }
 }
 
+#[cfg(target_os = "ios")]
 extern "C" {
     fn get_safe_area_insets() -> *const f64;
 }
 
+#[cfg(target_os = "ios")]
 pub fn safe_area_insets() -> (f64, f64, f64, f64) {
     unsafe {
         let ptr = get_safe_area_insets();
