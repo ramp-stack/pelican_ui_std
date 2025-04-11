@@ -21,14 +21,14 @@ impl Events for QRCodeScanner {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             match camera_access() {
-                Ok(val) if val == "Camera view enabled".to_string() => {*self.2.message() = None; *self.2.background() = None;},
+                Ok(val) if val == "cameraEnabled".to_string() => {*self.2.message() = None; *self.2.background() = None;},
                 Ok(val) if val == "waitForCamera".to_string() => {
                     *self.2.message() = Some(Message::new(ctx, "camera", "Accessing device camera."));
                 },
                 _ => *self.2.message() = Some(Message::new(ctx, "settings", "Enable camera in settings."))
             }
-            #[cfg(target_os = "ios")] {
-                let frame = match get_camera_frame_as_rgba_image(300, 300) {
+            #[cfg(any(target_os = "ios", target_os = "macos"))] {
+                let frame = match get_camera_frame_as_rgba_image() {
                     Some(frame) => frame,
                     None => return true,
                 };
@@ -77,10 +77,10 @@ impl Message {
 }
 
 pub fn camera_access() -> Result<String, String> {
-    #[cfg(target_os = "ios")]
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
     let camera_access_status = unsafe { check_camera_access() };
     
-    #[cfg(target_os = "ios")]
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
     if !camera_access_status.is_null() {
         let cstr = unsafe { std::ffi::CStr::from_ptr(camera_access_status) };
         let status = cstr.to_string_lossy().into_owned();
@@ -92,58 +92,65 @@ pub fn camera_access() -> Result<String, String> {
 
 use image::{RgbaImage, Rgba};
 
-#[cfg(target_os = "ios")]
+#[cfg(any(target_os = "ios", target_os = "macos"))]
 extern "C" {
     fn start_camera_capture();
     fn check_camera_access() -> *const std::ffi::c_char;
     fn get_latest_frame() -> *mut std::ffi::c_void;
-    fn get_latest_frame_size() -> i32;
     fn get_latest_frame_stride() -> i32;
+    fn get_initial_frame_size() -> i32;
+    fn get_initial_frame_width() -> i32;
+    fn get_initial_frame_height() -> i32;
 }
 
-// #[cfg(target_os = "ios")]
 pub fn capture() {
-    // #[cfg(any(target_os = "ios", target_os = "macos"))]
-    #[cfg(target_os = "ios")]
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
     unsafe {
         start_camera_capture();
     }
 }
 
-#[cfg(target_os = "ios")]
-pub fn get_camera_frame_as_rgba_image(width: u32, height: u32) -> Option<RgbaImage> {
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+pub fn get_camera_frame_as_rgba_image() -> Option<RgbaImage> {
     unsafe {
         let ptr = get_latest_frame();
-        let size = get_latest_frame_size();
+        let size = get_initial_frame_size();
+        let stride = get_latest_frame_stride() as usize;
+        let width = get_initial_frame_width() as u32;
+        let height = get_initial_frame_height() as u32;
 
-        if ptr.is_null() || size <= 0 {
+        if ptr.is_null() || size <= 0 || width == 0 || height == 0 {
             return None;
         }
-
-        let stride = unsafe { get_latest_frame_stride() } as usize;
 
         let slice = std::slice::from_raw_parts(ptr as *const u8, size as usize);
         let mut image = RgbaImage::new(width, height);
 
-        for y in 0..height {
-            for x in 0..width {
-                let src_index = y as usize * stride + x as usize * 4;
-                let dst_index = (y * width + x) as usize;
+        let mut pixels = image.pixels_mut();
 
+        for y in 0..height {
+            let row_start = y as usize * stride;
+            for x in 0..width {
+                let src_index = row_start + x as usize * 4;
                 if src_index + 3 >= slice.len() {
                     continue;
                 }
 
-                let b = slice[src_index];
-                let g = slice[src_index + 1];
                 let r = slice[src_index + 2];
-                let a = slice[src_index + 3];
+                let g = slice[src_index + 1]; 
+                let b = slice[src_index];
+                let a = slice[src_index + 3]; 
 
-                image.put_pixel(x, y, Rgba([r, g, b, a]));
+                let pixel = pixels.next().unwrap();
+                let pixel_index = (y * width + x) as usize;
+                *pixel = Rgba([r, g, b, a]);
             }
         }
 
-        Some(image::imageops::rotate90(&image))
+        #[cfg(target_os = "ios")]
+        return Some(image::imageops::rotate90(&image));
+        #[cfg(not(target_os = "ios"))]
+        return Some(image);
     }
 }
-    
+
