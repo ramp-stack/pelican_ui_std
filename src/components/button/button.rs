@@ -14,8 +14,8 @@ pub enum ButtonWidth {
     Hug,
 }
 
-#[derive(Debug, Component)]
-pub struct Button(Stack, OutlinedRectangle, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
+#[derive(Component)]
+pub struct Button(Stack, OutlinedRectangle, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>);
 impl Button {
     pub fn new(
         ctx: &mut Context,
@@ -28,7 +28,7 @@ impl Button {
         style: ButtonStyle,
         state: ButtonState,
         offset: Offset,
-        on_click: fn(&mut Context) -> (),
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let (height, padding) = size.background();
         let colors = state.color(ctx, style);
@@ -46,7 +46,7 @@ impl Button {
         let background = OutlinedRectangle::new(colors.background, colors.outline, height/2, 1);
         let layout = Stack(offset, Offset::Center, width, Size::Static(height), Padding::default());
 
-        Button(layout, background, content, style, state, on_click)
+        Button(layout, background, content, style, state, Box::new(on_click))
     }
 }
 
@@ -71,6 +71,13 @@ impl Events for Button {
         } else {true}
     }
 }
+
+impl std::fmt::Debug for Button {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Button(...)")
+    }
+}
+
 
 #[derive(Debug, Component)]
 struct ButtonContent(Row, Option<Avatar>, Option<Image>, Option<BasicText>, Option<Image>);
@@ -108,7 +115,7 @@ impl Button {
     pub fn primary(
         ctx: &mut Context,
         label: &'static str,
-        on_click: fn(&mut Context) -> (),
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
             ctx,
@@ -130,7 +137,7 @@ impl Button {
         icon_l: Option<&'static str>,
         label: &'static str,
         icon_r: Option<&'static str>,
-        on_click: fn(&mut Context) -> (),
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
             ctx,
@@ -150,7 +157,7 @@ impl Button {
     pub fn ghost(
         ctx: &mut Context,
         label: &'static str,
-        on_click: fn(&mut Context) -> (),
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
             ctx,
@@ -171,7 +178,7 @@ impl Button {
         ctx: &mut Context,
         label: Option<&'static str>,
         icon: Option<&'static str>,
-        on_click: fn(&mut Context) -> (),
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
             ctx,
@@ -193,7 +200,7 @@ impl Button {
         icon: &'static str,
         label: &'static str,
         selected: bool,
-        on_click: fn(&mut Context) -> (),
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
             ctx,
@@ -215,7 +222,7 @@ impl Button {
         label: &'static str,
         photo: AvatarContent,
         selected: bool,
-        on_click: fn(&mut Context) -> (),
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
             ctx,

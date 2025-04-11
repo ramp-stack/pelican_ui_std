@@ -6,7 +6,7 @@ use crate::components::button::Button;
 use crate::layout::{Column, Row, Offset, Size, Padding};
 use crate::PelicanUI;
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 pub struct NumericKeypad(Column, ButtonRow, ButtonRow, ButtonRow, ButtonRow);
 impl Events for NumericKeypad {}
 
@@ -22,16 +22,23 @@ impl NumericKeypad {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 struct ButtonRow(Row, Button, Button, Button);
 impl Events for ButtonRow {}
 
 impl ButtonRow {
     fn new(ctx: &mut Context, a: Option<&'static str>, b: Option<&'static str>, c: Option<&'static str>) -> Self {
         let key = |ctx: &mut Context, a: Option<&'static str>| {
-            Button::keypad(ctx, a, a.is_none().then_some("back"), |ctx: &mut Context| ())
+            match a {
+                Some(txt) => Button::keypad(ctx, Some(txt), None, move |ctx: &mut Context| fire(ctx, Key::Character(SmolStr::new_static(txt)))),
+                None => Button::keypad(ctx, None, Some("back"), |ctx: &mut Context| fire(ctx, Key::Named(NamedKey::Backspace)))
+            }
         };
         
         ButtonRow(Row::center(16), key(ctx, a), key(ctx, b), key(ctx, c))        
     }
+}
+
+fn fire(ctx: &mut Context, key: Key) {
+    ctx.trigger_event(KeyboardEvent{state: KeyboardState::Pressed, key})
 }

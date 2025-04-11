@@ -128,7 +128,7 @@ impl Content {
 }
 
 #[derive(Debug, Component)]
-pub struct ContentChildren (Column, Vec<Box<dyn Drawable>>);
+struct ContentChildren (Column, Vec<Box<dyn Drawable>>);
 impl Events for ContentChildren {}
 
 impl ContentChildren {
@@ -136,6 +136,7 @@ impl ContentChildren {
         ContentChildren(Column::center(24), content)
     }
 }
+
 
 #[cfg(target_os = "ios")]
 extern "C" {
