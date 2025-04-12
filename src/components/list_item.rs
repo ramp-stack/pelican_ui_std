@@ -89,7 +89,7 @@ impl ListItemContent {
         ListItemContent(
             Row(16, Offset::Center, Size::Fit, Padding::default()),
             radio_button.map(|enabled| RadioButton::new(ctx, enabled)), 
-            circle_icon.map(|data| Avatar::new(ctx, data, None, false, 48)),
+            circle_icon.map(|data| Avatar::new(ctx, data, None, false, 48.0)),
             ListItemData::new(ctx, title, flair, subtitle, description, right_title, right_subtitle),
             caret.then(|| Icon::new(ctx, "forward", color, 16)),
         )

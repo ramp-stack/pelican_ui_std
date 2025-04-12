@@ -21,7 +21,7 @@ impl MobileKeyboard {
         MobileKeyboard(
             Stack(
                 Offset::Start, Offset::Start, 
-                Size::Fill(200, u32::MAX), Size::custom(|heights: Vec<(u32, u32)>| heights[1]), 
+                Size::Fill(200.0, f32::MAX), Size::custom(|heights: Vec<(f32, f32)>| heights[1]), 
                 Padding::default()
             ), 
             Rectangle::new(color),
@@ -38,10 +38,10 @@ impl KeyboardHeader {
     pub fn new(ctx: &mut Context) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
         KeyboardHeader(
-            Column(0, Offset::Start, Size::Fit, Padding::default()),
+            Column(0.0, Offset::Start, Size::Fit, Padding::default()),
             IconButtonRow::new(ctx),
             Bin (
-                Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1), Padding(0,0,0,2)), 
+                Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1.0), Padding(0.0,0.0,0.0,2.0)), 
                 Rectangle::new(color)
             )
         )
@@ -56,13 +56,13 @@ impl IconButtonRow {
     pub fn new(ctx: &mut Context) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.shades.transparent;
         IconButtonRow(
-            Row(16, Offset::Start, Size::Fit, Padding(12, 6, 12, 6)), 
+            Row(16.0, Offset::Start, Size::Fit, Padding(12.0, 6.0, 12.0, 6.0)), 
             IconButton::keyboard(ctx, "emoji", |_ctx: &mut Context| ()),
             IconButton::keyboard(ctx, "gif", |_ctx: &mut Context| ()),
             IconButton::keyboard(ctx, "photos", |_ctx: &mut Context| ()),
             IconButton::keyboard(ctx, "camera", |_ctx: &mut Context| ()),
             Bin (
-                Stack(Offset::Center, Offset::Center, Size::Fill(1, u32::MAX), Size::Static(1),  Padding::default()), 
+                Stack(Offset::Center, Offset::Center, Size::Fill(1.0, f32::MAX), Size::Static(1.0),  Padding::default()), 
                 Rectangle::new(color)
             ),
             IconButton::keyboard(ctx, "down_arrow", |ctx: &mut Context| ctx.trigger_event(HideKeyboardEvent)),
@@ -77,7 +77,7 @@ impl KeyboardContent {
     pub fn new(ctx: &mut Context) -> Self {
         let (sender, receiver) = mpsc::channel();
         KeyboardContent(
-            Column(0, Offset::Center, Size::Fit, Padding(8, 8, 8, 8)),
+            Column(0.0, Offset::Center, Size::Fit, Padding(8.0, 8.0, 8.0, 8.0)),
             KeyboardHeader::new(ctx),
             KeyboardRow::top(ctx),
             KeyboardRow::middle(ctx),
@@ -118,7 +118,7 @@ impl Events for KeyRow {}
 impl KeyRow {
     pub fn new(ctx: &mut Context, keys: Vec<&'static str>) -> Self {
         let keys = keys.iter().map(|k| Key::character(ctx, k)).collect();
-        KeyRow(Row::center(0), keys)
+        KeyRow(Row::center(0.0), keys)
     }
 
     pub fn keys(&mut self) -> &mut Vec<Key> {&mut self.1}
@@ -132,26 +132,26 @@ impl Events for KeyboardRow {}
 impl KeyboardRow {
     fn top(ctx: &mut Context) -> Self {
         let key_row = KeyRow::new(ctx, top_keys(0));
-        KeyboardRow(Row::center(0), None, None, Some(key_row), None, None)
+        KeyboardRow(Row::center(0.0), None, None, Some(key_row), None, None)
     }
 
     fn middle(ctx: &mut Context) -> Self {
         let key_row = KeyRow::new(ctx, mid_keys(0));
-        KeyboardRow(Row::center(0), None, None, Some(key_row), None, None)
+        KeyboardRow(Row::center(0.0), None, None, Some(key_row), None, None)
     }
 
     fn bottom(ctx: &mut Context, sender: Sender<u8>) -> Self {
         let capslock = Capslock::new(ctx, sender);
         let backspace = Key::backspace(ctx);
         let key_row = KeyRow::new(ctx, bot_keys(0));
-        KeyboardRow(Row::center(6), Some(capslock), None, Some(key_row), None, Some(backspace))
+        KeyboardRow(Row::center(6.0), Some(capslock), None, Some(key_row), None, Some(backspace))
     }
 
     fn modifier(ctx: &mut Context, sender: Sender<u8>) -> Self {
         let paginator = Paginator::new(ctx, sender);
         let spacebar = Key::spacebar(ctx);
         let newline = Key::newline(ctx);
-        KeyboardRow(Row::center(6), None, Some(paginator), None, Some(spacebar), Some(newline))
+        KeyboardRow(Row::center(6.0), None, Some(paginator), None, Some(spacebar), Some(newline))
     }
 
     fn update(&mut self, new: Vec<&'static str>, caps_on: bool) {
@@ -195,25 +195,25 @@ pub struct Key(Stack, KeyContent, #[skip] ButtonState, #[skip] WinitKey);
 impl Key {
     pub fn character(ctx: &mut Context, c: &'static str) -> Self {
         let character = KeyCharacter::char(ctx, c);
-        let content = KeyContent::new(ctx, 33, Offset::End, character);
+        let content = KeyContent::new(ctx, 33.0, Offset::End, character);
         Key(Stack::default(), content, ButtonState::Default, WinitKey::Character(SmolStr::new_static(c)))
     }
 
     pub fn spacebar(ctx: &mut Context) -> Self {
         let character = KeyCharacter::text(ctx, "space");
-        let content = KeyContent::new(ctx, u32::MAX, Offset::Center, character);
+        let content = KeyContent::new(ctx, f32::MAX, Offset::Center, character);
         Key(Stack::default(), content, ButtonState::Default, WinitKey::Named(NamedKey::Space))
     }
 
     pub fn backspace(ctx: &mut Context) -> Self {
         let character = KeyCharacter::icon(ctx, "backspace");
-        let content = KeyContent::new(ctx, 42, Offset::Center, character);
+        let content = KeyContent::new(ctx, 42.0, Offset::Center, character);
         Key(Stack::default(), content, ButtonState::Default, WinitKey::Named(NamedKey::Backspace))
     }
 
     pub fn newline(ctx: &mut Context) -> Self {
         let character = KeyCharacter::text(ctx, "return");
-        let content = KeyContent::new(ctx, 92, Offset::Center, character);
+        let content = KeyContent::new(ctx, 92.0, Offset::Center, character);
         Key(Stack::default(), content, ButtonState::Default, WinitKey::Named(NamedKey::Enter))
     }
 
@@ -257,7 +257,7 @@ pub struct Capslock(Stack, KeyContent, #[skip] ButtonState, #[skip] bool, #[skip
 impl Capslock {
     fn new(ctx: &mut Context, sender: Sender<u8>) -> Self {
         let character = KeyCharacter::icon(ctx, "capslock");
-        let content = KeyContent::new(ctx, 42, Offset::Center, character);
+        let content = KeyContent::new(ctx, 42.0, Offset::Center, character);
         Capslock(Stack::default(), content, ButtonState::Default, false, sender)
     }
     pub fn content(&mut self) -> &mut KeyContent {&mut self.1}
@@ -309,7 +309,7 @@ pub struct Paginator(Stack, KeyContent, #[skip] ButtonState, #[skip] u32, #[skip
 impl Paginator {
     fn new(ctx: &mut Context, sender: Sender<u8>) -> Self {
         let character = KeyCharacter::paginator(ctx, 0);
-        let content = KeyContent::new(ctx, 92, Offset::Center, character);
+        let content = KeyContent::new(ctx, 92.0, Offset::Center, character);
         Paginator(Stack::default(), content, ButtonState::Default, 0, sender)
     }
 
@@ -370,10 +370,10 @@ pub struct KeyContent(Stack, RoundedRectangle, KeyCharacter);
 impl Events for KeyContent {}
 
 impl KeyContent {
-    pub fn new(ctx: &mut Context, size: u32, offset: Offset, content: KeyCharacter) -> Self {
+    pub fn new(ctx: &mut Context, size: f32, offset: Offset, content: KeyCharacter) -> Self {
         KeyContent(
-            Stack(Offset::Center, offset, Size::Fill(20, size), Size::Static(48), Padding(3, 6, 3, 6)),
-            RoundedRectangle::new(0, 4, ctx.get::<PelicanUI>().theme.colors.shades.lighten),
+            Stack(Offset::Center, offset, Size::Fill(20.0, size), Size::Static(48.0), Padding(3.0, 6.0, 3.0, 6.0)),
+            RoundedRectangle::new(0.0, 4.0, ctx.get::<PelicanUI>().theme.colors.shades.lighten),
             content
         )
     }
@@ -390,7 +390,7 @@ impl KeyCharacter {
     pub fn char(ctx: &mut Context, key: &'static str) -> Self {
         let size = ctx.get::<PelicanUI>().theme.fonts.size.xl;
         KeyCharacter(
-            Row(0, Offset::Center, Size::Fit, Padding(0, 0, 0, 10)),
+            Row(0.0, Offset::Center, Size::Fit, Padding(0.0, 0.0, 0.0, 10.0)),
             None,
             Some(Text::new(ctx, key, TextStyle::Keyboard, size)),
             None, None
@@ -399,12 +399,12 @@ impl KeyCharacter {
 
     pub fn text(ctx: &mut Context, key: &'static str) -> Self {
         let size = ctx.get::<PelicanUI>().theme.fonts.size.md;
-        KeyCharacter(Row::center(0), None, Some(Text::new(ctx, key, TextStyle::Keyboard, size)), None, None)
+        KeyCharacter(Row::center(0.0), None, Some(Text::new(ctx, key, TextStyle::Keyboard, size)), None, None)
     }
 
     pub fn icon(ctx: &mut Context, i: &'static str) -> Self {
         let c = ctx.get::<PelicanUI>().theme.colors.text.heading;
-        KeyCharacter(Row::center(0), Some(Icon::new(ctx, i, c, 36)), None, None, None)
+        KeyCharacter(Row::center(0.0), Some(Icon::new(ctx, i, c, 36.0)), None, None, None)
     }
 
     pub fn paginator(ctx: &mut Context, page: u32) -> Self {
@@ -418,7 +418,7 @@ impl KeyCharacter {
         };
 
         KeyCharacter(
-            Row::center(1),
+            Row::center(1.0),
             None,
             Some(Text::new(ctx, "•", styles.0, size)),
             Some(Text::new(ctx, "•", styles.1, size)),

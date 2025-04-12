@@ -33,9 +33,9 @@ impl MobileInterface {
         #[cfg(target_os = "ios")]
         let insets = safe_area_insets();
         #[cfg(not(target_os = "ios"))]
-        let insets = (0, 0, 0, 0);
+        let insets = (0., 0., 0., 0.);
         MobileInterface(
-            Column(0, Offset::Center, Size::Fit, Padding(0, insets.0 as u32, 0, insets.1 as u32)), 
+            Column(0.0, Offset::Center, Size::Fit, Padding(0.0, insets.0, 0.0, insets.1)), 
             page, None, None
         )
     }
@@ -61,10 +61,10 @@ impl DesktopInterface {
         let navigator = DesktopNavigator::new(ctx);
         let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
         DesktopInterface(
-            Row(0, Offset::Start, Size::Fit, Padding::default()),
+            Row(0.0, Offset::Start, Size::Fit, Padding::default()),
             navigator, 
             Bin (
-                Stack(Offset::default(), Offset::default(), Size::Static(1),  Size::Fit, Padding::default()), 
+                Stack(Offset::default(), Offset::default(), Size::Static(1.0),  Size::Fit, Padding::default()), 
                 Rectangle::new(color)
             ),
            page
@@ -78,9 +78,9 @@ impl Events for Page {}
 
 impl Page {
     pub fn new(header: Header, content: Content, bumper: Option<Bumper>) -> Self {
-        let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[1].0, u32::MAX));
+        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[1].0, f32::MAX));
         Page(
-            Column(12, Offset::Center, width, Padding::default()),
+            Column(12.0, Offset::Center, width, Padding::default()),
             header,
             content,
             bumper,
@@ -94,9 +94,9 @@ impl Events for Bumper {}
 
 impl Bumper {
     pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
-        let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[0].0, 375));
+        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, 375.0));
         Bumper(
-            Stack(Offset::Center, Offset::Start, width, Size::Fit, Padding(24, 16, 24, 16)),
+            Stack(Offset::Center, Offset::Start, width, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
             BumperContent::new(content)
         )
     }
@@ -108,7 +108,7 @@ impl Events for BumperContent {}
 
 impl BumperContent {
     pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
-        BumperContent(Row::center(16), content)
+        BumperContent(Row::center(16.0), content)
     }
 }
 
@@ -118,10 +118,10 @@ impl Events for Content {}
 
 impl Content {
     pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
-        let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[0].0, 375));
-        let height = Size::custom(move |heights: Vec<(u32, u32)>|(heights[0].0, u32::MAX));
+        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, 375.0));
+        let height = Size::custom(move |heights: Vec<(f32, f32)>|(heights[0].0, f32::MAX));
         Content(
-            Stack(Offset::Center, offset, width, height, Padding(24, 0, 24, 0)),
+            Stack(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0)),
             ContentChildren::new(content),
         )
     }
@@ -133,7 +133,7 @@ impl Events for ContentChildren {}
 
 impl ContentChildren {
     pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
-        ContentChildren(Column::center(24), content)
+        ContentChildren(Column::center(24.0), content)
     }
 }
 

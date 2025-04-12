@@ -39,11 +39,11 @@ pub struct Avatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>, Optio
 impl Events for Avatar {}
 
 impl Avatar {
-    pub fn new(ctx: &mut Context, content: AvatarContent, flair: Option<(&'static str, AvatarIconStyle)>, outline: bool, size: u32) -> Self {
+    pub fn new(ctx: &mut Context, content: AvatarContent, flair: Option<(&'static str, AvatarIconStyle)>, outline: bool, size: f32) -> Self {
         let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
 
         let (circle_icon, image) = match content {
-            AvatarContent::Image(image) => (None, Some(Image{shape: ShapeType::Ellipse(0, (size, size)), image, color: None})),
+            AvatarContent::Image(image) => (None, Some(Image{shape: ShapeType::Ellipse(0.0, (size, size)), image, color: None})),
             AvatarContent::Icon(name, style) => (Some(AvatarIcon::new(ctx, name, style, size)), None)
         };
 
@@ -52,7 +52,7 @@ impl Avatar {
             circle_icon,
             image,
             outline.then(|| Outline::circle(size, black)),
-            flair.map(|(name, style)| Flair::new(ctx, name, style, (size as f32 / 3.0).round() as u32))
+            flair.map(|(name, style)| Flair::new(ctx, name, style, size / 3.0))
         )
     }
 }
@@ -62,12 +62,12 @@ struct AvatarIcon(Stack, Shape, Image);
 impl Events for AvatarIcon {}
 
 impl AvatarIcon {
-    fn new(ctx: &mut Context, name: &'static str, style: AvatarIconStyle, size: u32) -> Self {
-        let icon_size = (size as f32 * 0.75).round() as u32;
+    fn new(ctx: &mut Context, name: &'static str, style: AvatarIconStyle, size: f32) -> Self {
+        let icon_size = size * 0.75;
         let (background, icon_color) = style.get(ctx);
         AvatarIcon(
             Stack::center(),
-            Circle::new(size - 2, background), 
+            Circle::new(size - 2.0, background), 
             Icon::new(ctx, name, icon_color, icon_size)
         )
     }
@@ -78,7 +78,7 @@ struct Flair(Stack, AvatarIcon, Shape);
 impl Events for Flair {}
 
 impl Flair {
-    fn new(ctx: &mut Context, name: &'static str, style: AvatarIconStyle, size: u32) -> Self {
+    fn new(ctx: &mut Context, name: &'static str, style: AvatarIconStyle, size: f32) -> Self {
         let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
         Flair(
             Stack::center(),
@@ -95,8 +95,8 @@ impl Events for AvatarRow {}
 impl AvatarRow {
     pub fn new(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {
         AvatarRow(
-            Row::center(0), 
-            avatars.into_iter().map(|avatar| Avatar::new(ctx, avatar, None, true, 32)).collect()
+            Row::center(0.0), 
+            avatars.into_iter().map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0)).collect()
         )
     }
 }

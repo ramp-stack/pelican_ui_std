@@ -38,7 +38,7 @@ impl Number {
         let (color, font_size) = (theme.colors.background.secondary, theme.fonts.size.h5);
         Number(
             Stack::center(),
-            Circle::new(32, color),
+            Circle::new(32.0, color),
             Text::new(ctx, txt, TextStyle::Heading, font_size), 
         )
     }

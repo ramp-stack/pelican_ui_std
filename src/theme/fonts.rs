@@ -58,35 +58,35 @@ impl Fonts {
 
 #[derive(Copy, Clone)]
 pub struct FontSize {
-    pub title: u32,
-    pub h1: u32,
-    pub h2: u32,
-    pub h3: u32,
-    pub h4: u32,
-    pub h5: u32,
-    pub h6: u32,
-    pub xl: u32,
-    pub lg: u32,
-    pub md: u32,
-    pub sm: u32,
-    pub xs: u32
+    pub title: f32,
+    pub h1: f32,
+    pub h2: f32,
+    pub h3: f32,
+    pub h4: f32,
+    pub h5: f32,
+    pub h6: f32,
+    pub xl: f32,
+    pub lg: f32,
+    pub md: f32,
+    pub sm: f32,
+    pub xs: f32
 }
 
 impl Default for FontSize {
     fn default() -> Self {
         FontSize {
-            title: 72,
-            h1: 48,
-            h2: 32,
-            h3: 24,
-            h4: 20,
-            h5: 16,
-            h6: 14,
-            xl: 24,
-            lg: 20,
-            md: 16,
-            sm: 14,
-            xs: 12
+            title: 72.0,
+            h1: 48.0,
+            h2: 32.0,
+            h3: 24.0,
+            h4: 20.0,
+            h5: 16.0,
+            h6: 14.0,
+            xl: 24.0,
+            lg: 20.0,
+            md: 16.0,
+            sm: 14.0,
+            xs: 12.0
         }
     }
 }

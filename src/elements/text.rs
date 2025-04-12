@@ -31,9 +31,9 @@ impl TextStyle {
 pub struct Text;
 
 impl Text {
-    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: u32) -> BasicText {
+    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32) -> BasicText {
         let (color, font) = style.get(ctx);
-        BasicText::new(text, color, None, size, (size as f32*1.25) as u32, font)
+        BasicText::new(text, color, None, size, size *1.25, font)
     }
 }
 
@@ -43,9 +43,9 @@ pub struct ExpandableText(pub BasicText);
 impl ExpandableText {
     pub fn text(&mut self) -> &mut String {&mut self.0.text}
 
-    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: u32) -> Self {
+    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32) -> Self {
         let (color, font) = style.get(ctx);
-        ExpandableText(BasicText::new(text, color, None, size, (size as f32*1.25) as u32, font))
+        ExpandableText(BasicText::new(text, color, None, size, size*1.25, font))
     }
 }
 
@@ -55,9 +55,9 @@ impl Component for ExpandableText {
     fn children(&self) -> Vec<&dyn Drawable> {vec![&self.0]}
     fn request_size(&self, ctx: &mut Context, _children: Vec<SizeRequest>) -> SizeRequest {
         let request = self.0.request_size(ctx);
-        SizeRequest::new(0, request.min_height(), u32::MAX, request.max_height())
+        SizeRequest::new(0.0, request.min_height(), f32::MAX, request.max_height())
     }
-    fn build(&mut self, _ctx: &mut Context, size: (u32, u32), _children: Vec<SizeRequest>) -> Vec<Area> {
+    fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
         let BasicText{max_width, ..} = &mut self.0;
         *max_width = Some(size.0);
         vec![Area{offset: (0, 0), size}]

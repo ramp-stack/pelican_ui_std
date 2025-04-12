@@ -6,10 +6,10 @@ pub struct OutlinedRectangle(Stack, RoundedRectangle, RoundedRectangle);
 impl Events for OutlinedRectangle {}
 
 impl OutlinedRectangle {
-    pub fn new(bg: Color, oc: Color, radius: u32, stroke: u32) -> Self {
+    pub fn new(bg: Color, oc: Color, radius: f32, stroke: f32) -> Self {
         OutlinedRectangle(
             Stack::default(),
-            RoundedRectangle::new(0, radius, bg),
+            RoundedRectangle::new(0.0, radius, bg),
             RoundedRectangle::new(stroke, radius, oc)
         )
     }
@@ -24,8 +24,8 @@ pub struct RoundedRectangle(Shape);
 impl RoundedRectangle {
     pub fn shape(&mut self) -> &mut Shape { &mut self.0 }
 
-    pub fn new(s: u32, r: u32, color: Color) -> Self {
-        RoundedRectangle(Shape{shape: ShapeType::RoundedRectangle(s, (0, 0), r), color})
+    pub fn new(s: f32, r: f32, color: Color) -> Self {
+        RoundedRectangle(Shape{shape: ShapeType::RoundedRectangle(s, (0.0, 0.0), r), color})
     }
 }
 
@@ -36,7 +36,7 @@ impl Component for RoundedRectangle {
     fn request_size(&self, _ctx: &mut Context, _children: Vec<SizeRequest>) -> SizeRequest {
         SizeRequest::fill()
     }
-    fn build(&mut self, _ctx: &mut Context, size: (u32, u32), _children: Vec<SizeRequest>) -> Vec<Area> {
+    fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
         if let ShapeType::RoundedRectangle(_, s, _) = &mut self.0.shape {*s = size}
         vec![Area{offset: (0, 0), size}]
     }
@@ -49,7 +49,7 @@ impl Rectangle {
     pub fn shape(&mut self) -> &mut Shape { &mut self.0 }
 
     pub fn new(color: Color) -> Self {
-        Rectangle(Shape{shape: ShapeType::Rectangle(0, (0, 0)), color})
+        Rectangle(Shape{shape: ShapeType::Rectangle(0.0, (0.0, 0.0)), color})
     }
 }
 
@@ -60,7 +60,7 @@ impl Component for Rectangle {
     fn request_size(&self, _ctx: &mut Context, _children: Vec<SizeRequest>) -> SizeRequest {
         SizeRequest::fill()
     }
-    fn build(&mut self, _ctx: &mut Context, size: (u32, u32), _children: Vec<SizeRequest>) -> Vec<Area> {
+    fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
         if let ShapeType::Rectangle(_, s) = &mut self.0.shape {*s = size}
         vec![Area{offset: (0, 0), size}]
     }
@@ -69,16 +69,16 @@ impl Component for Rectangle {
 pub struct Outline;
 
 impl Outline {
-    pub fn circle(s: u32, color: Color) -> Shape {
-        Shape{shape: ShapeType::Ellipse((s as f32 * 0.06).round() as u32, (s, s)), color}
+    pub fn circle(s: f32, color: Color) -> Shape {
+        Shape{shape: ShapeType::Ellipse(s * 0.06, (s, s)), color}
     }
 }
 
 pub struct Circle;
 
 impl Circle {
-    pub fn new(s: u32, color: Color) -> Shape {
-        Shape{shape: ShapeType::Ellipse(0, (s, s)), color}
+    pub fn new(s: f32, color: Color) -> Shape {
+        Shape{shape: ShapeType::Ellipse(0.0, (s, s)), color}
     }
 }
 

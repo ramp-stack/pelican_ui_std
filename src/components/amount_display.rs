@@ -151,9 +151,9 @@ impl Events for AmountInputContent {
             };
 
             self.1.amount().font_size = size;
-            self.1.amount().line_height = (size as f32 * 1.25) as u32;
+            self.1.amount().line_height = size * 1.25;
             self.1.zeros().font_size = size;
-            self.1.zeros().line_height = (size as f32 * 1.25) as u32;
+            self.1.zeros().line_height = size * 1.25;
             self.1.amount().text = t_formatted.clone();
 
             self.2.2.text = match t_formatted.as_str() {

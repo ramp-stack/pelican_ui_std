@@ -35,15 +35,15 @@ impl Button {
         let content = ButtonContent::new(ctx, avatar, icon_l, label, icon_r, size, colors.label, padding);
 
         let width = match width {
-            ButtonWidth::Hug => Size::custom(move |widths: Vec<(u32, u32)>|
+            ButtonWidth::Hug => Size::custom(move |widths: Vec<(f32, f32)>|
                 (widths[1].0, widths[1].1)
             ),
-            ButtonWidth::Expand => Size::custom(move |widths: Vec<(u32, u32)>|
-                (widths[1].0, u32::MAX)
+            ButtonWidth::Expand => Size::custom(move |widths: Vec<(f32, f32)>|
+                (widths[1].0, f32::MAX)
             ),
         };
 
-        let background = OutlinedRectangle::new(colors.background, colors.outline, height/2, 1);
+        let background = OutlinedRectangle::new(colors.background, colors.outline, height/2.0, 1.0);
         let layout = Stack(offset, Offset::Center, width, Size::Static(height), Padding::default());
 
         Button(layout, background, content, style, state, Box::new(on_click))
@@ -92,11 +92,11 @@ impl ButtonContent {
         icon_r: Option<&'static str>,
         size: ButtonSize,
         color: Color,
-        padding: u32,
+        padding: f32,
     ) -> Self {
         let (text_size, icon_size, spacing) = size.content(ctx);
         ButtonContent(
-            Row(spacing, Offset::Center, Size::Fit, Padding(padding, 0, padding, 0)),
+            Row(spacing, Offset::Center, Size::Fit, Padding(padding, 0.0, padding, 0.0)),
             avatar.map(|content| Avatar::new(ctx, content, None, false, icon_size)),
             icon_l.map(|icon| Icon::new(ctx, icon, color, icon_size)),
             label.map(|label| Text::new(ctx, label, TextStyle::Label(color), text_size)),
@@ -266,7 +266,7 @@ impl Events for ButtonColumn {}
 
 impl ButtonColumn {
     pub fn new(buttons: Vec<Button>) -> Self {
-        ButtonColumn(Column::center(8), buttons)
+        ButtonColumn(Column::center(8.0), buttons)
     }
 }
 
@@ -276,7 +276,7 @@ impl ButtonColumn {
 
 // impl QuickActions {
 //     pub fn new(buttons: Vec<Button>) -> Self {
-//         let width = Size::custom(move |widths: Vec<(u32, u32)>|(widths[0].0, u32::MAX));
+//         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
 //         QuickActions(
 //             Stack(Offset::Start, Offset::Start, width, Size::Fit, Padding::default()),
 //             QuickActionsContent::new(buttons)
@@ -290,6 +290,6 @@ impl Events for QuickActions {}
 
 impl QuickActions {
     pub fn new(buttons: Vec<Button>) -> Self {
-        QuickActions(Wrap(8, 8, Offset::Start, Offset::Center, Padding::default()), buttons)
+        QuickActions(Wrap(8.0, 8.0, Offset::Start, Offset::Center, Padding::default()), buttons)
     }
 }

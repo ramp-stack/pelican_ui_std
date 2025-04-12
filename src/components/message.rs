@@ -40,7 +40,7 @@ impl Message {
 
         Message (
             Row(8, offset, Size::Fit),
-            avatar.map(|data| Avatar::new(ctx, data, None, false, 24)),
+            avatar.map(|data| Avatar::new(ctx, data, None, false, 24.0)),
             MessageContent::new(ctx, style, messages, sender, time)
         )
     }

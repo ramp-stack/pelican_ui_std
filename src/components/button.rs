@@ -93,17 +93,17 @@ pub enum ButtonSize {
 }
 
 impl ButtonSize {
-    fn content(&self, ctx: &mut Context) -> (u32, u32, u32) { // text size, icon size, spacing
+    fn content(&self, ctx: &mut Context) -> (f32, f32, f32) { // text size, icon size, spacing
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         match self {
-            ButtonSize::Medium => (font_size.md, 16, 4),
-            ButtonSize::Large => (font_size.lg, 24, 12)
+            ButtonSize::Medium => (font_size.md, 16., 4.),
+            ButtonSize::Large => (font_size.lg, 24., 12.)
         }
     }
-    fn background(&self) -> (u32, u32) { // height, padding
+    fn background(&self) -> (f32, f32) { // height, padding
         match self {
-            ButtonSize::Medium => (32, 12),
-            ButtonSize::Large => (48, 24)
+            ButtonSize::Medium => (32., 12.),
+            ButtonSize::Large => (48., 24.)
         }
     }
 }

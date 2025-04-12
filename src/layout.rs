@@ -10,7 +10,7 @@ pub enum Offset {
 }
 
 impl Offset {
-    pub fn get(&self, max_size: u32, item: u32) -> i32 {
+    pub fn get(&self, max_size: f32, item: f32) -> i32 {
         match self {
             Self::Start => 0,
             Self::Center => (max_size as i32 - item as i32) / 2,
@@ -29,25 +29,25 @@ impl Offset {
     }
 }
 
-type CustomFunc = dyn Fn(Vec<(u32, u32)>) -> (u32, u32);
-type FitFunc = fn(Vec<(u32, u32)>) -> (u32, u32);
+type CustomFunc = dyn Fn(Vec<(f32, f32)>) -> (f32, f32);
+type FitFunc = fn(Vec<(f32, f32)>) -> (f32, f32);
 
 #[derive(Default)]
 pub enum Size {
     #[default]
     Fit,
-    Fill(u32, u32),
-    Static(u32),
+    Fill(f32, f32),
+    Static(f32),
     Custom(Box<CustomFunc>)
 }
 
 impl Size {
-    pub fn fill() -> Self {Size::Fill(0, u32::MAX)}
-    pub fn custom(func: impl Fn(Vec<(u32, u32)>) -> (u32, u32) + 'static) -> Self {
+    pub fn fill() -> Self {Size::Fill(0.0, f32::MAX)}
+    pub fn custom(func: impl Fn(Vec<(f32, f32)>) -> (f32, f32) + 'static) -> Self {
         Size::Custom(Box::new(func))
     }
 
-    fn get(&self, items: Vec<(u32, u32)>, fit: FitFunc) -> (u32, u32) {
+    fn get(&self, items: Vec<(f32, f32)>, fit: FitFunc) -> (f32, f32) {
         match self {
             Size::Fit => fit(items),
             Size::Fill(min, max) => (*min, *max),
@@ -56,12 +56,12 @@ impl Size {
         }
     }
 
-    fn max(items: Vec<(u32, u32)>) -> (u32, u32) {
+    fn max(items: Vec<(f32, f32)>) -> (f32, f32) {
         items.into_iter().reduce(|s, i| (s.0.max(i.0), s.1.max(i.1))).unwrap_or_default()
     }
 
-    fn add(items: Vec<(u32, u32)>) -> (u32, u32) {
-        items.into_iter().reduce(|s, i| (s.0.saturating_add(i.0), s.1.saturating_add(i.1))).unwrap_or_default()
+    fn add(items: Vec<(f32, f32)>) -> (f32, f32) {
+        items.into_iter().reduce(|s, i| (s.0+i.0, s.1+i.1)).unwrap_or_default()
     }
 }
 
@@ -72,12 +72,12 @@ impl std::fmt::Debug for Size {
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct Padding(pub u32, pub u32, pub u32, pub u32);
+pub struct Padding(pub f32, pub f32, pub f32, pub f32);
 
 impl Padding {
-    pub fn new(p: u32) -> Self {Padding(p, p, p, p)}
+    pub fn new(p: f32) -> Self {Padding(p, p, p, p)}
 
-    fn adjust_size(&self, size: (u32, u32)) -> (u32, u32) {
+    fn adjust_size(&self, size: (f32, f32)) -> (f32, f32) {
         let wp = self.0+self.2;
         let hp = self.1+self.3;
         (size.0-wp, size.1-hp)
@@ -96,17 +96,17 @@ impl Padding {
 
 pub struct UniformExpand;
 impl UniformExpand {
-    pub fn get(sizes: Vec<(u32, u32)>, max_size: u32, spacing: u32) -> Vec<u32> {
-        let spacing = (sizes.len()-1) as u32 * spacing;
-        let min_size = sizes.iter().fold(0, |s, i| s+i.0)+spacing;
+    pub fn get(sizes: Vec<(f32, f32)>, max_size: f32, spacing: f32) -> Vec<f32> {
+        let spacing = (sizes.len()-1) as f32 * spacing;
+        let min_size = sizes.iter().fold(0.0, |s, i| s+i.0)+spacing;
 
-        let mut sizes = sizes.into_iter().map(|s| (s.0 as f32, s.1)).collect::<Vec<_>>();
+        let mut sizes = sizes.into_iter().map(|s| (s.0, s.1)).collect::<Vec<_>>();
 
         let mut free_space = (max_size as i32 - min_size as i32).max(0) as f32;
         while free_space > 0.0 {
             let (min_exp, count, next) = sizes.iter().fold((None, 0.0, free_space), |(mut me, mut c, mut ne), size| {
                 let min = size.0;
-                let max = size.1 as f32;
+                let max = size.1;
                 if min < max { //I can expand
                     match me {
                         Some(w) if w < min => {
@@ -138,21 +138,21 @@ impl UniformExpand {
             let expand = expand / count;
 
             sizes.iter_mut().for_each(|size| {
-                if size.0 < size.1 as f32 && size.0 == min_exp {
+                if size.0 < size.1 && size.0 == min_exp {
                     size.0 += expand;
                 }
             });
         }
-        sizes.into_iter().map(|s| s.0.round() as u32).collect()
+        sizes.into_iter().map(|s| s.0.floor()).collect()
     }
 }
 
 
 #[derive(Debug)]
-pub struct Row(pub u32, pub Offset, pub Size, pub Padding);
+pub struct Row(pub f32, pub Offset, pub Size, pub Padding);
 
 impl Row {
-    pub fn center(spacing: u32) -> Self {
+    pub fn center(spacing: f32) -> Self {
         Row(spacing, Offset::Center, Size::Fit, Padding::default())
     }
 }
@@ -162,18 +162,18 @@ impl Layout for Row {
         let (widths, heights): (Vec<_>, Vec<_>) = children.into_iter().map(|i|
             ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
         ).unzip();
-        let spacing = self.0*(widths.len() as u32-1);
+        let spacing = self.0*(widths.len()-1) as f32;
         let width = Size::add(widths);
         let height = self.2.get(heights, Size::max);
         self.3.adjust_request(SizeRequest::new(width.0, height.0, width.1, height.1).add_width(spacing))
     }
 
-    fn build(&self, _ctx: &mut Context, row_size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
+    fn build(&self, _ctx: &mut Context, row_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
         let row_size = self.3.adjust_size(row_size);
 
         let widths = UniformExpand::get(children.iter().map(|i| (i.min_width(), i.max_width())).collect::<Vec<_>>(), row_size.0, self.0);
 
-        let mut offset = 0;
+        let mut offset = 0.0;
         children.into_iter().zip(widths).map(|(i, width)| {
             let size = i.get((width, row_size.1));
             let off = self.3.adjust_offset((offset as i32, self.1.get(row_size.1, size.1)));
@@ -184,10 +184,10 @@ impl Layout for Row {
 }
 
 #[derive(Debug)]
-pub struct Column(pub u32, pub Offset, pub Size, pub Padding);
+pub struct Column(pub f32, pub Offset, pub Size, pub Padding);
 
 impl Column {
-    pub fn center(spacing: u32) -> Self {
+    pub fn center(spacing: f32) -> Self {
         Column(spacing, Offset::Center, Size::Fit, Padding::default())
     }
 }
@@ -198,19 +198,19 @@ impl Layout for Column {
         let (widths, heights): (Vec<_>, Vec<_>) = children.into_iter().map(|i|
             ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
         ).unzip();
-        let spacing = self.0*(heights.len() as u32-1);
+        let spacing = self.0*(heights.len()-1) as f32;
         let width = self.2.get(widths, Size::max);
         let height = Size::add(heights);
         self.3.adjust_request(SizeRequest::new(width.0, height.0, width.1, height.1).add_height(spacing))
 
     }
 
-    fn build(&self, _ctx: &mut Context, col_size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
+    fn build(&self, _ctx: &mut Context, col_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
         let col_size = self.3.adjust_size(col_size);
 
         let heights = UniformExpand::get(children.iter().map(|i| (i.min_height(), i.max_height())).collect::<Vec<_>>(), col_size.1, self.0);
 
-        let mut offset = 0;
+        let mut offset = 0.0;
         children.into_iter().zip(heights).map(|(i, height)| {
             let size = i.get((col_size.0, height));
             let off = self.3.adjust_offset((self.1.get(col_size.0, size.0), offset as i32));
@@ -242,7 +242,7 @@ impl Layout for Stack {
         self.4.adjust_request(SizeRequest::new(width.0, height.0, width.1, height.1))
     }
 
-    fn build(&self, _ctx: &mut Context, stack_size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
+    fn build(&self, _ctx: &mut Context, stack_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
         let stack_size = self.4.adjust_size(stack_size);
         children.into_iter().map(|i| {
             let size = i.get(stack_size);
@@ -254,10 +254,10 @@ impl Layout for Stack {
 
 
 #[derive(Debug)]
-pub struct Wrap(pub u32, pub u32, pub Offset, pub Offset, pub Padding);
+pub struct Wrap(pub f32, pub f32, pub Offset, pub Offset, pub Padding);
 // width spacing, height spacing, vertical offset, horizontal offset, width, padding
 impl Wrap {
-    pub fn center(w_spacing: u32, h_spacing: u32) -> Self {
+    pub fn center(w_spacing: f32, h_spacing: f32) -> Self {
         Wrap(w_spacing, h_spacing, Offset::Center, Offset::Center, Padding::default())
     }
 }
@@ -269,18 +269,18 @@ impl Layout for Wrap {
             ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
         ).unzip();
 
-        let w_spacing = self.0*(min_w.len() as u32-1);
-        let h_spacing = self.1*(heights.len() as u32-1);
+        let w_spacing = self.0*(min_w.len()-1) as f32;
+        let h_spacing = self.1*(heights.len()-1) as f32;
 
         let min_width = min_w.into_iter().reduce(|s, i| s.max(i)).unwrap_or_default();
-        let max_width = max_w.into_iter().reduce(|s, i| s.saturating_add(i)).unwrap_or_default();
+        let max_width = max_w.into_iter().reduce(|s, i| s+i).unwrap_or_default();
 
         let height = Size::add(heights);
 
         self.4.adjust_request(SizeRequest::new(min_width, height.0, max_width, height.1).add(w_spacing, h_spacing))
     }
 
-    fn build(&self, _ctx: &mut Context, maximum_size: (u32, u32), children: Vec<SizeRequest>) -> Vec<Area> {
+    fn build(&self, _ctx: &mut Context, maximum_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
         let mut taken_width = self.4.1;
         let mut height_offset = self.4.2;
         let mut items: Vec<SizeRequest> = Vec::new();

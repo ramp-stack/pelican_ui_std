@@ -14,7 +14,7 @@ impl QRCode {
     pub fn new(ctx: &mut Context, data: &'static str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (app_icon, color) = (theme.brand.app_icon.clone(), theme.colors.shades.white);
-        let qr_size = 294;
+        let qr_size = 315;
         let logo_size = 72;
 
         QRCode (
@@ -34,25 +34,33 @@ pub struct QRModules(Column, Vec<QRModuleRow>);
 impl Events for QRModules {}
 
 impl QRModules {
-    pub fn new(ctx: &mut Context, code: &'static str, qr_size: u32, logo_size: u32) -> Self {
-        let code = QrCode::new(code).unwrap();
+    pub fn new(ctx: &mut Context, code_str: &'static str, qr_size: u32, logo_size: u32) -> Self {
+        let code = QrCode::new(code_str).unwrap();
         let module_count = code.width() as u32;
-        let module_size = (qr_size as f32 / module_count as f32).ceil() as u32;
-
+        let module_size = qr_size as f32 / module_count as f32;
+        let total_rendered_size = module_size * module_count as f32;
+    
         let mut rows: Vec<QRModuleRow> = vec![];
         for y in 0..module_count {
-            let py = y * module_size;
-            rows.push(QRModuleRow::new(ctx, code.clone(), module_count, qr_size, logo_size, module_size, py, y));
+            rows.push(QRModuleRow::new(
+                ctx,
+                code.clone(),
+                module_count,
+                qr_size,
+                logo_size,
+                module_size,
+                y,
+            ));
         }
-
+    
         QRModules(Column::center(0), rows)
     }
+    
 }
 
 #[derive(Debug, Component)]
 pub struct QRModuleRow(Row, Vec<Shape>);
 impl Events for QRModuleRow{}
-
 impl QRModuleRow {
     pub fn new(
         ctx: &mut Context, 
@@ -60,36 +68,33 @@ impl QRModuleRow {
         module_count: u32, 
         qr_size: u32, 
         logo_size: u32,  
-        module_size: u32,
-        py: u32, 
+        module_size: f32,
         y: u32
     ) -> Self {
         let shades = &ctx.get::<PelicanUI>().theme.colors.shades;
-        let logo_size = logo_size + 16;
-        let logo_start = (qr_size - logo_size) / 2;
-        let logo_end = logo_start + logo_size;
-
+    
+        let logo_modules = (logo_size / module_size as u32) + 2;
+        let logo_start = (module_count - logo_modules) / 2;
+        let logo_end = logo_start + logo_modules;
+    
         let mut modules: Vec<Shape> = vec![];
+    
         for x in 0..module_count {
-            let px = x * module_size;
             let color = 
-                if px > module_size 
-                && py > module_size
-                && (px - (module_size / 6)) >= logo_start
-                && (py - (module_size / 6)) >= logo_start
-                && px < logo_end
-                && py < logo_end
-            {
-                shades.transparent
-            } else if code[(x as usize, y as usize)] == Color::Dark {
-                shades.black
-            } else {
-                shades.transparent
-            };
-
-            modules.push(Circle::new(module_size, color));
+                if x >= logo_start && x < logo_end &&
+                   y >= logo_start && y < logo_end
+                {
+                    shades.transparent
+                } else if code[(x as usize, y as usize)] == Color::Dark {
+                    shades.black
+                } else {
+                    shades.transparent
+                };
+            let circle = Circle::new(module_size, color);
+    
+            modules.push(circle);
         }
         QRModuleRow(Row::center(0), modules)
     }
+    
 }
-
