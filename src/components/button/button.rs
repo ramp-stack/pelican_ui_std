@@ -238,6 +238,26 @@ impl Button {
             on_click
         )
     }
+
+    pub fn close(
+        ctx: &mut Context,
+        label: &'static str,
+        on_click: impl FnMut(&mut Context) + 'static,
+    ) -> Self {
+        Button::new(
+            ctx,
+            None,
+            None,
+            Some(label),
+            None,
+            ButtonSize::Large,
+            ButtonWidth::Expand,
+            ButtonStyle::Secondary,
+            ButtonState::Default,
+            Offset::Center,
+            on_click
+        )
+    }
 }
 
 #[derive(Debug, Component)]

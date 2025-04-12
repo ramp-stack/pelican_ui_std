@@ -23,3 +23,11 @@ impl Event for HideKeyboardEvent {
         children.into_iter().map(|_| Some(Box::new(*self) as Box<dyn Event>)).collect()
     }
 }
+
+#[derive(Debug, Clone, Copy)]
+pub struct ListItemSelect(pub uuid::Uuid);
+impl Event for ListItemSelect {
+    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((i32, i32), (u32, u32))>) -> Vec<Option<Box<dyn Event>>> {
+        children.into_iter().map(|_| Some(Box::new(*self) as Box<dyn Event>)).collect()
+    }
+}

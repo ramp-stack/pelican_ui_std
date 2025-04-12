@@ -10,8 +10,8 @@ pub use text_input::*;
 // pub mod alert;
 // pub use alert::*;
 
-// pub mod qr_code;
-// pub use qr_code::*;
+pub mod qr_code;
+pub use qr_code::*;
 
 pub mod qr_scanner;
 pub use qr_scanner::*;

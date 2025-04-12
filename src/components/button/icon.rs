@@ -105,6 +105,20 @@ impl IconButton {
         )
     }
 
+    pub fn close(
+        ctx: &mut Context, 
+        on_click: fn(&mut Context) -> ()
+    ) -> Self {
+        IconButton::new(
+            ctx,
+            "close",
+            ButtonSize::Medium,
+            ButtonStyle::Ghost,
+            ButtonState::Default,
+            on_click
+        )
+    }
+
     pub fn tab_nav(
         ctx: &mut Context, 
         icon: &'static str, 

@@ -29,7 +29,7 @@ impl DataItem {
 }
 
 #[derive(Debug, Component)]
-struct Number(Stack, BasicText, Shape);
+struct Number(Stack, Shape, BasicText);
 impl Events for Number {}
 
 impl Number {
@@ -38,14 +38,14 @@ impl Number {
         let (color, font_size) = (theme.colors.background.secondary, theme.fonts.size.h5);
         Number(
             Stack::center(),
-            Text::new(ctx, txt, TextStyle::Heading, font_size),
-            Circle::new(32, color), 
+            Circle::new(32, color),
+            Text::new(ctx, txt, TextStyle::Heading, font_size), 
         )
     }
 }
 
 #[derive(Debug, Component)]
-struct DataItemContent(Column, BasicText, Option<BasicText>, Option<BasicText>, Option<Table>, Option<QuickActions>);
+struct DataItemContent(Column, BasicText, Option<ExpandableText>, Option<ExpandableText>, Option<Table>, Option<QuickActions>);
 impl Events for DataItemContent {}
 
 impl DataItemContent {
@@ -59,10 +59,10 @@ impl DataItemContent {
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         DataItemContent(
-            Column(16, Offset::Start, Size::Fit, Padding::default()),
+            Column(16, Offset::Start, Size::fill(), Padding::default()),
             Text::new(ctx, label, TextStyle::Heading, font_size.h5),
-            text.map(|t| Text::new(ctx, t, TextStyle::Primary, font_size.md)),
-            secondary.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm)),
+            text.map(|t| ExpandableText::new(ctx, t, TextStyle::Primary, font_size.md)),
+            secondary.map(|t|ExpandableText::new(ctx, t, TextStyle::Secondary, font_size.sm)),
             table.map(|tabulars| Table::new(ctx, tabulars)),
             quick_actions.map(|actions| QuickActions::new(actions)),
         )
@@ -90,7 +90,7 @@ impl Tabular {
     fn new(ctx: &mut Context, name: &'static str, data: &'static str) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
         Tabular (
-            Row(0, Offset::Start, Size::Fit, Padding::default()),
+            Row(8, Offset::Start, Size::Fit, Padding(0, 4, 0, 4)),
             ExpandableText::new(ctx, name, TextStyle::Primary, font_size),
             Text::new(ctx, data, TextStyle::Primary, font_size),
         )
@@ -106,25 +106,3 @@ impl QuickActions {
         QuickActions(Row(8, Offset::Start, Size::Fit, Padding::default()), buttons)
     }
 }
-
-
-// let confirm_amount = DataItem {
-//     number: Some("2"),
-//     label: "Confirm amount",
-//     table: vec![
-//         ("date", "12/25/20"),
-//         ("time", "11:45 PM")
-//     ],
-//     text: None,
-//     secondary_text: None,
-//     quick_actions: vec!["Edit amount", "Edit speed"]
-// }
-
-// let confirm_address = DataItem {
-//     number: Some("1"),
-//     label: "Confirm adress",
-//     table: Vec::new(),
-//     text: Some("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"),
-//     secondary_text: Some("Bitcoin sent to the wrong address can never be recovered."),
-//     quick_actions: vec!["Edit address"]
-// }
