@@ -33,7 +33,7 @@ impl Events for QRCodeScanner {
                     None => return true,
                 };
                 let image = resources::Image::new(ctx, frame);
-                self.1 = Some(Image{shape: ShapeType::Rectangle(0, (300, 300)), image, color: None});
+                self.1 = Some(Image{shape: ShapeType::Rectangle(0.0, (300.0, 300.0)), image, color: None});
             }
         }
         true
@@ -50,9 +50,9 @@ impl QRGuide {
         let colors = ctx.get::<PelicanUI>().theme.colors;
         let (background, color) = (colors.background.secondary, colors.outline.secondary);
         QRGuide(
-            Stack(Offset::Center, Offset::Center, Size::Static(308), Size::Static(308), Padding::default()), 
-            Some(RoundedRectangle::new(0, 8, background)), 
-            RoundedRectangle::new(4, 8, color), 
+            Stack(Offset::Center, Offset::Center, Size::Static(308.0), Size::Static(308.0), Padding::default()), 
+            Some(RoundedRectangle::new(0.0, 8.0, background)), 
+            RoundedRectangle::new(4.0, 8.0, color), 
             Some(Message::new(ctx, "camera", "Accessing device camera."))
         )
     }
@@ -69,8 +69,8 @@ impl Message {
     pub fn new(ctx: &mut Context, icon: &'static str, msg: &'static str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (color, font_size) = (theme.colors.shades.lighten, theme.fonts.size.sm);
-        Message(Column::center(4), 
-            Icon::new(ctx, icon, color, 48),
+        Message(Column::center(4.0), 
+            Icon::new(ctx, icon, color, 48.0),
             Text::new(ctx, msg, TextStyle::Secondary, font_size)
         )
     }

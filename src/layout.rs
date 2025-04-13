@@ -6,22 +6,22 @@ pub enum Offset {
     Start,
     Center,
     End,
-    Static(i32)
+    Static(f32)
 }
 
 impl Offset {
-    pub fn get(&self, max_size: f32, item: f32) -> i32 {
+    pub fn get(&self, max_size: f32, item: f32) -> f32 {
         match self {
-            Self::Start => 0,
-            Self::Center => (max_size as i32 - item as i32) / 2,
-            Self::End => max_size as i32 - item as i32,
+            Self::Start => 0.0,
+            Self::Center => (max_size - item) / 2.0,
+            Self::End => max_size - item,
             Self::Static(s) => *s,
         }
     }
 
-    pub fn size(&self) -> Option<i32> {
+    pub fn size(&self) -> Option<f32> {
         match self {
-            Self::Start => Some(0),
+            Self::Start => Some(0.0),
             Self::Center => None,
             Self::End => None,
             Self::Static(s) => Some(*s),
@@ -83,8 +83,8 @@ impl Padding {
         (size.0-wp, size.1-hp)
     }
 
-    fn adjust_offset(&self, offset: (i32, i32)) -> (i32, i32) {
-        (offset.0+self.0 as i32, offset.1+self.1 as i32)
+    fn adjust_offset(&self, offset: (f32, f32)) -> (f32, f32) {
+        (offset.0+self.0 as f32, offset.1+self.1 as f32)
     }
 
     fn adjust_request(&self, request: SizeRequest) -> SizeRequest {
@@ -102,7 +102,7 @@ impl UniformExpand {
 
         let mut sizes = sizes.into_iter().map(|s| (s.0, s.1)).collect::<Vec<_>>();
 
-        let mut free_space = (max_size as i32 - min_size as i32).max(0) as f32;
+        let mut free_space = (max_size - min_size).max(0.0);
         while free_space > 0.0 {
             let (min_exp, count, next) = sizes.iter().fold((None, 0.0, free_space), |(mut me, mut c, mut ne), size| {
                 let min = size.0;
@@ -143,7 +143,7 @@ impl UniformExpand {
                 }
             });
         }
-        sizes.into_iter().map(|s| s.0.floor()).collect()
+        sizes.into_iter().map(|s| s.0).collect()
     }
 }
 
@@ -176,7 +176,7 @@ impl Layout for Row {
         let mut offset = 0.0;
         children.into_iter().zip(widths).map(|(i, width)| {
             let size = i.get((width, row_size.1));
-            let off = self.3.adjust_offset((offset as i32, self.1.get(row_size.1, size.1)));
+            let off = self.3.adjust_offset((offset as f32, self.1.get(row_size.1, size.1)));
             offset += size.0+self.0;
             Area{offset: off, size}
         }).collect()
@@ -213,7 +213,7 @@ impl Layout for Column {
         let mut offset = 0.0;
         children.into_iter().zip(heights).map(|(i, height)| {
             let size = i.get((col_size.0, height));
-            let off = self.3.adjust_offset((self.1.get(col_size.0, size.0), offset as i32));
+            let off = self.3.adjust_offset((self.1.get(col_size.0, size.0), offset as f32));
             offset += size.1+self.0;
             Area{offset: off, size}
         }).collect()
@@ -264,7 +264,6 @@ impl Wrap {
 
 impl Layout for Wrap {
     fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
-
         let ((min_w, max_w), heights): ((Vec<_>, Vec<_>), Vec<_>) = children.into_iter().map(|i|
             ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
         ).unzip();
@@ -275,7 +274,9 @@ impl Layout for Wrap {
         let min_width = min_w.into_iter().reduce(|s, i| s.max(i)).unwrap_or_default();
         let max_width = max_w.into_iter().reduce(|s, i| s+i).unwrap_or_default();
 
-        let height = Size::add(heights);
+        let height = Size::add(heights.clone());
+
+        println!("min height: {:?} items: {:?}", height, heights.len());
 
         self.4.adjust_request(SizeRequest::new(min_width, height.0, max_width, height.1).add(w_spacing, h_spacing))
     }
@@ -291,7 +292,7 @@ impl Layout for Wrap {
                 taken_width = self.4.1;
             };
 
-            let area = Area {offset: (taken_width as i32, height_offset as i32), size: (child.min_width(), child.min_height())};
+            let area = Area {offset: (taken_width, height_offset), size: (child.min_width(), child.min_height())};
 
             taken_width += child.min_width() + self.0; 
             items.push(*child);

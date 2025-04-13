@@ -39,6 +39,7 @@ impl PelicanUI {
 }
 
 pub mod prelude {
+    pub use crate::events::*;
     pub use crate::interface::*;
     pub use crate::layout::*;
     pub use crate::components::*;

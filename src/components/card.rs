@@ -20,12 +20,12 @@ impl Card {
     ) -> Self {
         let colors = ctx.get::<PelicanUI>().theme.colors;
         let (bg, oc) = (colors.background.primary, colors.outline.secondary);
-        let background = OutlinedRectangle::new(bg, oc, 16, 1);
+        let background = OutlinedRectangle::new(bg, oc, 16.0, 1.0);
         let content = CardContent::new(ctx, avatar, title, subtitle, description);
         let layout = Stack(
             Offset::Center, Offset::Center, 
-            Size::custom(|widths: Vec<(u32, u32)>| (widths[1].0, u32::MAX)), 
-            Size::custom(|heights: Vec<(u32, u32)>| heights[1]), 
+            Size::custom(|widths: Vec<(f32, f32)>| (widths[1].0, f32::MAX)), 
+            Size::custom(|heights: Vec<(f32, f32)>| heights[1]), 
             Padding::default()
         );
 
@@ -62,12 +62,12 @@ impl CardContent {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (font_size, color) = (theme.fonts.size, theme.colors.outline.secondary);
         CardContent(
-            Column(8, Offset::Center, Size::Fit, Padding(16, 16, 16, 16)),
+            Column(8.0, Offset::Center, Size::Fit, Padding(16.0, 16.0, 16.0, 16.0)),
             Avatar::new(ctx, avatar, None, false, 64.0),
             Text::new(ctx, title, TextStyle::Heading, font_size.h3),
             Text::new(ctx, subtitle, TextStyle::Primary, font_size.xs),
             Bin (
-                Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1), Padding(0, 6, 0, 6)), 
+                Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1.0), Padding(0.0, 6.0, 0.0, 6.0)), 
                 Rectangle::new(color)
             ),
             Text::new(ctx, description, TextStyle::Primary, font_size.sm),

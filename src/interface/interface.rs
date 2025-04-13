@@ -144,14 +144,14 @@ extern "C" {
 }
 
 #[cfg(target_os = "ios")]
-pub fn safe_area_insets() -> (f64, f64, f64, f64) {
+pub fn safe_area_insets() -> (f32, f32, f32, f32) {
     unsafe {
         let ptr = get_safe_area_insets();
         (
-            *ptr.add(0), // top
-            *ptr.add(1), // bottom
-            *ptr.add(2), // left
-            *ptr.add(3), // right
+            *ptr.add(0) as f32, // top
+            *ptr.add(1) as f32, // bottom
+            *ptr.add(2) as f32, // left
+            *ptr.add(3) as f32, // right
         )
     }
 }

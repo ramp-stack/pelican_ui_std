@@ -25,7 +25,7 @@ impl TextInput {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
 
         TextInput(
-            Column(16, Offset::Start, Size::Fit, Padding::default()),
+            Column(16.0, Offset::Start, Size::Fit, Padding::default()),
             label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5)),
             InputField::new(ctx, placeholder, icon_button),
             help_text.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm)),
@@ -106,13 +106,13 @@ impl InputField {
     ) -> Self {
         let (background, outline) = InputState::Default.get_color(ctx);
         let content = InputContent::new(ctx, placeholder, icon_button);
-        let background = OutlinedRectangle::new(background, outline, 8, 1);
+        let background = OutlinedRectangle::new(background, outline, 8.0, 1.0);
 
         InputField(Stack(
             Offset::Center, Offset::End, Size::fill(),
-            Size::custom(|heights: Vec<(u32, u32)>| (
-                if heights[1].0 > 48 {heights[1].0} else {48},
-                if heights[1].1 > 48 {heights[1].1} else {48}
+            Size::custom(|heights: Vec<(f32, f32)>| (
+                if heights[1].0 > 48.0 {heights[1].0} else {48.0},
+                if heights[1].1 > 48.0 {heights[1].1} else {48.0}
             )),
             Padding::default()
         ), background, content, InputState::Default, false)
@@ -216,9 +216,9 @@ impl InputContent {
         }).unwrap_or((None, None));
 
         InputContent(
-            Row(16, Offset::End, Size::Fit, Padding(16, 8, 8, 8)),
+            Row(16.0, Offset::End, Size::Fit, Padding(16.0, 8.0, 8.0, 8.0)),
             Bin(
-                Stack(Offset::default(), Offset::End, Size::Fit, Size::Fit, Padding(8, 6, 8, 6)),
+                Stack(Offset::default(), Offset::End, Size::Fit, Size::Fit, Padding(8.0, 6.0, 8.0, 6.0)),
                 EitherOr::new(
                     ExpandableText::new(ctx, "", TextStyle::Primary, font_size),
                     ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size)

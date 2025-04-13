@@ -13,7 +13,7 @@ impl Events for NumericKeypad {}
 impl NumericKeypad {
     pub fn new(ctx: &mut Context) -> Self {
         NumericKeypad(
-            Column(16, Offset::Center, Size::Fit, Padding::default()), 
+            Column(16.0, Offset::Center, Size::Fit, Padding::default()), 
             ButtonRow::new(ctx, Some("1"), Some("2"), Some("3")),
             ButtonRow::new(ctx, Some("4"), Some("5"), Some("6")),
             ButtonRow::new(ctx, Some("7"), Some("8"), Some("9")),
@@ -35,7 +35,7 @@ impl ButtonRow {
             }
         };
         
-        ButtonRow(Row::center(16), key(ctx, a), key(ctx, b), key(ctx, c))        
+        ButtonRow(Row::center(16.0), key(ctx, a), key(ctx, b), key(ctx, c))        
     }
 }
 

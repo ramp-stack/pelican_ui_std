@@ -5,7 +5,7 @@ use crate::elements::text::{Text, TextStyle};
 use crate::layout::{Row, Offset, Size, Padding};
 use crate::PelicanUI;
 
-#[derive(Clone, Debug, Component)]
+#[derive(Debug, Component)]
 pub struct Alert(Row, Image, BasicText);
 impl Events for Alert {}
 
@@ -15,13 +15,13 @@ impl Alert {
         let (color, font_size) = (theme.colors.status.warning, theme.fonts.size.md);
 
         Alert (
-            Row(4, Offset::Center, Size::Fit, Padding::default()),
-            Icon::new(ctx, "warning", color, 32),
+            Row(4.0, Offset::Center, Size::Fit, Padding::default()),
+            Icon::new(ctx, "warning", color, 32.0),
             Text::new(ctx, title, TextStyle::Primary, font_size)
         )
     }
 
     pub fn title(&mut self) -> &mut String {
-        &mut self.2.0
+        &mut self.2.text
     }
 }

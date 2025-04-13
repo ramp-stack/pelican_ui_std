@@ -20,7 +20,7 @@ impl AmountDisplay {
         };
 
         AmountDisplay (
-            Column(16, Offset::Center, Size::Fit, Padding(16, 64, 16, 64)),
+            Column(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
             Text::new(ctx, usd, TextStyle::Heading, font_size),
             SubText::new(ctx, btc, err)
         )
@@ -36,12 +36,12 @@ impl SubText {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (font_size, color) = (theme.fonts.size.lg, theme.colors.status.danger);
         let (icon, style, text) = match err {
-            Some(err) => (Some(Icon::new(ctx, "error", color, 24)), TextStyle::Error, err),
+            Some(err) => (Some(Icon::new(ctx, "error", color, 24.0)), TextStyle::Error, err),
             None => (None, TextStyle::Secondary, btc)
         };
 
         SubText(
-            Row::center(8),
+            Row::center(8.0),
             icon, Text::new(ctx, text, style, font_size)
         )
     }
@@ -68,7 +68,7 @@ impl AmountInputContent {
     pub fn new(ctx: &mut Context) -> Self {
         let subtext = if !crate::config::IS_MOBILE {"Type dollar amount."} else {"0.00001234 BTC"};
         AmountInputContent (
-            Column(16, Offset::Center, Size::Fit, Padding(16, 64, 16, 64)),
+            Column(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
             Display::new(ctx),
             SubText::new(ctx, subtext, None), 
         )
@@ -176,7 +176,7 @@ impl Display {
         let font_size = theme.fonts.size.title;
         let (mc, dc) = (theme.colors.text.heading, theme.colors.text.secondary);
         Display (
-            Row::center(0),
+            Row::center(0.0),
             Text::new(ctx, "$0", TextStyle::Label(mc), font_size),
             Text::new(ctx, "", TextStyle::Label(dc), font_size),
         )

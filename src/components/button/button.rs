@@ -1,10 +1,12 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
+use crate::events::{RemoveContactEvent, AddContactEvent};
 use crate::elements::images::Icon;
-use crate::elements::shapes::OutlinedRectangle;
+use crate::elements::shapes::{OutlinedRectangle, Rectangle};
 use crate::elements::text::{Text, TextStyle};
 use crate::components::avatar::{Avatar, AvatarContent};
-use crate::layout::{Stack, Offset, Size, Wrap, Padding, Row, Column};
+use crate::layout::{Stack, Offset, Size, Wrap, Padding, Row, Column, EitherOr, Bin};
+use crate::PelicanUI;
 
 use super::{ButtonState, ButtonStyle, ButtonSize};
 
@@ -292,4 +294,19 @@ impl QuickActions {
     pub fn new(buttons: Vec<Button>) -> Self {
         QuickActions(Wrap(8.0, 8.0, Offset::Start, Offset::Center, Padding::default()), buttons)
     }
+}
+
+#[derive(Debug, Component)]
+pub struct QuickDeselectButton(Stack, Button, #[skip] uuid::Uuid);
+impl Events for QuickDeselectButton {}
+
+impl QuickDeselectButton {
+    pub fn new(ctx: &mut Context, name: &'static str) -> Self {
+        let id = uuid::Uuid::new_v4();
+        let copy = id.clone();
+        let button = Button::secondary(ctx, None, name, Some("close"), move |ctx: &mut Context| ctx.trigger_event(RemoveContactEvent(id)));
+        QuickDeselectButton(Stack::default(), button, copy)
+    }
+
+    pub fn id(&self) -> uuid::Uuid {self.2}
 }

@@ -1,12 +1,12 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::events::ListItemSelect;
+use crate::events::{ListItemSelect, RemoveContactEvent, AddContactEvent};
 use crate::elements::images::Icon;
-use crate::elements::text::{Text, TextStyle};
+use crate::elements::text::{Text, ExpandableText, TextStyle};
 use crate::elements::shapes::Rectangle;
-use crate::components::button::ButtonState;
+use crate::components::button::{ButtonState, QuickDeselectButton};
 use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
-use crate::layout::{Column, Stack, Row, Padding, Offset, Size};
+use crate::layout::{Column, Stack, Row, Wrap, Padding, Offset, Size};
 use crate::PelicanUI;
 use uuid::Uuid;
 
@@ -35,9 +35,9 @@ impl ListItem {
         );
         let layout = Stack(
             Offset::Start, Offset::Center, 
-            Size::custom(|widths: Vec<(u32, u32)>| (widths[1].0, u32::MAX)), 
-            Size::custom(|heights: Vec<(u32, u32)>| heights[1]), 
-            Padding(0, 16, 0, 16)
+            Size::custom(|widths: Vec<(f32, f32)>| (widths[1].0, f32::MAX)), 
+            Size::custom(|heights: Vec<(f32, f32)>| heights[1]), 
+            Padding(0.0, 16.0, 0.0, 16.0)
         );
 
         ListItem(layout, Rectangle::new(color), content, ButtonState::Default, on_click, Uuid::new_v4())
@@ -87,11 +87,11 @@ impl ListItemContent {
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.text.secondary;
         ListItemContent(
-            Row(16, Offset::Center, Size::Fit, Padding::default()),
+            Row(16.0, Offset::Center, Size::Fit, Padding::default()),
             radio_button.map(|enabled| RadioButton::new(ctx, enabled)), 
             circle_icon.map(|data| Avatar::new(ctx, data, None, false, 48.0)),
             ListItemData::new(ctx, title, flair, subtitle, description, right_title, right_subtitle),
-            caret.then(|| Icon::new(ctx, "forward", color, 16)),
+            caret.then(|| Icon::new(ctx, "forward", color, 16.0)),
         )
     }
 }
@@ -104,17 +104,17 @@ impl RadioButton {
     pub fn new(ctx: &mut Context, is_enabled: bool) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.text.heading;
         let icon = if is_enabled { "radio_filled" } else { "radio"};
-        RadioButton(Row::center(0), Icon::new(ctx, icon, color, 32))
+        RadioButton(Row::center(0.0), Icon::new(ctx, icon, color, 32.0))
     }
 
     pub fn select(&mut self, ctx: &mut Context) {
         let color = ctx.get::<PelicanUI>().theme.colors.text.heading;
-        self.1 =  Icon::new(ctx, "radio_filled", color, 32);
+        self.1 =  Icon::new(ctx, "radio_filled", color, 32.0);
     }
 
     pub fn deselect(&mut self, ctx: &mut Context) {
         let color = ctx.get::<PelicanUI>().theme.colors.text.heading;
-        self.1 =  Icon::new(ctx, "radio", color, 32);
+        self.1 =  Icon::new(ctx, "radio", color, 32.0);
     }
 }
 
@@ -132,8 +132,8 @@ impl ListItemData {
         right_title: Option<&'static str>,
         right_subtitle: Option<&'static str>,
     ) -> Self {
-        ListItemData (
-            Row(8, Offset::Start, Size::Fit, Padding::default()),
+        ListItemData(
+            Row(8.0, Offset::Start, Size::Fit, Padding::default()),
             LeftData::new(ctx, title, flair, subtitle, description),
             right_title.map(|r_title| RightData::new(ctx, r_title, right_subtitle)), 
         )
@@ -147,15 +147,15 @@ impl TitleRow {
     pub fn new(ctx: &mut Context, title: &'static str, flair: Option<(&'static str, Color)>) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
         TitleRow(
-            Row(8, Offset::Start, Size::Fit, Padding::default()),
+            Row(8.0, Offset::Start, Size::Fit, Padding::default()),
             Text::new(ctx, title, TextStyle::Heading, font_size),
-            flair.map(|(name, color)| Icon::new(ctx, name, color, 20)),
+            flair.map(|(name, color)| Icon::new(ctx, name, color, 20.0)),
         )
     }
 }
 
 #[derive(Debug, Component)]
-struct LeftData(pub Column, pub TitleRow, pub Option<BasicText>, pub Option<BasicText>);
+struct LeftData(pub Column, pub TitleRow, pub Option<ExpandableText>, pub Option<ExpandableText>);
 impl Events for LeftData {}
 
 impl LeftData {
@@ -168,10 +168,16 @@ impl LeftData {
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.xs;
         LeftData (
-            Column(4, Offset::Start, Size::custom(|widths: Vec<(u32, u32)>| (widths[1].0, u32::MAX)), Padding::default()),
+            Column(4.0, Offset::Start, Size::custom(|widths: Vec<(f32, f32)>| (widths[0].0, f32::MAX)), Padding::default()),
             TitleRow::new(ctx, title, flair),
-            subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size)),
-            description.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size)),
+            subtitle.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size)),
+            description.map(|text| {
+                text.len()
+                    .checked_sub(70 + 1)
+                    .map(|_| format!("{}...", &text[..70_usize.saturating_sub(3)]))
+                    .unwrap_or_else(|| text.to_string());
+                ExpandableText::new(ctx, text, TextStyle::Secondary, font_size)
+            }),
         )
     }
 }
@@ -184,20 +190,10 @@ impl RightData {
     pub fn new(ctx: &mut Context, title: &'static str, subtitle: Option<&'static str>) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         RightData (
-            Column(4, Offset::End, Size::Fit, Padding::default()),
+            Column(4.0, Offset::End, Size::Fit, Padding::default()),
             Text::new(ctx, title, TextStyle::Heading, font_size.h5),
             subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size.xs)),
         )
-    }
-}
-
-#[derive(Debug, Component)]
-pub struct ListItemGroup(Column, Vec<ListItem>);
-impl Events for ListItemGroup {}
-
-impl ListItemGroup {
-    pub fn new(ctx: &mut Context, items: Vec<ListItem>) -> Self {
-        ListItemGroup(Column::center(0), items)
     }
 }
 
@@ -293,7 +289,7 @@ impl ListItemSelector {
         third: Option<(&'static str, &'static str, &'static str)>, 
         fourth: Option<(&'static str, &'static str, &'static str)>
     ) -> Self {
-        ListItemSelector(Column::center(0), 
+        ListItemSelector(Column::center(0.0), 
             ListItem::selection(ctx, true, first.0, first.1, first.2, |_: &mut Context| ()),
             ListItem::selection(ctx, false, second.0, second.1, second.2, |_: &mut Context| ()),
             third.map(|third| ListItem::selection(ctx, false, third.0, third.1, third.2, |_: &mut Context| ())),
@@ -301,3 +297,59 @@ impl ListItemSelector {
         )
     }
 }
+
+#[derive(Debug, Component)]
+pub struct ListItemGroup(Column, Vec<ListItem>);
+impl Events for ListItemGroup {}
+
+impl ListItemGroup {
+    pub fn new(ctx: &mut Context, items: Vec<ListItem>) -> Self {
+        ListItemGroup(Column::center(0.0), items)
+    }
+}
+
+
+#[derive(Debug, Component)]
+pub struct QuickDeselect(Stack, Option<QuickDeselectContent>, ListItemGroup);
+
+impl QuickDeselect {
+    pub fn new(ctx: &mut Context, list_items: Vec<ListItem>) -> Self {
+        let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
+        QuickDeselect(Stack::default(), None, ListItemGroup::new(ctx, list_items))
+    }
+}
+
+impl Events for QuickDeselect {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(AddContactEvent(name)) = event.downcast_ref::<AddContactEvent>() {
+            let button = QuickDeselectButton::new(ctx, name);
+            match &mut self.1 {
+                Some(select) => select.1.push(button),
+                None => self.1 = Some(QuickDeselectContent::new(button))
+            }
+        } else if let Some(RemoveContactEvent(id)) = event.downcast_ref::<RemoveContactEvent>() {
+            if let Some(select) = &mut self.1 {
+                if select.1.len() == 1 {
+                    self.1 = None;
+                } else {
+                    select.1.retain(|button| button.id() != *id);
+                }
+            }
+        }
+        true
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct QuickDeselectContent(Wrap, Vec<QuickDeselectButton>);
+impl Events for QuickDeselectContent {}
+
+impl QuickDeselectContent {
+    pub fn new(first: QuickDeselectButton) -> Self {
+        QuickDeselectContent(
+            Wrap(8.0, 8.0, Offset::Start, Offset::Center, Padding::default()), 
+            vec![first],
+        )
+    }
+}
+

@@ -60,6 +60,6 @@ impl Component for ExpandableText {
     fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
         let BasicText{max_width, ..} = &mut self.0;
         *max_width = Some(size.0);
-        vec![Area{offset: (0, 0), size}]
+        vec![Area{offset: (0.0, 0.0), size}]
     }
 }

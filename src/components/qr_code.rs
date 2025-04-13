@@ -14,14 +14,14 @@ impl QRCode {
     pub fn new(ctx: &mut Context, data: &'static str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (app_icon, color) = (theme.brand.app_icon.clone(), theme.colors.shades.white);
-        let qr_size = 315;
-        let logo_size = 72;
+        let qr_size = 315.0;
+        let logo_size = 72.0;
 
         QRCode (
             Stack::center(),
             Bin(
-                Stack(Offset::Center, Offset::Center, Size::Static(qr_size+16), Size::Static(qr_size+16), Padding::default()),
-                RoundedRectangle::new(0, 8, color),
+                Stack(Offset::Center, Offset::Center, Size::Static(qr_size+16.0), Size::Static(qr_size+16.0), Padding::default()),
+                RoundedRectangle::new(0.0, 8.0, color),
             ),
             QRModules::new(ctx, data, qr_size, logo_size),
             Brand::new(app_icon, (logo_size, logo_size))
@@ -34,10 +34,10 @@ pub struct QRModules(Column, Vec<QRModuleRow>);
 impl Events for QRModules {}
 
 impl QRModules {
-    pub fn new(ctx: &mut Context, code_str: &'static str, qr_size: u32, logo_size: u32) -> Self {
+    pub fn new(ctx: &mut Context, code_str: &'static str, qr_size: f32, logo_size: f32) -> Self {
         let code = QrCode::new(code_str).unwrap();
         let module_count = code.width() as u32;
-        let module_size = qr_size as f32 / module_count as f32;
+        let module_size = qr_size / module_count as f32;
         let total_rendered_size = module_size * module_count as f32;
     
         let mut rows: Vec<QRModuleRow> = vec![];
@@ -53,7 +53,7 @@ impl QRModules {
             ));
         }
     
-        QRModules(Column::center(0), rows)
+        QRModules(Column::center(0.0), rows)
     }
     
 }
@@ -66,16 +66,16 @@ impl QRModuleRow {
         ctx: &mut Context, 
         code: QrCode, 
         module_count: u32, 
-        qr_size: u32, 
-        logo_size: u32,  
+        qr_size: f32, 
+        logo_size: f32,  
         module_size: f32,
         y: u32
     ) -> Self {
         let shades = &ctx.get::<PelicanUI>().theme.colors.shades;
     
-        let logo_modules = (logo_size / module_size as u32) + 2;
-        let logo_start = (module_count - logo_modules) / 2;
-        let logo_end = logo_start + logo_modules;
+        let logo_modules = (logo_size / module_size) + 2.0;
+        let logo_start = (module_count - logo_modules as u32) / 2;
+        let logo_end = logo_start + logo_modules as u32;
     
         let mut modules: Vec<Shape> = vec![];
     
@@ -90,11 +90,12 @@ impl QRModuleRow {
                 } else {
                     shades.transparent
                 };
+            println!("circle size: {:?}", module_size);
             let circle = Circle::new(module_size, color);
     
             modules.push(circle);
         }
-        QRModuleRow(Row::center(0), modules)
+        QRModuleRow(Row::center(0.0), modules)
     }
     
 }

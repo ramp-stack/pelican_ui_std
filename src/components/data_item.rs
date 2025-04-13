@@ -21,7 +21,7 @@ impl DataItem {
         quick_actions: Option<Vec<Button>>,
     ) -> Self {
         DataItem (
-            Row(32, Offset::Start, Size::Fit, Padding::default()),
+            Row(32.0, Offset::Start, Size::Fit, Padding::default()),
             number.map(|n| Number::new(ctx, n)),
             DataItemContent::new(ctx, label, text, secondary, table, quick_actions)
         )
@@ -59,7 +59,7 @@ impl DataItemContent {
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         DataItemContent(
-            Column(16, Offset::Start, Size::fill(), Padding::default()),
+            Column(16.0, Offset::Start, Size::fill(), Padding::default()),
             Text::new(ctx, label, TextStyle::Heading, font_size.h5),
             text.map(|t| ExpandableText::new(ctx, t, TextStyle::Primary, font_size.md)),
             secondary.map(|t|ExpandableText::new(ctx, t, TextStyle::Secondary, font_size.sm)),
@@ -76,7 +76,7 @@ impl Events for Table {}
 impl Table {
     pub fn new(ctx: &mut Context, items: Vec<(&'static str, &'static str)>) -> Self {
         Table (
-            Column(0, Offset::Start, Size::Fit, Padding::default()),
+            Column(0.0, Offset::Start, Size::Fit, Padding::default()),
             items.iter().map(|(name, data)| Tabular::new(ctx, name, data)).collect()
         )
     }
@@ -90,7 +90,7 @@ impl Tabular {
     fn new(ctx: &mut Context, name: &'static str, data: &'static str) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
         Tabular (
-            Row(8, Offset::Start, Size::Fit, Padding(0, 4, 0, 4)),
+            Row(8.0, Offset::Start, Size::Fit, Padding(0.0, 4.0, 0.0, 4.0)),
             ExpandableText::new(ctx, name, TextStyle::Primary, font_size),
             Text::new(ctx, data, TextStyle::Primary, font_size),
         )
@@ -103,6 +103,6 @@ impl Events for QuickActions {}
 
 impl QuickActions {
     fn new(buttons: Vec<Button>) -> Self {
-        QuickActions(Row(8, Offset::Start, Size::Fit, Padding::default()), buttons)
+        QuickActions(Row(8.0, Offset::Start, Size::Fit, Padding::default()), buttons)
     }
 }

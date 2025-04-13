@@ -3,7 +3,7 @@ use crate::theme::colors::ButtonColorScheme;
 use crate::PelicanUI;
 
 mod button;
-pub use button::{Button, ButtonWidth, ButtonColumn, QuickActions};
+pub use button::{Button, ButtonWidth, ButtonColumn, QuickActions, QuickDeselectButton};
 
 mod icon;
 pub use icon::IconButton;
