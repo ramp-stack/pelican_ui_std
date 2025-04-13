@@ -264,21 +264,22 @@ impl Wrap {
 
 impl Layout for Wrap {
     fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
-        let ((min_w, max_w), heights): ((Vec<_>, Vec<_>), Vec<_>) = children.into_iter().map(|i|
+        let ((min_w, max_w), (min_h, max_h)): ((Vec<_>, Vec<_>), (Vec<_>, Vec<_>)) = children.into_iter().map(|i|
             ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
         ).unzip();
 
         let w_spacing = self.0*(min_w.len()-1) as f32;
-        let h_spacing = self.1*(heights.len()-1) as f32;
+        let h_spacing = self.1*(min_h.len()-1) as f32;
 
         let min_width = min_w.into_iter().reduce(|s, i| s.max(i)).unwrap_or_default();
         let max_width = max_w.into_iter().reduce(|s, i| s+i).unwrap_or_default();
 
-        let height = Size::add(heights.clone());
+        let min_height = min_h.into_iter().reduce(|s, i| s.max(i)).unwrap_or_default();
+        let max_height = max_h.into_iter().sum();
 
-        println!("min height: {:?} items: {:?}", height, heights.len());
+        println!("min: {:?} max: {:?}", min_height, max_height);
 
-        self.4.adjust_request(SizeRequest::new(min_width, height.0, max_width, height.1).add(w_spacing, h_spacing))
+        self.4.adjust_request(SizeRequest::new(min_width, min_height, max_width, max_height).add(w_spacing, h_spacing))
     }
 
     fn build(&self, _ctx: &mut Context, maximum_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
@@ -293,7 +294,7 @@ impl Layout for Wrap {
             };
 
             let area = Area {offset: (taken_width, height_offset), size: (child.min_width(), child.min_height())};
-
+            // println!("area: {:?}", area);
             taken_width += child.min_width() + self.0; 
             items.push(*child);
             area

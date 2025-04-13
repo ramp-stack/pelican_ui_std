@@ -310,17 +310,21 @@ impl ListItemGroup {
 
 
 #[derive(Debug, Component)]
-pub struct QuickDeselect(Stack, Option<QuickDeselectContent>, ListItemGroup);
+pub struct QuickDeselect(Column, Option<QuickDeselectContent>, ListItemGroup);
 
 impl QuickDeselect {
     pub fn new(ctx: &mut Context, list_items: Vec<ListItem>) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
-        QuickDeselect(Stack::default(), None, ListItemGroup::new(ctx, list_items))
+        QuickDeselect(
+            Column(24.0, Offset::Start, Size::Fit, Padding::default()), 
+            None, ListItemGroup::new(ctx, list_items)
+        )
     }
 }
 
 impl Events for QuickDeselect {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
         if let Some(AddContactEvent(name)) = event.downcast_ref::<AddContactEvent>() {
             let button = QuickDeselectButton::new(ctx, name);
             match &mut self.1 {
