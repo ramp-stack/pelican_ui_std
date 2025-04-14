@@ -33,7 +33,7 @@ impl Event for ListItemSelect {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct AddContactEvent(pub &'static str);
+pub struct AddContactEvent(pub &'static str, pub uuid::Uuid);
 impl Event for AddContactEvent {
     fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
         children.into_iter().map(|_| Some(Box::new(*self) as Box<dyn Event>)).collect()

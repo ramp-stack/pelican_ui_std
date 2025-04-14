@@ -1,9 +1,16 @@
 use rust_on_rails::prelude::*;
-use crate::{ Child, ConstrainedBox, Row, Column, COLORS, ZERO, Align };
-use crate::theme::fonts::{Text, TextSize};
-use crate::components::UserIcon;
+use rust_on_rails::prelude::Text as BasicText;
+use crate::events::{ListItemSelect, RemoveContactEvent, AddContactEvent};
+use crate::elements::images::Icon;
+use crate::elements::text::{Text, ExpandableText, TextStyle};
+use crate::elements::shapes::RoundedRectangle;
+use crate::components::button::{ButtonState, QuickDeselectButton};
+use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
+use crate::layout::{Column, Stack, Row, Wrap, Padding, Offset, Size};
+use crate::PelicanUI;
+use uuid::Uuid;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MessageType {
     You,
     Contact,
@@ -11,7 +18,7 @@ pub enum MessageType {
     Rooms,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Profile {
     name: &'static str,
     nym: &'static str,
@@ -20,7 +27,7 @@ pub struct Profile {
 }
 
 #[derive(Debug, Component)]
-pub struct Message(Row, Avatar, MessageContent);
+pub struct Message(Row, Option<Avatar>, MessageContent);
 impl Events for Message {}
 
 impl Message {
@@ -31,16 +38,15 @@ impl Message {
         sender: Profile,
         time: &'static str,
     ) -> Self {
-        let (name, offset, avatar) = match style {
-            MessageType::You => ("You", Offset::End, None),
-            MessageType::Rooms => (sender.name, Offset::Start, Some(sender.avatar)),
-            MessageType::Group => (sender.name, Offset::End, Some(sender.avatar)),
-            MessageType::Contact => (sender.name, Offset::End, Some(sender.avatar))
+        let (offset, avatar) = match style {
+            MessageType::You => (Offset::End, false),
+            MessageType::Rooms => (Offset::Start, true),
+            _ => (Offset::End, true),
         };
 
         Message (
-            Row(8, offset, Size::Fit),
-            avatar.map(|data| Avatar::new(ctx, data, None, false, 24.0)),
+            Row(8.0, offset, Size::Fit, Padding::default()),
+            avatar.then(|| Avatar::new(ctx, sender.avatar.clone(), None, false, 24.0)),
             MessageContent::new(ctx, style, messages, sender, time)
         )
     }
@@ -58,6 +64,11 @@ impl MessageContent {
         sender: Profile,
         time: &'static str,
     ) -> Self {
+        let name = match style {
+            MessageType::You => "You",
+            _ => sender.name,
+        };
+        let data = MessageData::new(ctx, style, sender.name, time);
 
         let offset = match style {
             MessageType::You => Offset::End,
@@ -65,13 +76,13 @@ impl MessageContent {
         };
 
         let (top, bottom) = match style {
-            MessageType::Rooms => (Some(MessageData::new(ctx, style, sender.name, time)), None),
-            _ => (None, Some(MessageData::new(ctx, style, sender.name, time)))
-        }
+            MessageType::Rooms => (Some(data), None),
+            _ => (None, Some(data))
+        };
 
         MessageContent(
-            Column(8, offset, Size::Fill(0, 300), Padding::default()),
-            top, MessageBubbles::new(ctx, style, messages), bottom
+            Column(8.0, offset, Size::Fill(0.0, 300.0), Padding::default()),
+            top, MessageBubbles::new(ctx, messages, style), bottom
         )
     }
 }
@@ -83,16 +94,17 @@ impl Events for MessageData {}
 impl MessageData {
     pub fn new(
         ctx: &mut Context,
-        style: MessageStyle,
+        style: MessageType,
         name: &'static str,
         time: &'static str,
     ) -> Self {
+        let text_size = ctx.get::<PelicanUI>().theme.fonts.size;
         let (title_style, title_size, divider) = match style {
             MessageType::Rooms => (TextStyle::Heading, text_size.h5, true),
             _ => (TextStyle::Secondary, text_size.sm, false),
-        }
+        };
         MessageData(
-            Row(4, Offset::End, Size::Fit, Padding::default()),
+            Row(4.0, Offset::End, Size::Fit, Padding::default()),
             Text::new(ctx, name, title_style, title_size),
             divider.then(|| Text::new(ctx, "·", TextStyle::Secondary, text_size.sm)),
             Text::new(ctx, time, TextStyle::Secondary, text_size.sm),
@@ -109,74 +121,40 @@ impl MessageBubbles {
     pub fn new(
         ctx: &mut Context,
         messages: Vec<&'static str>,
-        style: MessageStyle,
+        style: MessageType,
     ) -> Self {
-        let messages = message.iter().map(|m| MessageBubble::new(ctx, m, style));
-        MessageBubbles(Column::default(8), messages)
+        let messages = messages.iter().map(|m| MessageBubble::new(ctx, m, style)).collect();
+        MessageBubbles(Column::center(8.0), messages)
     }
 }
 
 #[derive(Debug, Component)]
-pub struct MessageBubble(Stack, Rectangle, BasicText);
+pub struct MessageBubble(Stack, RoundedRectangle, BasicText);
 impl Events for MessageBubble {}
 
 impl MessageBubble {
     pub fn new(
         ctx: &mut Context,
         message: &'static str,
-        style: MessageStyle,
+        style: MessageType,
     ) -> Self {
-        let colors = ctx.get::<PelicanUI>().theme.colors;
-        let (bg_color, msg_color) = match style {
-            MessageType::You => (colors.background.primary, colors.outline.secondary),
-            MessageType::Rooms => (colors.background.primary, colors.outline.secondary),
-            MessageType::Group => (colors.background.primary, colors.outline.secondary),
-            MessageType::Content => (colors.background.primary, colors.outline.secondary),
+        let theme = &ctx.get::<PelicanUI>().theme;
+        let (colors, text_size) = (theme.colors, theme.fonts.size.md);
+        let (bg_color, text_style) = match style {
+            MessageType::You => (colors.brand.primary, TextStyle::White),
+            MessageType::Rooms => (colors.background.primary, TextStyle::White),
+            MessageType::Group => (colors.background.secondary, TextStyle::Primary),
+            MessageType::Contact => (colors.background.secondary, TextStyle::Primary),
         };
-        let background = OutlinedRectangle::new(bg, oc, 16, 1);
-        let content = CardContent::new(ctx, avatar, title, subtitle, description);
+        let background = RoundedRectangle::new(0.0, 16.0, bg_color);
+        let content = Text::new(ctx, message, text_style, text_size);
         let layout = Stack(
             Offset::Center, Offset::Center, 
-            Size::custom(|widths: Vec<(u32, u32)>| (widths[1].0, u32::MAX)), 
-            Size::custom(|heights: Vec<(u32, u32)>| heights[1]), 
+            Size::custom(|widths: Vec<(f32, f32)>| (widths[1].0, 200.0)), 
+            Size::custom(|heights: Vec<(f32, f32)>| heights[1]), 
             Padding::default()
         );
 
-        MessageBubbles(
-            Stack::center()
-            Column(8, Offset::End, Size::Static(min_width), Padding::default()),
-            messages,
-        )
+        MessageBubble(layout, background, content)
     }
 }
-
-pub struct MessageBubble(&'static str, MessageType);
-
-impl ComponentBuilder for MessageBubble {
-    fn build_children(&self, ctx: &mut Context, max_size: Vec2) -> Vec<Box<dyn Drawable>> {
-
-        let (background, pad) = match self.1 {
-            MessageType::You => (COLORS.brand.primary,  24),
-            MessageType::Contact => (COLORS.background.secondary, 24),
-            MessageType::Group => (COLORS.background.secondary, 24),
-            MessageType::Rooms => (COLORS.background.primary, 0)
-        };
-
-        let bound = Rect::new(0, 0, max_size.x, max_size.y);
-        let mut content = Text::new(text, text_color, 16, font.clone()).build(ctx, bound);
-        let (width, height) = (content.size(ctx).x + pad, content.size(ctx).y + pad);
-
-        Stack(ZERO, Align::Center, vec![
-            RoundedRectangle(width, height, 8, background, None),
-            Text::primary(ctx, self.0, TextSize::md())
-        ]).build(ctx, max_size)
-    }
-
-    fn on_click(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
-    fn on_move(&mut self, _ctx: &mut Context, _max_size: Vec2, _position: Vec2) {}
-}
-
-
-
-
-pub struct DateTime(date: &'static str, time: &'static str);

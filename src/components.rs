@@ -30,3 +30,6 @@ pub use list_item::*;
 
 pub mod numeric_keypad;
 pub use numeric_keypad::*;
+
+pub mod message;
+pub use message::*;

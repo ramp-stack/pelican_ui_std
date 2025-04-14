@@ -301,11 +301,9 @@ pub struct QuickDeselectButton(Stack, Button, #[skip] uuid::Uuid);
 impl Events for QuickDeselectButton {}
 
 impl QuickDeselectButton {
-    pub fn new(ctx: &mut Context, name: &'static str) -> Self {
-        let id = uuid::Uuid::new_v4();
-        let copy = id.clone();
+    pub fn new(ctx: &mut Context, name: &'static str, id: uuid::Uuid) -> Self {
         let button = Button::secondary(ctx, None, name, Some("close"), move |ctx: &mut Context| ctx.trigger_event(RemoveContactEvent(id)));
-        QuickDeselectButton(Stack::default(), button, copy)
+        QuickDeselectButton(Stack::default(), button, id)
     }
 
     pub fn id(&self) -> uuid::Uuid {self.2}

@@ -11,8 +11,8 @@ use crate::PelicanUI;
 use uuid::Uuid;
 
 
-#[derive(Debug, Component)]
-pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] fn(&mut Context), #[skip] Uuid);
+#[derive(Component)]
+pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] Uuid);
 
 impl ListItem {
     pub fn new(
@@ -26,7 +26,8 @@ impl ListItem {
         right_subtitle: Option<&'static str>,
         radio_button: Option<bool>,
         circle_icon: Option<AvatarContent>,
-        on_click: fn(&mut Context) -> (),
+        id: Uuid,
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
         let content = ListItemContent::new(
@@ -40,7 +41,7 @@ impl ListItem {
             Padding(0.0, 16.0, 0.0, 16.0)
         );
 
-        ListItem(layout, Rectangle::new(color), content, ButtonState::Default, on_click, Uuid::new_v4())
+        ListItem(layout, Rectangle::new(color), content, ButtonState::Default, Box::new(on_click), id)
     }
 }
 
@@ -67,6 +68,11 @@ impl Events for ListItem {
     }
 }
 
+impl std::fmt::Debug for ListItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ListItem(...)")
+    }
+}
 
 #[derive(Debug, Component)]
 pub struct ListItemContent(Row, Option<RadioButton>, Option<Avatar>, ListItemData, Option<Image>);
@@ -203,9 +209,19 @@ impl ListItem {
         data: AvatarContent,
         name: &'static str,
         nym: &'static str,
-        on_click: fn(&mut Context) -> ()
+        on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), on_click)
+        ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), Uuid::new_v4(), on_click)
+    }
+
+    pub fn recipient(
+        ctx: &mut Context,
+        data: AvatarContent,
+        name: &'static str,
+        nym: &'static str,
+    ) -> Self {
+        let id = Uuid::new_v4();
+        ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), id, move |ctx: &mut Context| ctx.trigger_event(AddContactEvent(name, id)))
     }
 
     pub fn direct_message(
@@ -213,19 +229,19 @@ impl ListItem {
         data: AvatarContent,
         name: &'static str,
         recent: &'static str,
-        on_click: fn(&mut Context) -> ()
+        on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        ListItem::new(ctx, true, name, None, Some(recent), None, None, None, None, Some(data), on_click)
+        ListItem::new(ctx, true, name, None, Some(recent), None, None, None, None, Some(data), Uuid::new_v4(), on_click)
     }
 
     pub fn group_message(
         ctx: &mut Context,
         names: Vec<&'static str>,
-        on_click: fn(&mut Context) -> ()
+        on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
         let description = Box::leak(names.join(", ").into_boxed_str());
         let avatar = AvatarContent::Icon("group", AvatarIconStyle::Secondary);
-        ListItem::new(ctx, true, "Group Message", None, None, Some(description), None, None, None, Some(avatar), on_click)
+        ListItem::new(ctx, true, "Group Message", None, None, Some(description), None, None, None, Some(avatar), Uuid::new_v4(), on_click)
     }
 
     pub fn room(
@@ -234,9 +250,9 @@ impl ListItem {
         name: &'static str,
         members: &'static str,
         description: &'static str,
-        on_click: fn(&mut Context) -> ()
+        on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        ListItem::new(ctx, true, name, None, Some(members), Some(description), None, None, None, Some(data), on_click)
+        ListItem::new(ctx, true, name, None, Some(members), Some(description), None, None, None, Some(data), Uuid::new_v4(), on_click)
     }
 
     pub fn bitcoin(
@@ -244,11 +260,11 @@ impl ListItem {
         is_received: bool,
         usd: f32,
         date: &'static str,
-        on_click: fn(&mut Context) -> (),
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let title = if is_received { "Received Bitcoin" } else { "Sent Bitcoin" };
         let usd = Box::leak(format!("{:.2}", usd).into_boxed_str());
-        ListItem::new(ctx, true, title, None, Some(date), None, Some(usd), Some("Details"), None, None, on_click)
+        ListItem::new(ctx, true, title, None, Some(date), None, Some(usd), Some("Details"), None, None, Uuid::new_v4(), on_click)
     }
 
     pub fn bitcoin_sending(
@@ -256,13 +272,13 @@ impl ListItem {
         usd: f32,
         btc: f32,
         date: &'static str,
-        on_click: fn(&mut Context) -> (),
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.status.warning;
         let flair = ("warning", color);
         let usd =  Box::leak(format!("${:.2}", usd).into_boxed_str());
         let btc =  Box::leak(format!("${:.8} BTC", btc).into_boxed_str());
-        ListItem::new(ctx, true, "Sending Bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, on_click)
+        ListItem::new(ctx, true, "Sending Bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, Uuid::new_v4(), on_click)
     }
 
     pub fn selection(
@@ -271,9 +287,9 @@ impl ListItem {
         title: &'static str,
         subtitle: &'static str,
         description: &'static str,
-        on_click: fn(&mut Context) -> (),
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
-        ListItem::new(ctx, false, title, None, Some(subtitle), Some(description), None, None, Some(selected), None, on_click)
+        ListItem::new(ctx, false, title, None, Some(subtitle), Some(description), None, None, Some(selected), None, Uuid::new_v4(), on_click)
     }
 }
 
@@ -325,11 +341,13 @@ impl QuickDeselect {
 impl Events for QuickDeselect {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
-        if let Some(AddContactEvent(name)) = event.downcast_ref::<AddContactEvent>() {
-            let button = QuickDeselectButton::new(ctx, name);
+        if let Some(AddContactEvent(name, id)) = event.downcast_ref::<AddContactEvent>() {
+            let button = QuickDeselectButton::new(ctx, name, *id);
             match &mut self.1 {
-                Some(select) => select.1.push(button),
-                None => self.1 = Some(QuickDeselectContent::new(button))
+                Some(select) => {
+                    if !select.1.iter().any(|b| b.id() == *id) {select.1.push(button)}
+                },
+                None => self.1 = Some(QuickDeselectContent::new(button)),
             }
         } else if let Some(RemoveContactEvent(id)) = event.downcast_ref::<RemoveContactEvent>() {
             if let Some(select) = &mut self.1 {
@@ -356,4 +374,3 @@ impl QuickDeselectContent {
         )
     }
 }
-

@@ -4,13 +4,13 @@ use crate::elements::shapes::{Outline, Circle};
 use crate::layout::{Stack, Offset, Size, Row, Padding};
 use crate::PelicanUI;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum AvatarContent {
     Icon(&'static str, AvatarIconStyle),
     Image(resources::Image)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum AvatarIconStyle {
     Primary,
     Secondary,
