@@ -5,7 +5,7 @@ use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text,TextStyle, ExpandableText};
 use crate::components::button::IconButton;
 use crate::events::{SummonKeyboardEvent, HideKeyboardEvent};
-use crate::layout::{EitherOr, Opt, Padding, Column, Stack, Offset, Size, Row, Bin};
+use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
 use crate::PelicanUI;
 
 use std::sync::mpsc::{self, Receiver};

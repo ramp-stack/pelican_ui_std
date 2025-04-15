@@ -1,14 +1,10 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::events::{ListItemSelect, RemoveContactEvent, AddContactEvent};
-use crate::elements::images::Icon;
-use crate::elements::text::{Text, ExpandableText, TextStyle};
+use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::RoundedRectangle;
-use crate::components::button::{ButtonState, QuickDeselectButton};
-use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
-use crate::layout::{Column, Stack, Row, Wrap, Padding, Offset, Size};
+use crate::components::avatar::{Avatar, AvatarContent};
+use crate::layout::{Column, Stack, Row, Padding, Offset, Size};
 use crate::PelicanUI;
-use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MessageType {
@@ -20,23 +16,23 @@ pub enum MessageType {
 
 #[derive(Debug, Clone)]
 pub struct Profile {
-    name: &'static str,
-    nym: &'static str,
-    description: &'static str,
-    avatar: AvatarContent,
+    pub name: &'static str,
+    pub nym: &'static str,
+    pub about: &'static str,
+    pub avatar: AvatarContent,
 }
 
 #[derive(Debug, Component)]
-pub struct Message(Row, Option<Avatar>, MessageContent);
+pub struct Message(Row, Option<Avatar>);
 impl Events for Message {}
 
 impl Message {
     pub fn new(
         ctx: &mut Context,
         style: MessageType,
-        messages: Vec<&'static str>,
+        _messages: Vec<&'static str>,
         sender: Profile,
-        time: &'static str,
+        _time: &'static str,
     ) -> Self {
         let (offset, avatar) = match style {
             MessageType::You => (Offset::End, false),
@@ -47,7 +43,7 @@ impl Message {
         Message (
             Row(8.0, offset, Size::Fit, Padding::default()),
             avatar.then(|| Avatar::new(ctx, sender.avatar.clone(), None, false, 24.0)),
-            MessageContent::new(ctx, style, messages, sender, time)
+            // MessageContent::new(ctx, style, messages, sender, time)
         )
     }
 }
@@ -68,7 +64,7 @@ impl MessageContent {
             MessageType::You => "You",
             _ => sender.name,
         };
-        let data = MessageData::new(ctx, style, sender.name, time);
+        let data = MessageData::new(ctx, style, name, time);
 
         let offset = match style {
             MessageType::You => Offset::End,

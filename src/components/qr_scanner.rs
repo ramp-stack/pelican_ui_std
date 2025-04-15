@@ -2,10 +2,8 @@ use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::images::Icon;
 use crate::elements::text::{Text, TextStyle};
-use crate::elements::shapes::Rectangle;
-use crate::components::button::Button;
 use crate::elements::shapes::RoundedRectangle;
-use crate::layout::{Column, Bin, Stack, Row, Offset, Size, Padding};
+use crate::layout::{Column, Stack, Offset, Size, Padding};
 use crate::PelicanUI;
 
 #[derive(Debug, Component)]
@@ -22,7 +20,7 @@ impl Events for QRCodeScanner {
         if let Some(TickEvent) = event.downcast_ref() {
             match camera_access() {
                 Ok(val) if val == "cameraEnabled".to_string() => {*self.2.message() = None; *self.2.background() = None;},
-                Ok(val) if val == "waitForCamera".to_string() => {
+                Ok(val) if val == "waitForCamera".to_string() || val == "Error: unknown".to_string() => {
                     *self.2.message() = Some(Message::new(ctx, "camera", "Accessing device camera."));
                 },
                 _ => *self.2.message() = Some(Message::new(ctx, "settings", "Enable camera in settings."))
@@ -142,7 +140,6 @@ pub fn get_camera_frame_as_rgba_image() -> Option<RgbaImage> {
                 let a = slice[src_index + 3]; 
 
                 let pixel = pixels.next().unwrap();
-                let pixel_index = (y * width + x) as usize;
                 *pixel = Rgba([r, g, b, a]);
             }
         }

@@ -1,10 +1,6 @@
 use rust_on_rails::prelude::*;
-use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::images::Icon;
-use crate::elements::text::{Text, TextStyle};
 use crate::components::button::Button;
 use crate::layout::{Column, Row, Offset, Size, Padding};
-use crate::PelicanUI;
 
 #[derive(Debug, Component)]
 pub struct NumericKeypad(Column, ButtonRow, ButtonRow, ButtonRow, ButtonRow);

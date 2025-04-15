@@ -22,6 +22,7 @@ fn vibrate()  {
     }
 }
 
+
 #[derive(Plugin)]
 pub struct PelicanUI {
     pub theme: Theme,
@@ -38,7 +39,17 @@ impl PelicanUI {
     }
 }
 
+pub trait ApplicationPages: std::fmt::Debug + Send + Sync + Clone + Copy + 'static {
+    fn build_screen(&self, ctx: &mut Context) -> crate::interface::Page;
+}
+
+pub trait Application: std::fmt::Debug + Copy + Clone + 'static {
+    type ApplicationPage: ApplicationPages + Copy + Clone + std::fmt::Debug + 'static;
+}
+
+
 pub mod prelude {
+    pub use crate::{ApplicationPages, Application};
     pub use crate::events::*;
     pub use crate::interface::*;
     pub use crate::layout::*;

@@ -1,12 +1,14 @@
 use rust_on_rails::prelude::*;
+use crate::Application;
+use std::fmt::Debug;
 
-// #[derive(Debug, Clone, Copy)]
-// pub struct NavigationEvent;
-// impl Event for NavigationEvent {
-//     fn pass(self: Box<Self>, _ctx: &mut ComponentContext, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
-//         children.into_iter().map(|_| Some(Box::new(*self) as Box<dyn Event>)).collect()
-//     }
-// }
+#[derive(Debug, Clone, Copy)]
+pub struct NavigateEvent<A: Application>(pub A::ApplicationPage);
+impl<A: Application> Event for NavigateEvent<A> {
+    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
+        children.into_iter().map(|_| Some(Box::new(*self) as Box<dyn Event>)).collect()
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct SummonKeyboardEvent;

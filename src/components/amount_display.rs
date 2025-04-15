@@ -132,7 +132,7 @@ impl Events for AmountInputContent {
                 None => (&t[1..], None),
             };
 
-            let mut dollars_chars: Vec<char> = dollars.chars().rev().collect();
+            let dollars_chars: Vec<char> = dollars.chars().rev().collect();
             let mut formatted = String::new();
 
             for (i, ch) in dollars_chars.iter().enumerate() {

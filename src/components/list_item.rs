@@ -49,7 +49,7 @@ impl Events for ListItem {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
-                self.2.1.as_mut().map(|mut radio| {radio.select(ctx); ctx.trigger_event(ListItemSelect(self.5));});
+                self.2.1.as_mut().map(|radio| {radio.select(ctx); ctx.trigger_event(ListItemSelect(self.5));});
                 match self.3 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
                         #[cfg(target_os = "ios")]
@@ -61,7 +61,7 @@ impl Events for ListItem {
             }
         }  if let Some(ListItemSelect(id)) = event.downcast_ref::<ListItemSelect>() {
             if *id != self.5 {
-                self.2.1.as_mut().map(|mut radio| radio.deselect(ctx));
+                self.2.1.as_mut().map(|radio| radio.deselect(ctx));
             }
         }
         false
@@ -319,7 +319,7 @@ pub struct ListItemGroup(Column, Vec<ListItem>);
 impl Events for ListItemGroup {}
 
 impl ListItemGroup {
-    pub fn new(ctx: &mut Context, items: Vec<ListItem>) -> Self {
+    pub fn new(items: Vec<ListItem>) -> Self {
         ListItemGroup(Column::center(0.0), items)
     }
 }
@@ -329,18 +329,16 @@ impl ListItemGroup {
 pub struct QuickDeselect(Column, Option<QuickDeselectContent>, ListItemGroup);
 
 impl QuickDeselect {
-    pub fn new(ctx: &mut Context, list_items: Vec<ListItem>) -> Self {
-        let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
+    pub fn new(list_items: Vec<ListItem>) -> Self {
         QuickDeselect(
             Column(24.0, Offset::Start, Size::Fit, Padding::default()), 
-            None, ListItemGroup::new(ctx, list_items)
+            None, ListItemGroup::new(list_items)
         )
     }
 }
 
 impl Events for QuickDeselect {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
         if let Some(AddContactEvent(name, id)) = event.downcast_ref::<AddContactEvent>() {
             let button = QuickDeselectButton::new(ctx, name, *id);
             match &mut self.1 {

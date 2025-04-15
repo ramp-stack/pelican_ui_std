@@ -38,7 +38,6 @@ impl QRModules {
         let code = QrCode::new(code_str).unwrap();
         let module_count = code.width() as u32;
         let module_size = qr_size / module_count as f32;
-        let total_rendered_size = module_size * module_count as f32;
     
         let mut rows: Vec<QRModuleRow> = vec![];
         for y in 0..module_count {
@@ -46,7 +45,6 @@ impl QRModules {
                 ctx,
                 code.clone(),
                 module_count,
-                qr_size,
                 logo_size,
                 module_size,
                 y,
@@ -66,7 +64,6 @@ impl QRModuleRow {
         ctx: &mut Context, 
         code: QrCode, 
         module_count: u32, 
-        qr_size: f32, 
         logo_size: f32,  
         module_size: f32,
         y: u32

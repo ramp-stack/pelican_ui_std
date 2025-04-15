@@ -1,12 +1,11 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::events::{RemoveContactEvent, AddContactEvent};
+use crate::events::RemoveContactEvent;
 use crate::elements::images::Icon;
-use crate::elements::shapes::{OutlinedRectangle, Rectangle};
+use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text, TextStyle};
 use crate::components::avatar::{Avatar, AvatarContent};
-use crate::layout::{Stack, Offset, Size, Wrap, Padding, Row, Column, EitherOr, Bin};
-use crate::PelicanUI;
+use crate::layout::{Stack, Offset, Size, Wrap, Padding, Row, Column};
 
 use super::{ButtonState, ButtonStyle, ButtonSize};
 
