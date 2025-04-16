@@ -11,23 +11,54 @@ use crate::PelicanUI;
 
 #[derive(Debug, Component)]
 pub struct MobileNavigator(Row, Vec<IconButton>);
-impl Events for MobileNavigator {}
 
 impl MobileNavigator {
-    pub fn new(ctx: &mut Context) -> Self {
-        // if icons.is_empty() {panic!("No page tabs provided")};
-        // let tabs: Vec<IconButton> = Vec::new();
-        // icons.iter().enumerate().map(|(i, (ic, pn))| {
-        //     tabs.push(IconButton::tab_nav(ctx, icons[0].0, true, |ctx: &mut Context| icons[0].1.navigate(ctx)))
-        // })
-        MobileNavigator(Row(48.0, Offset::Center, Size::Fit, Padding(0.0, 8.0, 0.0, 8.0)), vec![
-            IconButton::tab_nav(ctx, "wallet", true, |_ctx: &mut Context| println!("Bitcoin")),
-            IconButton::tab_nav(ctx, "messages", false, |_ctx: &mut Context| println!("Messaging")),
-            IconButton::tab_nav(ctx, "door", false, |_ctx: &mut Context| println!("Rooms")),
-            IconButton::tab_nav(ctx, "profile", false, |_ctx: &mut Context| println!("Profile"))
-        ])
+    pub fn new(
+        ctx: &mut Context,
+        navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>), 
+        mut profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)
+    ) -> Self {
+        if navigation.1.is_empty() {panic!("MobileNavigator: Parameter 1 was empty. Navigator has no data.")}
+        let profile_id = uuid::Uuid::new_v4();
+
+        let mut tabs: Vec<IconButton> = navigation.1.into_iter().enumerate().map(|(y, (i, _, mut c))| {
+            let id = uuid::Uuid::new_v4();
+            IconButton::tab_nav(ctx, i, y == navigation.0, id, move |ctx: &mut Context| {
+                println!("triggered");
+                ctx.trigger_event(NavigatorSelect(id));
+                (c)(ctx);
+            })
+        }).collect();
+
+        tabs.push(
+            IconButton::tab_nav(ctx, "profile", false, profile_id, move |ctx: &mut Context| {
+                ctx.trigger_event(NavigatorSelect(profile_id));
+                (profile.2)(ctx);
+            }),
+        );
+
+        MobileNavigator(Row(48.0, Offset::Center, Size::Fit, Padding(0.0, 8.0, 0.0, 8.0)), tabs)
     }
 }
+
+impl Events for MobileNavigator {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(NavigatorSelect(id)) = event.downcast_ref::<NavigatorSelect>() {
+            println!("Navigator selected");
+            self.1.iter_mut().for_each(|button| {
+                if button.id().unwrap() == *id {
+                    *button.status() = ButtonState::Selected;
+                } else {
+                    *button.status() = ButtonState::UnSelected;
+                    button.color(ctx, ButtonState::UnSelected);
+                }
+            });
+        }
+        true
+    }
+}
+
+
 
 #[derive(Debug, Component)]
 pub struct DesktopNavigator(Column, Image, ButtonColumn, Bin<Stack, Rectangle>, Button);
@@ -38,9 +69,12 @@ impl DesktopNavigator {
         navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>), 
         mut profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)
     ) -> Self {
+        if navigation.1.is_empty() {panic!("DesktopNavigator: Parameter 1 was empty. Navigator has no data.")}
+
         let theme = &ctx.get::<PelicanUI>().theme;
         let (wordmark, color) = (theme.brand.wordmark.clone(), theme.colors.shades.transparent);
-        if navigation.1.is_empty() {panic!("DesktopNavigator: Parameter 1 was empty. Navigator has no data.")}
+        let profile_id = uuid::Uuid::new_v4();
+
         let mut tabs: Vec<Button> = navigation.1.into_iter().enumerate().map(|(y, (i, n, mut c))| {
             let id = uuid::Uuid::new_v4();
             Button::navigation(ctx, i, n, y == navigation.0, id, move |ctx: &mut Context| {
@@ -48,7 +82,7 @@ impl DesktopNavigator {
                 (c)(ctx);
             })
         }).collect();
-        let profile_id = uuid::Uuid::new_v4();
+
         DesktopNavigator(
             Column(32.0, Offset::Center, Size::Fill(100.0, 200.0), Padding(16.0, 32.0, 16.0, 32.0)),
             Brand::new(wordmark, (80.0, 44.0)),

@@ -28,7 +28,7 @@ pub enum ButtonState {
 impl ButtonState {
     pub fn handle(&mut self, _ctx: &mut Context, event: MouseEvent) -> Option<Self> {
         let state = match self {
-            ButtonState::Default if event.position.is_some() => {
+            ButtonState::Default | ButtonState::UnSelected if event.position.is_some() => {
                 match event.state {
                     MouseState::Pressed => {
                         #[cfg(target_os = "ios")]

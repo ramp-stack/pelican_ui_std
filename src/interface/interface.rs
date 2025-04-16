@@ -22,7 +22,7 @@ impl Interface {
         profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
     ) -> Self {
         let (mobile, desktop) = match crate::config::IS_MOBILE {
-            true => (Some(MobileInterface::new(ctx, page)), None),
+            true => (Some(MobileInterface::new(ctx, page, navigation, profile)), None),
             false => (None, Some(DesktopInterface::new(ctx, page, navigation, profile)))
         };
         Interface(Stack::default(), mobile, desktop)
@@ -33,8 +33,13 @@ impl Interface {
 struct MobileInterface (Column, Page, Opt<MobileNavigator>, Option<MobileKeyboard>);
 
 impl MobileInterface {
-    pub fn new(ctx: &mut Context, page: Page) -> Self {
-        let navigator = MobileNavigator::new(ctx);
+    pub fn new(
+        ctx: &mut Context, 
+        page: Page,
+        navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>),
+        profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
+    ) -> Self {
+        let navigator = MobileNavigator::new(ctx, navigation, profile);
         #[cfg(target_os = "ios")]
         let insets = safe_area_insets();
         #[cfg(not(target_os = "ios"))]
@@ -48,7 +53,9 @@ impl MobileInterface {
 
 impl Events for MobileInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(_event) = event.downcast_ref::<SummonKeyboardEvent>() {
+        if let Some(_event) = event.downcast_ref::<TickEvent>() {
+            self.2.display(self.1.navigator_status());
+        } else if let Some(_event) = event.downcast_ref::<SummonKeyboardEvent>() {
             self.3 = Some(MobileKeyboard::new(ctx));
         } else if let Some(_event) = event.downcast_ref::<HideKeyboardEvent>() {
             self.3 = None;
@@ -93,19 +100,22 @@ impl Events for DesktopInterface {
 }
 
 #[derive(Debug, Component)]
-pub struct Page (Column, Header, Content, Option<Bumper>);
+pub struct Page (Column, Header, Content, Option<Bumper>, #[skip] bool);
 impl Events for Page {}
 
 impl Page {
-    pub fn new(header: Header, content: Content, bumper: Option<Bumper>) -> Self {
+    pub fn new(header: Header, content: Content, bumper: Option<Bumper>, has_nav: bool) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[1].0, f32::MAX));
         Page(
             Column(12.0, Offset::Center, width, Padding::default()),
             header,
             content,
             bumper,
+            has_nav
         )
     }
+
+    pub fn navigator_status(&self) -> bool {self.4}
 }
 
 #[derive(Debug, Component)]

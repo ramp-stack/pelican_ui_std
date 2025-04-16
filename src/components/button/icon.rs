@@ -8,7 +8,8 @@ use super::{ButtonStyle, ButtonSize, ButtonState};
 #[derive(Component)]
 pub struct IconButton(
         Stack, OutlinedRectangle, Image,
-        #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>
+        #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>,
+        #[skip] Option<uuid::Uuid>
 );
 
 impl IconButton {
@@ -19,6 +20,7 @@ impl IconButton {
         style: ButtonStyle,
         state: ButtonState,
         on_click: impl FnMut(&mut Context) + 'static,
+        id: Option<uuid::Uuid>,
     ) -> Self {
         let colors = state.color(ctx, style);
         let (size, icon_size, radius) = match (style, size) {
@@ -35,18 +37,25 @@ impl IconButton {
 
         IconButton(Stack(
             Offset::Center, Offset::Center, Size::Static(size), Size::Static(size), Padding::default()
-        ), background, icon, style, state, Box::new(on_click))
+        ), background, icon, style, state, Box::new(on_click), id)
     }
+
+    pub fn color(&mut self, ctx: &mut Context, state: ButtonState) {
+        let colors = state.color(ctx, self.3);
+        *self.1.background() = colors.background;
+        *self.1.outline() = colors.outline;
+        self.2.color = Some(colors.label);
+    }
+
+    pub fn id(&self) -> Option<uuid::Uuid> {self.6}
+    pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
 impl Events for IconButton {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if let Some(state) = self.4.handle(ctx, *event) {
-                let colors = state.color(ctx, self.3);
-                *self.1.background() = colors.background;
-                *self.1.outline() = colors.outline;
-                self.2.color = Some(colors.label);
+                self.color(ctx, state);
             }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {
@@ -71,7 +80,8 @@ impl IconButton {
             ButtonSize::Medium,
             ButtonStyle::Secondary,
             ButtonState::Default,
-            on_click
+            on_click,
+            None
         )
     }
 
@@ -86,7 +96,8 @@ impl IconButton {
             ButtonSize::Medium,
             ButtonStyle::Ghost,
             ButtonState::Default,
-            on_click
+            on_click,
+            None,
         )
     }
     
@@ -101,7 +112,8 @@ impl IconButton {
             ButtonSize::Medium,
             ButtonStyle::Ghost,
             ButtonState::Default,
-            on_click
+            on_click,
+            None,
         )
     }
 
@@ -115,7 +127,8 @@ impl IconButton {
             ButtonSize::Medium,
             ButtonStyle::Ghost,
             ButtonState::Default,
-            on_click
+            on_click,
+            None,
         )
     }
 
@@ -123,7 +136,8 @@ impl IconButton {
         ctx: &mut Context, 
         icon: &'static str, 
         selected: bool,
-        on_click: impl FnMut(&mut Context) + 'static
+        id: uuid::Uuid,
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let state = if selected {ButtonState::Default} else {ButtonState::UnSelected};
         IconButton::new(
@@ -132,7 +146,8 @@ impl IconButton {
             ButtonSize::Medium,
             ButtonStyle::Ghost,
             state,
-            on_click
+            on_click,
+            Some(id)
         )
     }
 }
