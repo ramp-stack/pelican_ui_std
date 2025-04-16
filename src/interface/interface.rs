@@ -1,87 +1,92 @@
 use rust_on_rails::prelude::*;
 use crate::elements::shapes::{Rectangle};
 use crate::events::{SummonKeyboardEvent, HideKeyboardEvent, NavigateEvent};
-use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
+use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size, Opt};
+use crate::components::avatar::AvatarContent;
 use crate::PelicanUI;
-use crate::ApplicationPages;
-use crate::Application;
+use crate::PageName;
 use std::fmt::Debug;
-use std::marker::PhantomData;
 
 use super::mobile_keyboard::MobileKeyboard;
 use super::navigation::{MobileNavigator, DesktopNavigator, Header};
 
 #[derive(Debug, Component)]
-pub struct Interface<A: Application> (Stack, Option<MobileInterface<A>>, Option<DesktopInterface<A>>);
-impl<A: Application> Events for Interface<A> {}
+pub struct Interface (Stack, Option<MobileInterface>, Option<DesktopInterface>);
+impl Events for Interface {}
 
-impl<A: Application> Interface<A> {
+impl Interface {
     pub fn new(
-        ctx: &mut Context,
-        page: Page,
+        ctx: &mut Context, 
+        page: Page, 
+        navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>),
+        profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
     ) -> Self {
         let (mobile, desktop) = match crate::config::IS_MOBILE {
             true => (Some(MobileInterface::new(ctx, page)), None),
-            false => (None, Some(DesktopInterface::new(ctx, page)))
+            false => (None, Some(DesktopInterface::new(ctx, page, navigation, profile)))
         };
         Interface(Stack::default(), mobile, desktop)
     }
 }
 
 #[derive(Debug, Component)]
-struct MobileInterface<A: Application>(Column, Page, Option<MobileNavigator>, Option<MobileKeyboard>, #[skip] std::marker::PhantomData<A>);
+struct MobileInterface (Column, Page, Opt<MobileNavigator>, Option<MobileKeyboard>);
 
-impl<A: Application> MobileInterface<A> {
+impl MobileInterface {
     pub fn new(ctx: &mut Context, page: Page) -> Self {
-        let _navigator = MobileNavigator::new(ctx);
+        let navigator = MobileNavigator::new(ctx);
         #[cfg(target_os = "ios")]
         let insets = safe_area_insets();
         #[cfg(not(target_os = "ios"))]
         let insets = (0., 0., 0., 0.);
         MobileInterface(
             Column(0.0, Offset::Center, Size::Fit, Padding(0.0, insets.0, 0.0, insets.1)), 
-            page, None, None, PhantomData::<A>
+            page, Opt::new(navigator, false), None
         )
     }
 }
 
-impl<A: Application> Events for MobileInterface<A> {
+impl Events for MobileInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(_event) = event.downcast_ref::<SummonKeyboardEvent>() {
             self.3 = Some(MobileKeyboard::new(ctx));
         } else if let Some(_event) = event.downcast_ref::<HideKeyboardEvent>() {
             self.3 = None;
-        } else if let Some(NavigateEvent(page)) = event.downcast_ref::<NavigateEvent<A>>() {
-            self.1 = page.build_screen(ctx);
+        } else if let Some(NavigateEvent(page, has_nav)) = event.downcast_ref::<NavigateEvent>() {
+            self.1 = page.build_page(ctx);
+            self.2.display(*has_nav);
         }
         true
     }
 }
 
 #[derive(Debug, Component)]
-struct DesktopInterface<A: Application>(Row, DesktopNavigator, Bin<Stack, Rectangle>, Page, #[skip] std::marker::PhantomData<A>);
+struct DesktopInterface (Row, DesktopNavigator, Bin<Stack, Rectangle>, Page);
 
-impl<A: Application> DesktopInterface<A> {
-    pub fn new(ctx: &mut Context, page: Page) -> Self {
-        let navigator = DesktopNavigator::new(ctx);
+impl DesktopInterface {
+    pub fn new(
+        ctx: &mut Context, 
+        page: Page, 
+        navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>),
+        profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
+    ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
         DesktopInterface(
             Row(0.0, Offset::Start, Size::Fit, Padding::default()),
-            navigator, 
+            DesktopNavigator::new(ctx, navigation, profile), 
             Bin (
                 Stack(Offset::default(), Offset::default(), Size::Static(1.0),  Size::Fit, Padding::default()), 
                 Rectangle::new(color)
             ),
-           page,
-           PhantomData::<A>
+           page
         )
     }
 }
 
-impl<A: Application> Events for DesktopInterface<A> {
+impl Events for DesktopInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(NavigateEvent(page)) = event.downcast_ref::<NavigateEvent<A>>() {
-            self.3 = page.build_screen(ctx);
+        if let Some(NavigateEvent(page, _)) = event.downcast_ref::<NavigateEvent>() {
+            self.3 = page.build_page(ctx);
         }
         true
     }

@@ -16,7 +16,7 @@ pub enum ButtonWidth {
 }
 
 #[derive(Component)]
-pub struct Button(Stack, OutlinedRectangle, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>);
+pub struct Button(Stack, OutlinedRectangle, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] Option<uuid::Uuid>);
 impl Button {
     pub fn new(
         ctx: &mut Context,
@@ -30,6 +30,7 @@ impl Button {
         state: ButtonState,
         offset: Offset,
         on_click: impl FnMut(&mut Context) + 'static,
+        id: Option<uuid::Uuid>,
     ) -> Self {
         let (height, padding) = size.background();
         let colors = state.color(ctx, style);
@@ -47,20 +48,25 @@ impl Button {
         let background = OutlinedRectangle::new(colors.background, colors.outline, height/2.0, 1.0);
         let layout = Stack(offset, Offset::Center, width, Size::Static(height), Padding::default());
 
-        Button(layout, background, content, style, state, Box::new(on_click))
+        Button(layout, background, content, style, state, Box::new(on_click), id)
     }
+
+    pub fn color(&mut self, ctx: &mut Context, state: ButtonState) {
+        let colors = state.color(ctx, self.3);
+        self.2.set_color(colors.label);
+        *self.1.outline() = colors.outline;
+        *self.1.background() = colors.background;
+    }
+
+    pub fn id(&self) -> Option<uuid::Uuid> {self.6}
+    pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
 impl Events for Button {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if let Some(state) = self.4.handle(ctx, *event) {
-                println!("GOT STATE: {:?}", state);
-                let colors = state.color(ctx, self.3);
-
-                self.2.set_color(colors.label);
-                *self.1.outline() = colors.outline;
-                *self.1.background() = colors.background;
+                self.color(ctx, state);
             }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {
@@ -129,7 +135,8 @@ impl Button {
             ButtonStyle::Primary,
             ButtonState::Default,
             Offset::Center,
-            on_click
+            on_click,
+            None
         )
     }
 
@@ -151,7 +158,8 @@ impl Button {
             ButtonStyle::Secondary,
             ButtonState::Default,
             Offset::Center,
-            on_click
+            on_click,
+            None,
         )
     }
 
@@ -171,7 +179,8 @@ impl Button {
             ButtonStyle::Ghost,
             ButtonState::Default,
             Offset::Center,
-            on_click
+            on_click,
+            None,
         )
     }
 
@@ -192,7 +201,8 @@ impl Button {
             ButtonStyle::Ghost,
             ButtonState::Default,
             Offset::Center,
-            on_click
+            on_click,
+            None,
         )
     }
 
@@ -201,6 +211,7 @@ impl Button {
         icon: &'static str,
         label: &'static str,
         selected: bool,
+        id: uuid::Uuid,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -214,7 +225,8 @@ impl Button {
             ButtonStyle::Ghost,
             if selected {ButtonState::Selected} else {ButtonState::Default},
             Offset::Start,
-            on_click
+            on_click,
+            Some(id),
         )
     }
 
@@ -223,6 +235,7 @@ impl Button {
         label: &'static str,
         photo: AvatarContent,
         selected: bool,
+        id: uuid::Uuid,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -236,7 +249,8 @@ impl Button {
             ButtonStyle::Ghost,
             if selected {ButtonState::Pressed} else {ButtonState::Default},
             Offset::Start,
-            on_click
+            on_click,
+            Some(id),
         )
     }
 
@@ -256,7 +270,8 @@ impl Button {
             ButtonStyle::Secondary,
             ButtonState::Default,
             Offset::Center,
-            on_click
+            on_click,
+            None
         )
     }
 }
@@ -269,6 +284,8 @@ impl ButtonColumn {
     pub fn new(buttons: Vec<Button>) -> Self {
         ButtonColumn(Column::center(8.0), buttons)
     }
+
+    pub fn buttons(&mut self) -> &mut Vec<Button> {&mut self.1}
 }
 
 // #[derive(Debug, Component)]

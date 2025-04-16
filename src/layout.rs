@@ -277,7 +277,7 @@ impl Layout for Wrap {
         let min_height = min_h.into_iter().reduce(|s, i| s.max(i)).unwrap_or_default();
         let max_height = max_h.into_iter().sum();
 
-        println!("min: {:?} max: {:?}", min_height, max_height);
+        // println!("min: {:?} max: {:?}", min_height, max_height);
 
         self.4.adjust_request(SizeRequest::new(min_width, min_height, max_width, max_height).add(w_spacing, h_spacing))
     }

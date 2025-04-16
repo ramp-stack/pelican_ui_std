@@ -15,3 +15,4 @@ nsvg = "0.5.1"
 image = "0.25.5"
 fast_image_resize = "5.1.2"
 uuid = { version = "1.16.0", features = ["v4"] }
+dyn-clone = "1.0.19"

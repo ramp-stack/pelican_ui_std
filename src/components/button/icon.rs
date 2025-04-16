@@ -78,7 +78,7 @@ impl IconButton {
     pub fn keyboard(
         ctx: &mut Context, 
         icon: &'static str, 
-        on_click: fn(&mut Context) -> ()
+        on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
         IconButton::new(
             ctx,
@@ -93,7 +93,7 @@ impl IconButton {
     pub fn navigation(
         ctx: &mut Context, 
         icon: &'static str, 
-        on_click: fn(&mut Context) -> ()
+        on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
         IconButton::new(
             ctx,
@@ -107,7 +107,7 @@ impl IconButton {
 
     pub fn close(
         ctx: &mut Context, 
-        on_click: fn(&mut Context) -> ()
+        on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
         IconButton::new(
             ctx,
@@ -123,7 +123,7 @@ impl IconButton {
         ctx: &mut Context, 
         icon: &'static str, 
         selected: bool,
-        on_click: fn(&mut Context) -> ()
+        on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
         let state = if selected {ButtonState::Default} else {ButtonState::UnSelected};
         IconButton::new(

@@ -39,17 +39,23 @@ impl PelicanUI {
     }
 }
 
-pub trait ApplicationPages: std::fmt::Debug + Send + Sync + Clone + Copy + 'static {
-    fn build_screen(&self, ctx: &mut Context) -> crate::interface::Page;
+pub trait PageName: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static {
+    fn build_page(&self, ctx: &mut Context) -> crate::interface::Page;
+
+    fn navigate(self, ctx: &mut Context) where Self: Sized {
+        ctx.trigger_event(crate::events::NavigateEvent(Box::new(self) as Box<dyn PageName>, true));
+    }
 }
 
-pub trait Application: std::fmt::Debug + Copy + Clone + 'static {
-    type ApplicationPage: ApplicationPages + Copy + Clone + std::fmt::Debug + 'static;
-}
+dyn_clone::clone_trait_object!(PageName);
+
+// pub trait Application: std::fmt::Debug + Copy + Clone + 'static {
+//     type ApplicationPage: ApplicationPages + Copy + Clone + std::fmt::Debug + 'static;
+// }
 
 
 pub mod prelude {
-    pub use crate::{ApplicationPages, Application};
+    pub use crate::PageName;
     pub use crate::events::*;
     pub use crate::interface::*;
     pub use crate::layout::*;

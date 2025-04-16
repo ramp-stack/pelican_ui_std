@@ -1,9 +1,10 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
+use crate::events::NavigatorSelect;
 use crate::elements::images::Brand;
 use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::Rectangle;
-use crate::components::button::{Button, IconButton, ButtonColumn};
+use crate::components::button::{Button, IconButton, ButtonColumn, ButtonState};
 use crate::components::avatar::{AvatarIconStyle, AvatarContent, AvatarRow};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::PelicanUI;
@@ -14,6 +15,11 @@ impl Events for MobileNavigator {}
 
 impl MobileNavigator {
     pub fn new(ctx: &mut Context) -> Self {
+        // if icons.is_empty() {panic!("No page tabs provided")};
+        // let tabs: Vec<IconButton> = Vec::new();
+        // icons.iter().enumerate().map(|(i, (ic, pn))| {
+        //     tabs.push(IconButton::tab_nav(ctx, icons[0].0, true, |ctx: &mut Context| icons[0].1.navigate(ctx)))
+        // })
         MobileNavigator(Row(48.0, Offset::Center, Size::Fit, Padding(0.0, 8.0, 0.0, 8.0)), vec![
             IconButton::tab_nav(ctx, "wallet", true, |_ctx: &mut Context| println!("Bitcoin")),
             IconButton::tab_nav(ctx, "messages", false, |_ctx: &mut Context| println!("Messaging")),
@@ -25,25 +31,58 @@ impl MobileNavigator {
 
 #[derive(Debug, Component)]
 pub struct DesktopNavigator(Column, Image, ButtonColumn, Bin<Stack, Rectangle>, Button);
-impl Events for DesktopNavigator {}
 
 impl DesktopNavigator {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(
+        ctx: &mut Context, 
+        navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>), 
+        mut profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)
+    ) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (wordmark, color) = (theme.brand.wordmark.clone(), theme.colors.shades.transparent);
-        let bitcoin = Button::navigation(ctx, "wallet", "Bitcoin", true, |_ctx: &mut Context| println!("Bitcoin"));
-        let messages = Button::navigation(ctx, "messages", "Messages", false, |_ctx: &mut Context| println!("Messaging"));
-        let rooms = Button::navigation(ctx, "door", "Rooms", false, |_ctx: &mut Context| println!("Rooms"));
+        if navigation.1.is_empty() {panic!("DesktopNavigator: Parameter 1 was empty. Navigator has no data.")}
+        let mut tabs: Vec<Button> = navigation.1.into_iter().enumerate().map(|(y, (i, n, mut c))| {
+            let id = uuid::Uuid::new_v4();
+            Button::navigation(ctx, i, n, y == navigation.0, id, move |ctx: &mut Context| {
+                ctx.trigger_event(NavigatorSelect(id));
+                (c)(ctx);
+            })
+        }).collect();
+        let profile_id = uuid::Uuid::new_v4();
         DesktopNavigator(
             Column(32.0, Offset::Center, Size::Fill(100.0, 200.0), Padding(16.0, 32.0, 16.0, 32.0)),
             Brand::new(wordmark, (80.0, 44.0)),
-            ButtonColumn::new(vec![bitcoin, messages, rooms]),
+            ButtonColumn::new(tabs),
             Bin (
-                Stack(Offset::Center, Offset::Center, Size::Fill(100.0, 200.0), Size::Fill(100.0, f32::MAX),  Padding::default()), 
+                Stack(Offset::Center, Offset::Center, Size::Fill(100.0, 200.0), Size::Fill(100.0, f32::MAX), Padding::default()), 
                 Rectangle::new(color)
             ),
-            Button::photo(ctx, "My Profile", AvatarContent::Icon("profile", AvatarIconStyle::Secondary), false, |_ctx: &mut Context| println!("Profile"))
+            Button::photo(ctx, profile.0, profile.1, false, profile_id, move |ctx: &mut Context| {
+                ctx.trigger_event(NavigatorSelect(profile_id));
+                (profile.2)(ctx);
+            }),
         )
+    }
+}
+
+impl Events for DesktopNavigator {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(NavigatorSelect(id)) = event.downcast_ref::<NavigatorSelect>() {
+            println!("Navigator selected");
+            let mut buttons: Vec<&mut Button> = self.2.buttons().iter_mut().map(|btn| btn).collect();
+            buttons.push(&mut self.4);
+            buttons.iter_mut().for_each(|button| {
+                if button.id().unwrap() == *id {
+                    println!("Select");
+                    *button.status() = ButtonState::Selected;
+                } else {
+                    println!("Deselect");
+                    *button.status() = ButtonState::Default;
+                    button.color(ctx, ButtonState::Default);
+                }
+            });
+        }
+        true
     }
 }
 
