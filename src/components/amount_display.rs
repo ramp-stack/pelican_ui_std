@@ -21,7 +21,7 @@ impl AmountDisplay {
 
         AmountDisplay (
             Column(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
-            Text::new(ctx, usd, TextStyle::Heading, font_size),
+            Text::new(ctx, usd, TextStyle::Heading, font_size, TextAlign::Left),
             SubText::new(ctx, btc, err)
         )
     }
@@ -42,7 +42,7 @@ impl SubText {
 
         SubText(
             Row::center(8.0),
-            icon, Text::new(ctx, text, style, font_size)
+            icon, Text::new(ctx, text, style, font_size, TextAlign::Left)
         )
     }
 }
@@ -177,8 +177,8 @@ impl Display {
         let (mc, dc) = (theme.colors.text.heading, theme.colors.text.secondary);
         Display (
             Row::center(0.0),
-            Text::new(ctx, "$0", TextStyle::Label(mc), font_size),
-            Text::new(ctx, "", TextStyle::Label(dc), font_size),
+            Text::new(ctx, "$0", TextStyle::Label(mc), font_size, TextAlign::Left),
+            Text::new(ctx, "", TextStyle::Label(dc), font_size, TextAlign::Left),
         )
     }
 

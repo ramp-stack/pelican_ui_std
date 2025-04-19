@@ -69,7 +69,7 @@ impl Message {
         let (color, font_size) = (theme.colors.shades.lighten, theme.fonts.size.sm);
         Message(Column::center(4.0), 
             Icon::new(ctx, icon, color, 48.0),
-            Text::new(ctx, msg, TextStyle::Secondary, font_size)
+            Text::new(ctx, msg, TextStyle::Secondary, font_size, TextAlign::Left)
         )
     }
 }

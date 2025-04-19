@@ -101,9 +101,9 @@ impl MessageData {
         };
         MessageData(
             Row(4.0, Offset::End, Size::Fit, Padding::default()),
-            Text::new(ctx, name, title_style, title_size),
-            divider.then(|| Text::new(ctx, "·", TextStyle::Secondary, text_size.sm)),
-            Text::new(ctx, time, TextStyle::Secondary, text_size.sm),
+            Text::new(ctx, name, title_style, title_size, TextAlign::Left),
+            divider.then(|| Text::new(ctx, "·", TextStyle::Secondary, text_size.sm, TextAlign::Left)),
+            Text::new(ctx, time, TextStyle::Secondary, text_size.sm, TextAlign::Left),
         )
     }
 }
@@ -143,7 +143,7 @@ impl MessageBubble {
             MessageType::Contact => (colors.background.secondary, TextStyle::Primary),
         };
         let background = RoundedRectangle::new(0.0, 16.0, bg_color);
-        let content = Text::new(ctx, message, text_style, text_size);
+        let content = Text::new(ctx, message, text_style, text_size, TextAlign::Left);
         let layout = Stack(
             Offset::Center, Offset::Center, 
             Size::custom(|widths: Vec<(f32, f32)>| (widths[1].0, 200.0)), 

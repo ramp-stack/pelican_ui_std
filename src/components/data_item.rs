@@ -39,7 +39,7 @@ impl Number {
         Number(
             Stack::center(),
             Circle::new(32.0, color),
-            Text::new(ctx, txt, TextStyle::Heading, font_size), 
+            Text::new(ctx, txt, TextStyle::Heading, font_size, TextAlign::Left), 
         )
     }
 }
@@ -60,9 +60,9 @@ impl DataItemContent {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         DataItemContent(
             Column(16.0, Offset::Start, Size::fill(), Padding::default()),
-            Text::new(ctx, label, TextStyle::Heading, font_size.h5),
-            text.map(|t| ExpandableText::new(ctx, t, TextStyle::Primary, font_size.md)),
-            secondary.map(|t|ExpandableText::new(ctx, t, TextStyle::Secondary, font_size.sm)),
+            Text::new(ctx, label, TextStyle::Heading, font_size.h5, TextAlign::Left),
+            text.map(|t| ExpandableText::new(ctx, t, TextStyle::Primary, font_size.md, TextAlign::Left)),
+            secondary.map(|t|ExpandableText::new(ctx, t, TextStyle::Secondary, font_size.sm, TextAlign::Left)),
             table.map(|tabulars| Table::new(ctx, tabulars)),
             quick_actions.map(|actions| QuickActions::new(actions)),
         )
@@ -91,8 +91,8 @@ impl Tabular {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
         Tabular (
             Row(8.0, Offset::Start, Size::Fit, Padding(0.0, 4.0, 0.0, 4.0)),
-            ExpandableText::new(ctx, name, TextStyle::Primary, font_size),
-            Text::new(ctx, data, TextStyle::Primary, font_size),
+            ExpandableText::new(ctx, name, TextStyle::Primary, font_size, TextAlign::Left),
+            Text::new(ctx, data, TextStyle::Primary, font_size, TextAlign::Left),
         )
     }
 }

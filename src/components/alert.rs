@@ -17,7 +17,7 @@ impl Alert {
         Alert (
             Row(4.0, Offset::Center, Size::Fit, Padding::default()),
             Icon::new(ctx, "warning", color, 32.0),
-            Text::new(ctx, title, TextStyle::Primary, font_size)
+            Text::new(ctx, title, TextStyle::Primary, font_size, TextAlign::Left)
         )
     }
 

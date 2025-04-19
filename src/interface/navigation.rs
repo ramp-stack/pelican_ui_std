@@ -174,7 +174,7 @@ impl HeaderContent {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
             Column(10.0, Offset::Center, width, Padding::default()), 
-            Text::new(ctx, title, TextStyle::Heading, text_size),
+            Text::new(ctx, title, TextStyle::Heading, text_size, TextAlign::Left),
             None,
         )
     }
@@ -184,7 +184,7 @@ impl HeaderContent {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
             Column(10.0, Offset::Center, width, Padding::default()),  
-            Text::new(ctx, title, TextStyle::Heading, text_size),
+            Text::new(ctx, title, TextStyle::Heading, text_size, TextAlign::Left),
             None,
         )
     }
@@ -195,7 +195,7 @@ impl HeaderContent {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
             Column(10.0, Offset::Center, width, Padding::default()), 
-            Text::new(ctx, title, TextStyle::Heading, text_size),
+            Text::new(ctx, title, TextStyle::Heading, text_size, TextAlign::Left),
             Some(AvatarRow::new(ctx, avatars)),
         )
     }

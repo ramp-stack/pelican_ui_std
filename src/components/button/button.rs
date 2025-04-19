@@ -106,7 +106,7 @@ impl ButtonContent {
             Row(spacing, Offset::Center, Size::Fit, Padding(padding, 0.0, padding, 0.0)),
             avatar.map(|content| Avatar::new(ctx, content, None, false, icon_size)),
             icon_l.map(|icon| Icon::new(ctx, icon, color, icon_size)),
-            label.map(|label| Text::new(ctx, label, TextStyle::Label(color), text_size)),
+            label.map(|label| Text::new(ctx, label, TextStyle::Label(color), text_size, TextAlign::Left)),
             icon_r.map(|icon| Icon::new(ctx, icon, color, icon_size)),
         )
     }

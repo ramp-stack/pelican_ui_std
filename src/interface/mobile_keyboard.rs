@@ -392,14 +392,14 @@ impl KeyCharacter {
         KeyCharacter(
             Row(0.0, Offset::Center, Size::Fit, Padding(0.0, 0.0, 0.0, 10.0)),
             None,
-            Some(Text::new(ctx, key, TextStyle::Keyboard, size)),
+            Some(Text::new(ctx, key, TextStyle::Keyboard, size, TextAlign::Left)),
             None, None
         )
     }
 
     pub fn text(ctx: &mut Context, key: &'static str) -> Self {
         let size = ctx.get::<PelicanUI>().theme.fonts.size.md;
-        KeyCharacter(Row::center(0.0), None, Some(Text::new(ctx, key, TextStyle::Keyboard, size)), None, None)
+        KeyCharacter(Row::center(0.0), None, Some(Text::new(ctx, key, TextStyle::Keyboard, size, TextAlign::Left)), None, None)
     }
 
     pub fn icon(ctx: &mut Context, i: &'static str) -> Self {
@@ -420,9 +420,9 @@ impl KeyCharacter {
         KeyCharacter(
             Row::center(1.0),
             None,
-            Some(Text::new(ctx, "•", styles.0, size)),
-            Some(Text::new(ctx, "•", styles.1, size)),
-            Some(Text::new(ctx, "•", styles.2, size)),
+            Some(Text::new(ctx, "•", styles.0, size, TextAlign::Left)),
+            Some(Text::new(ctx, "•", styles.1, size, TextAlign::Left)),
+            Some(Text::new(ctx, "•", styles.2, size, TextAlign::Left)),
         )
     }
 

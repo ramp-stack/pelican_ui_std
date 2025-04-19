@@ -26,9 +26,9 @@ impl TextInput {
 
         TextInput(
             Column(16.0, Offset::Start, Size::Fit, Padding::default()),
-            label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5)),
+            label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5, TextAlign::Left)),
             InputField::new(ctx, placeholder, icon_button),
-            help_text.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm)),
+            help_text.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm, TextAlign::Left)),
             None,
             // SubText::new(ctx, help_text)
         )
@@ -36,13 +36,13 @@ impl TextInput {
 
     pub fn set_error(&mut self, ctx: &mut Context, error: &'static str) {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
-        self.4 = Some(Text::new(ctx, error, TextStyle::Error, font_size));
+        self.4 = Some(Text::new(ctx, error, TextStyle::Error, font_size, TextAlign::Left));
         self.3 = None;
     }
 
     pub fn remove_error(&mut self, ctx: &mut Context, help: &'static str) {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
-        self.3 = Some(Text::new(ctx, help, TextStyle::Secondary, font_size));
+        self.3 = Some(Text::new(ctx, help, TextStyle::Secondary, font_size, TextAlign::Left));
         self.4 = None;
     }
 }
@@ -220,8 +220,8 @@ impl InputContent {
             Bin(
                 Stack(Offset::default(), Offset::End, Size::Fit, Size::Fit, Padding(8.0, 6.0, 8.0, 6.0)),
                 EitherOr::new(
-                    ExpandableText::new(ctx, "", TextStyle::Primary, font_size),
-                    ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size)
+                    ExpandableText::new(ctx, "", TextStyle::Primary, font_size, TextAlign::Left),
+                    ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size, TextAlign::Left)
                 )
             ),
             icon_button,

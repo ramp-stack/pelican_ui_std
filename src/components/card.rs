@@ -64,13 +64,13 @@ impl CardContent {
         CardContent(
             Column(8.0, Offset::Center, Size::Fit, Padding(16.0, 16.0, 16.0, 16.0)),
             Avatar::new(ctx, avatar, None, false, 64.0),
-            Text::new(ctx, title, TextStyle::Heading, font_size.h3),
-            Text::new(ctx, subtitle, TextStyle::Primary, font_size.xs),
+            Text::new(ctx, title, TextStyle::Heading, font_size.h3, TextAlign::Left),
+            Text::new(ctx, subtitle, TextStyle::Primary, font_size.xs, TextAlign::Left),
             Bin (
                 Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1.0), Padding(0.0, 6.0, 0.0, 6.0)), 
                 Rectangle::new(color)
             ),
-            Text::new(ctx, description, TextStyle::Primary, font_size.sm),
+            Text::new(ctx, description, TextStyle::Primary, font_size.sm, TextAlign::Left),
         )
     }
 }

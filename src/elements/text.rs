@@ -31,9 +31,9 @@ impl TextStyle {
 pub struct Text;
 
 impl Text {
-    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32) -> BasicText {
+    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: TextAlign) -> BasicText {
         let (color, font) = style.get(ctx);
-        BasicText::new(text, color, None, size, size *1.25, font)
+        BasicText::new(text, color, None, size, size *1.25, font, align)
     }
 }
 
@@ -43,9 +43,9 @@ pub struct ExpandableText(pub BasicText);
 impl ExpandableText {
     pub fn text(&mut self) -> &mut String {&mut self.0.text}
 
-    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32) -> Self {
+    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: TextAlign) -> Self {
         let (color, font) = style.get(ctx);
-        ExpandableText(BasicText::new(text, color, None, size, size*1.25, font))
+        ExpandableText(BasicText::new(text, color, None, size, size*1.25, font, align))
     }
 }
 

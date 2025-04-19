@@ -154,7 +154,7 @@ impl TitleRow {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
         TitleRow(
             Row(8.0, Offset::Start, Size::Fit, Padding::default()),
-            Text::new(ctx, title, TextStyle::Heading, font_size),
+            Text::new(ctx, title, TextStyle::Heading, font_size, TextAlign::Left),
             flair.map(|(name, color)| Icon::new(ctx, name, color, 20.0)),
         )
     }
@@ -176,13 +176,13 @@ impl LeftData {
         LeftData (
             Column(4.0, Offset::Start, Size::custom(|widths: Vec<(f32, f32)>| (widths[0].0, f32::MAX)), Padding::default()),
             TitleRow::new(ctx, title, flair),
-            subtitle.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size)),
+            subtitle.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, TextAlign::Left)),
             description.map(|text| {
                 text.len()
                     .checked_sub(70 + 1)
                     .map(|_| format!("{}...", &text[..70_usize.saturating_sub(3)]))
                     .unwrap_or_else(|| text.to_string());
-                ExpandableText::new(ctx, text, TextStyle::Secondary, font_size)
+                ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, TextAlign::Left)
             }),
         )
     }
@@ -197,8 +197,8 @@ impl RightData {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         RightData (
             Column(4.0, Offset::End, Size::Fit, Padding::default()),
-            Text::new(ctx, title, TextStyle::Heading, font_size.h5),
-            subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size.xs)),
+            Text::new(ctx, title, TextStyle::Heading, font_size.h5, TextAlign::Left),
+            subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size.xs, TextAlign::Left)),
         )
     }
 }
