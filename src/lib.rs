@@ -22,20 +22,22 @@ fn vibrate()  {
     }
 }
 
-
-#[derive(Plugin)]
 pub struct PelicanUI {
     pub theme: Theme,
 }
 
 impl PelicanUI {
-    pub fn init(ctx: &mut Context) -> PelicanUI {
-        ctx.include_assets(include_assets!("./resources"));
-        PelicanUI { theme: Theme::default(ctx) }
-    }
-
-    pub fn set_theme(&mut self, theme: Theme) {
+    pub fn init(&mut self, theme: Theme) {
         self.theme = theme;
+    }
+}
+
+impl Plugin for PelicanUI {
+    async fn background_tasks(_ctx: &mut HeadlessContext) -> Tasks {vec![]}
+
+    async fn new(ctx: &mut Context<'_>, h_ctx: &mut HeadlessContext) -> (Self, Tasks) {
+        ctx.include_assets(include_assets!("./resources"));
+        (PelicanUI{theme: Theme::default(ctx)}, vec![])
     }
 }
 
