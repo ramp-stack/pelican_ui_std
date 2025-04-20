@@ -76,7 +76,7 @@ impl IconButton {
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
-impl Events for IconButton {
+ impl OnEvent for IconButton {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             // Handle ButtonState change on Mouse Event

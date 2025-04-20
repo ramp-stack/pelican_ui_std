@@ -24,7 +24,7 @@ pub struct Profile {
 
 #[derive(Debug, Component)]
 pub struct Message(Row, Option<Avatar>);
-impl Events for Message {}
+ impl OnEvent for Message {}
 
 impl Message {
     pub fn new(
@@ -50,7 +50,7 @@ impl Message {
 
 #[derive(Debug, Component)]
 pub struct MessageContent(Column, Option<MessageData>, MessageBubbles, Option<MessageData>);
-impl Events for MessageContent {}
+ impl OnEvent for MessageContent {}
 
 impl MessageContent {
     pub fn new(
@@ -85,7 +85,7 @@ impl MessageContent {
 
 #[derive(Debug, Component)]
 pub struct MessageData(Row, BasicText, Option<BasicText>, BasicText);
-impl Events for MessageData {}
+ impl OnEvent for MessageData {}
 
 impl MessageData {
     pub fn new(
@@ -111,7 +111,7 @@ impl MessageData {
 
 #[derive(Debug, Component)]
 pub struct MessageBubbles(Column, Vec<MessageBubble>);
-impl Events for MessageBubbles {}
+ impl OnEvent for MessageBubbles {}
 
 impl MessageBubbles {
     pub fn new(
@@ -126,7 +126,7 @@ impl MessageBubbles {
 
 #[derive(Debug, Component)]
 pub struct MessageBubble(Stack, RoundedRectangle, BasicText);
-impl Events for MessageBubble {}
+ impl OnEvent for MessageBubble {}
 
 impl MessageBubble {
     pub fn new(

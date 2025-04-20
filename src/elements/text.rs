@@ -49,7 +49,7 @@ impl ExpandableText {
     }
 }
 
-impl Events for ExpandableText {}
+ impl OnEvent for ExpandableText {}
 impl Component for ExpandableText {
     fn children_mut(&mut self) -> Vec<&mut dyn Drawable> {vec![&mut self.0]}
     fn children(&self) -> Vec<&dyn Drawable> {vec![&self.0]}

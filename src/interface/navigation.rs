@@ -41,7 +41,7 @@ impl MobileNavigator {
     }
 }
 
-impl Events for MobileNavigator {
+ impl OnEvent for MobileNavigator {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigatorSelect(id)) = event.downcast_ref::<NavigatorSelect>() {
             println!("Navigator selected");
@@ -99,7 +99,7 @@ impl DesktopNavigator {
     }
 }
 
-impl Events for DesktopNavigator {
+ impl OnEvent for DesktopNavigator {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigatorSelect(id)) = event.downcast_ref::<NavigatorSelect>() {
             println!("Navigator selected");
@@ -123,7 +123,7 @@ impl Events for DesktopNavigator {
 // Column of Buttons
 #[derive(Debug, Component)]
 pub struct ButtonColumn(Column, Vec<Button>);
-impl Events for ButtonColumn {}
+ impl OnEvent for ButtonColumn {}
 
 impl ButtonColumn {
     pub fn new(buttons: Vec<Button>) -> Self {
@@ -137,7 +137,7 @@ impl ButtonColumn {
 
 #[derive(Debug, Component)]
 pub struct Header(Row, HeaderIcon, HeaderContent, HeaderIcon);
-impl Events for Header {}
+ impl OnEvent for Header {}
 
 impl Header {
     pub fn home(ctx: &mut Context, title: &'static str) -> Self {
@@ -180,7 +180,7 @@ impl Header {
 
 #[derive(Debug, Component)]
 struct HeaderContent(Column, BasicText, Option<AvatarRow>);
-impl Events for HeaderContent {}
+ impl OnEvent for HeaderContent {}
 
 impl HeaderContent {
     pub fn home(ctx: &mut Context, title: &'static str) -> Self {
@@ -217,7 +217,7 @@ impl HeaderContent {
 
 #[derive(Debug, Component)]
 struct HeaderIcon(Stack, Option<IconButton>);
-impl Events for HeaderIcon {}
+ impl OnEvent for HeaderIcon {}
 
 impl HeaderIcon {
     pub fn new(icon: Option<IconButton>) -> Self {
@@ -231,7 +231,7 @@ impl HeaderIcon {
 
 #[derive(Debug, Component)]
 pub struct Bumper (Stack, BumperContent);
-impl Events for Bumper {}
+ impl OnEvent for Bumper {}
 
 impl Bumper {
     pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
@@ -245,7 +245,7 @@ impl Bumper {
 
 #[derive(Debug, Component)]
 pub struct BumperContent (Row, Vec<Box<dyn Drawable>>);
-impl Events for BumperContent {}
+ impl OnEvent for BumperContent {}
 
 impl BumperContent {
     pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {

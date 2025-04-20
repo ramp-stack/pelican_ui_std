@@ -8,7 +8,7 @@ use crate::{PelicanUI, ElementID};
 
 #[derive(Debug, Component)]
 pub struct AmountDisplay(Column, BasicText, SubText);
-impl Events for AmountDisplay {}
+ impl OnEvent for AmountDisplay {}
 impl AmountDisplay {
     pub fn new(ctx: &mut Context, usd: &'static str, btc: &'static str, _err: Option<&'static str>) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
@@ -29,7 +29,7 @@ impl AmountDisplay {
 
 #[derive(Debug, Component)]
 struct SubText(Row, Option<Image>, BasicText, #[skip] bool);
-impl Events for SubText {}
+ impl OnEvent for SubText {}
 
 impl SubText {
     fn new(ctx: &mut Context, btc: &'static str) -> Self {
@@ -64,7 +64,7 @@ impl AmountInput {
     }
 }
 
-impl Events for AmountInput {
+ impl OnEvent for AmountInput {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             if let Some(ids) = &self.2 {
@@ -92,7 +92,7 @@ impl AmountInputContent {
     }
 }
 
-impl Events for AmountInputContent {
+ impl OnEvent for AmountInputContent {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(KeyboardEvent{state: KeyboardState::Pressed, key}) = event.downcast_ref() {
             let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
@@ -206,7 +206,7 @@ impl Events for AmountInputContent {
 
 #[derive(Debug, Component)]
 struct Display(Row, BasicText, BasicText);
-impl Events for Display {}
+ impl OnEvent for Display {}
 impl Display {
     pub fn new(ctx: &mut Context) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;

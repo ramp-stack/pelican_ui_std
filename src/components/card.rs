@@ -33,7 +33,7 @@ impl Card {
     }
 }
 
-impl Events for Card {
+ impl OnEvent for Card {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
@@ -49,7 +49,7 @@ impl Events for Card {
 
 #[derive(Debug, Component)]
 pub struct CardContent(Column, Avatar, BasicText, BasicText, Bin<Stack, Rectangle>, BasicText);
-impl Events for CardContent {}
+ impl OnEvent for CardContent {}
 
 impl CardContent {
     fn new(

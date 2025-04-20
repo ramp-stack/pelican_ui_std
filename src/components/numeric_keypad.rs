@@ -4,7 +4,7 @@ use crate::layout::{Column, Row, Offset, Size, Padding};
 
 #[derive(Debug, Component)]
 pub struct NumericKeypad(Column, ButtonRow, ButtonRow, ButtonRow, ButtonRow);
-impl Events for NumericKeypad {}
+ impl OnEvent for NumericKeypad {}
 
 impl NumericKeypad {
     pub fn new(ctx: &mut Context) -> Self {
@@ -20,7 +20,7 @@ impl NumericKeypad {
 
 #[derive(Debug, Component)]
 struct ButtonRow(Row, Button, Button, Button);
-impl Events for ButtonRow {}
+ impl OnEvent for ButtonRow {}
 
 impl ButtonRow {
     fn new(ctx: &mut Context, a: Option<&'static str>, b: Option<&'static str>, c: Option<&'static str>) -> Self {

@@ -8,7 +8,7 @@ use crate::PelicanUI;
 
 #[derive(Debug, Component)]
 pub struct Alert(Row, Image, BasicText);
-impl Events for Alert {}
+ impl OnEvent for Alert {}
 
 impl Alert {
     pub fn new(ctx: &mut Context, message: &'static str) -> Self {

@@ -8,7 +8,7 @@ use crate::PelicanUI;
 
 #[derive(Debug, Component)]
 pub struct DataItem(Row, Option<Number>, DataItemContent);
-impl Events for DataItem {}
+ impl OnEvent for DataItem {}
 
 impl DataItem {
     pub fn new(
@@ -30,7 +30,7 @@ impl DataItem {
 
 #[derive(Debug, Component)]
 struct Number(Stack, Shape, BasicText);
-impl Events for Number {}
+ impl OnEvent for Number {}
 
 impl Number {
     pub fn new(ctx: &mut Context, txt: &'static str) -> Self {
@@ -46,7 +46,7 @@ impl Number {
 
 #[derive(Debug, Component)]
 struct DataItemContent(Column, BasicText, Option<ExpandableText>, Option<ExpandableText>, Option<Table>, Option<QuickActions>);
-impl Events for DataItemContent {}
+ impl OnEvent for DataItemContent {}
 
 impl DataItemContent {
     fn new(
@@ -71,7 +71,7 @@ impl DataItemContent {
 
 #[derive(Debug, Component)]
 struct Table(pub Column, pub Vec<Tabular>);
-impl Events for Table {}
+ impl OnEvent for Table {}
 
 impl Table {
     pub fn new(ctx: &mut Context, items: Vec<(&'static str, &'static str)>) -> Self {
@@ -84,7 +84,7 @@ impl Table {
 
 #[derive(Debug, Component)]
 struct Tabular(Row, ExpandableText, BasicText);
-impl Events for Tabular {}
+ impl OnEvent for Tabular {}
 
 impl Tabular {
     fn new(ctx: &mut Context, name: &'static str, data: &'static str) -> Self {
@@ -99,7 +99,7 @@ impl Tabular {
 
 #[derive(Debug, Component)]
 struct QuickActions(Row, Vec<Button>); // Row should be wrap
-impl Events for QuickActions {}
+ impl OnEvent for QuickActions {}
 
 impl QuickActions {
     fn new(buttons: Vec<Button>) -> Self {

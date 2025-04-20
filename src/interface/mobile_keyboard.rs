@@ -13,7 +13,7 @@ use std::sync::mpsc::{self, Receiver, Sender};
 
 #[derive(Component, Debug)]
 pub struct MobileKeyboard(Stack, Rectangle, KeyboardContent);
-impl Events for MobileKeyboard {}
+ impl OnEvent for MobileKeyboard {}
 
 impl MobileKeyboard {
     pub fn new(ctx: &mut Context) -> Self {
@@ -32,7 +32,7 @@ impl MobileKeyboard {
 
 #[derive(Component, Debug)]
 pub struct KeyboardHeader(Column, IconButtonRow, Bin<Stack, Rectangle>);
-impl Events for KeyboardHeader {}
+ impl OnEvent for KeyboardHeader {}
 
 impl KeyboardHeader {
     pub fn new(ctx: &mut Context) -> Self {
@@ -50,7 +50,7 @@ impl KeyboardHeader {
 
 #[derive(Component, Debug)]
 pub struct IconButtonRow(Row, IconButton, IconButton, IconButton, IconButton, Bin<Stack, Rectangle>, IconButton );
-impl Events for IconButtonRow {}
+ impl OnEvent for IconButtonRow {}
 
 impl IconButtonRow {
     pub fn new(ctx: &mut Context) -> Self {
@@ -97,7 +97,7 @@ impl KeyboardContent {
     }
 }
 
-impl Events for KeyboardContent {
+ impl OnEvent for KeyboardContent {
     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             match self.6.try_recv() {
@@ -113,7 +113,7 @@ impl Events for KeyboardContent {
 
 #[derive(Component, Debug)]
 pub struct KeyRow(Row, Vec<Key>);
-impl Events for KeyRow {}
+ impl OnEvent for KeyRow {}
 
 impl KeyRow {
     pub fn new(ctx: &mut Context, keys: Vec<&'static str>) -> Self {
@@ -127,7 +127,7 @@ impl KeyRow {
 #[derive(Component, Debug)]
 pub struct KeyboardRow(Row, Option<Capslock>, Option<Paginator>, Option<KeyRow>, Option<Key>, Option<Key>);
 // Capslock, Paginator, Character Row, Spacebar, Return
-impl Events for KeyboardRow {}
+ impl OnEvent for KeyboardRow {}
 
 impl KeyboardRow {
     fn top(ctx: &mut Context) -> Self {
@@ -220,7 +220,7 @@ impl Key {
     pub fn content(&mut self) -> &mut KeyContent {&mut self.1}
 }
 
-impl Events for Key {
+ impl OnEvent for Key {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             let colors = ctx.get::<PelicanUI>().theme.colors;
@@ -270,7 +270,7 @@ impl std::fmt::Debug for Capslock {
     }
 }
 
-impl Events for Capslock {
+ impl OnEvent for Capslock {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             let colors = ctx.get::<PelicanUI>().theme.colors;
@@ -323,7 +323,7 @@ impl std::fmt::Debug for Paginator {
     }
 }
 
-impl Events for Paginator {
+ impl OnEvent for Paginator {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             let colors = ctx.get::<PelicanUI>().theme.colors;
@@ -367,7 +367,7 @@ impl Events for Paginator {
 
 #[derive(Component, Debug)]
 pub struct KeyContent(Stack, RoundedRectangle, KeyCharacter);
-impl Events for KeyContent {}
+ impl OnEvent for KeyContent {}
 
 impl KeyContent {
     pub fn new(ctx: &mut Context, size: f32, offset: Offset, content: KeyCharacter) -> Self {
@@ -384,7 +384,7 @@ impl KeyContent {
 
 #[derive(Component, Debug)]
 pub struct KeyCharacter(Row, Option<Image>, Option<BasicText>, Option<BasicText>, Option<BasicText>);
-impl Events for KeyCharacter {}
+ impl OnEvent for KeyCharacter {}
 
 impl KeyCharacter {
     pub fn char(ctx: &mut Context, key: &'static str) -> Self {

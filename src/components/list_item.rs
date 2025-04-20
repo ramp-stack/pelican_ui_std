@@ -44,7 +44,7 @@ impl ListItem {
     }
 }
 
-impl Events for ListItem {
+ impl OnEvent for ListItem {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
@@ -75,7 +75,7 @@ impl std::fmt::Debug for ListItem {
 
 #[derive(Debug, Component)]
 pub struct ListItemContent(Row, Option<RadioButton>, Option<Avatar>, ListItemData, Option<Image>);
-impl Events for ListItemContent {}
+ impl OnEvent for ListItemContent {}
 
 impl ListItemContent {
     pub fn new(
@@ -103,7 +103,7 @@ impl ListItemContent {
 
 #[derive(Debug, Component)]
 struct RadioButton(Row, Image);
-impl Events for RadioButton {}
+ impl OnEvent for RadioButton {}
 
 impl RadioButton {
     pub fn new(ctx: &mut Context, is_enabled: bool) -> Self {
@@ -125,7 +125,7 @@ impl RadioButton {
 
 #[derive(Debug, Component)]
 struct ListItemData(pub Row, pub LeftData, pub Option<RightData>);
-impl Events for ListItemData {}
+ impl OnEvent for ListItemData {}
 
 impl ListItemData {
     pub fn new(
@@ -146,7 +146,7 @@ impl ListItemData {
 }
 #[derive(Debug, Component)]
 struct TitleRow(Row, BasicText, Option<Image>);
-impl Events for TitleRow {}
+ impl OnEvent for TitleRow {}
 
 impl TitleRow {
     pub fn new(ctx: &mut Context, title: &'static str, flair: Option<(&'static str, Color)>) -> Self {
@@ -161,7 +161,7 @@ impl TitleRow {
 
 #[derive(Debug, Component)]
 struct LeftData(pub Column, pub TitleRow, pub Option<ExpandableText>, pub Option<ExpandableText>);
-impl Events for LeftData {}
+ impl OnEvent for LeftData {}
 
 impl LeftData {
     pub fn new(
@@ -189,7 +189,7 @@ impl LeftData {
 
 #[derive(Debug, Component)]
 struct RightData(Column, BasicText, Option<BasicText>);
-impl Events for RightData {}
+ impl OnEvent for RightData {}
 
 impl RightData {
     pub fn new(ctx: &mut Context, title: &'static str, subtitle: Option<&'static str>) -> Self {
@@ -294,7 +294,7 @@ impl ListItem {
 
 #[derive(Debug, Component)]
 pub struct ListItemSelector(Column, ListItem, ListItem, Option<ListItem>, Option<ListItem>);
-impl Events for ListItemSelector {}
+ impl OnEvent for ListItemSelector {}
 
 impl ListItemSelector {
     pub fn new(
@@ -315,7 +315,7 @@ impl ListItemSelector {
 
 #[derive(Debug, Component)]
 pub struct ListItemGroup(Column, Vec<ListItem>);
-impl Events for ListItemGroup {}
+ impl OnEvent for ListItemGroup {}
 
 impl ListItemGroup {
     pub fn new(items: Vec<ListItem>) -> Self {
@@ -336,7 +336,7 @@ impl QuickDeselect {
     }
 }
 
-impl Events for QuickDeselect {
+ impl OnEvent for QuickDeselect {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(AddContactEvent(name, id)) = event.downcast_ref::<AddContactEvent>() {
             let button = QuickDeselectButton::new(ctx, name, *id);
@@ -361,7 +361,7 @@ impl Events for QuickDeselect {
 
 #[derive(Debug, Component)]
 pub struct QuickDeselectContent(Wrap, Vec<QuickDeselectButton>);
-impl Events for QuickDeselectContent {}
+ impl OnEvent for QuickDeselectContent {}
 
 impl QuickDeselectContent {
     pub fn new(first: QuickDeselectButton) -> Self {

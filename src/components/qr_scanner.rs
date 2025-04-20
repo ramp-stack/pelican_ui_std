@@ -15,7 +15,7 @@ impl QRCodeScanner {
     }
 }
 
-impl Events for QRCodeScanner {
+ impl OnEvent for QRCodeScanner {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             match Camera::access() {
@@ -41,7 +41,7 @@ impl Events for QRCodeScanner {
 
 #[derive(Debug, Component)]
 struct QRGuide(Stack, Option<RoundedRectangle>, RoundedRectangle, Option<Message>);
-impl Events for QRGuide {}
+ impl OnEvent for QRGuide {}
 
 impl QRGuide {
     pub fn new(ctx: &mut Context) -> Self {
@@ -61,7 +61,7 @@ impl QRGuide {
 
 #[derive(Debug, Component)]
 struct Message(Column, Image, BasicText);
-impl Events for Message {}
+ impl OnEvent for Message {}
 
 impl Message {
     pub fn new(ctx: &mut Context, icon: &'static str, msg: &'static str) -> Self {

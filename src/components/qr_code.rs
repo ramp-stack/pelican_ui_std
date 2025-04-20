@@ -8,7 +8,7 @@ use qrcode::{QrCode, Color};
 
 #[derive(Debug, Component)]
 pub struct QRCode(Stack, Bin<Stack, RoundedRectangle>, QRModules, Image);
-impl Events for QRCode {}
+ impl OnEvent for QRCode {}
 
 impl QRCode {
     pub fn new(ctx: &mut Context, data: &'static str) -> Self {
@@ -31,7 +31,7 @@ impl QRCode {
 
 #[derive(Debug, Component)]
 pub struct QRModules(Column, Vec<QRModuleRow>);
-impl Events for QRModules {}
+ impl OnEvent for QRModules {}
 
 impl QRModules {
     pub fn new(ctx: &mut Context, code_str: &'static str, qr_size: f32, logo_size: f32) -> Self {
@@ -58,7 +58,7 @@ impl QRModules {
 
 #[derive(Debug, Component)]
 pub struct QRModuleRow(Row, Vec<Shape>);
-impl Events for QRModuleRow{}
+ impl OnEvent for QRModuleRow{}
 impl QRModuleRow {
     pub fn new(
         ctx: &mut Context, 

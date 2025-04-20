@@ -49,7 +49,7 @@ impl TextInput {
     }
 }
 
-impl Events for TextInput {
+ impl OnEvent for TextInput {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             *self.2.error() = self.4.is_some();
@@ -89,7 +89,7 @@ impl Events for TextInput {
 //     }
 // }
 
-// impl Events for SubText {
+//  impl OnEvent for SubText {
 //     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
 //         if let Some(TickEvent) = event.downcast_ref() {
 //             let error = !self.error().is_empty();
@@ -130,7 +130,7 @@ impl InputField {
     pub fn input(&mut self) -> &mut String {self.2.input()}
 }
 
-impl Events for InputField {
+ impl OnEvent for InputField {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             self.3 = match self.3 {
@@ -243,7 +243,7 @@ impl InputContent {
     pub fn focus(&mut self) -> &mut bool {&mut self.3}
 }
 
-impl Events for InputContent {
+ impl OnEvent for InputContent {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             if let Some((receiver, on_submit)) = self.4.as_mut() {

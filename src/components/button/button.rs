@@ -92,7 +92,7 @@ impl Button {
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
-impl Events for Button {
+ impl OnEvent for Button {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             // Handle ButtonState on mouse event
@@ -138,7 +138,7 @@ impl std::fmt::Debug for Button {
 
 #[derive(Debug, Component)]
 struct ButtonContent(Row, Option<Avatar>, Option<Image>, Option<BasicText>, Option<Image>);
-impl Events for ButtonContent {}
+ impl OnEvent for ButtonContent {}
 
 impl ButtonContent {
     fn new(
@@ -388,7 +388,7 @@ impl Button {
 
 #[derive(Debug, Component)]
 pub struct QuickActions(Wrap, Vec<Button>);
-impl Events for QuickActions {}
+ impl OnEvent for QuickActions {}
 
 impl QuickActions {
     pub fn new(buttons: Vec<Button>) -> Self {
@@ -399,7 +399,7 @@ impl QuickActions {
 
 #[derive(Debug, Component)]
 pub struct QuickDeselectButton(Stack, Button, #[skip] ElementID);
-impl Events for QuickDeselectButton {}
+ impl OnEvent for QuickDeselectButton {}
 
 impl QuickDeselectButton {
     pub fn new(ctx: &mut Context, name: &'static str, id: ElementID) -> Self {
