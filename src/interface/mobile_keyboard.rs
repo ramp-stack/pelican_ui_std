@@ -57,15 +57,15 @@ impl IconButtonRow {
         let color = ctx.get::<PelicanUI>().theme.colors.shades.transparent;
         IconButtonRow(
             Row(16.0, Offset::Start, Size::Fit, Padding(12.0, 6.0, 12.0, 6.0)), 
-            IconButton::keyboard(ctx, "emoji", |_ctx: &mut Context| ()),
-            IconButton::keyboard(ctx, "gif", |_ctx: &mut Context| ()),
-            IconButton::keyboard(ctx, "photos", |_ctx: &mut Context| ()),
-            IconButton::keyboard(ctx, "camera", |_ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "emoji", None, |_ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "gif", None, |_ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "photos", None, |_ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "camera", None, |_ctx: &mut Context| ()),
             Bin (
                 Stack(Offset::Center, Offset::Center, Size::Fill(1.0, f32::MAX), Size::Static(1.0),  Padding::default()), 
                 Rectangle::new(color)
             ),
-            IconButton::keyboard(ctx, "down_arrow", |ctx: &mut Context| ctx.trigger_event(KeyboardActiveEvent(false))),
+            IconButton::keyboard(ctx, "down_arrow", None, |ctx: &mut Context| ctx.trigger_event(KeyboardActiveEvent(false))),
         )
     }
 }

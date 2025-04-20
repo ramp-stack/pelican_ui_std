@@ -1,42 +1,62 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::events::{RemoveContactEvent, SetActiveEvent, SetInactiveEvent};
+
+use crate::ElementID;
+use crate::components::avatar::{Avatar, AvatarContent};
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text, TextStyle};
-use crate::components::avatar::{Avatar, AvatarContent};
-use crate::layout::{Stack, Offset, Size, Wrap, Padding, Row, Column};
-use crate::ElementID;
+use crate::events::{RemoveContactEvent, SetActiveEvent, SetInactiveEvent};
+use crate::layout::{Column, Offset, Padding, Row, Size, Stack, Wrap};
 
-use super::{ButtonState, ButtonStyle, ButtonSize};
-
-#[derive(Debug, Clone, Copy)]
-pub enum ButtonWidth {
-    Expand,
-    Hug,
-}
+use super::{ButtonSize, ButtonState, ButtonStyle};
 
 #[derive(Component)]
-pub struct Button(Stack, OutlinedRectangle, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] Option<ElementID>);
+pub struct Button(
+    Stack, 
+    OutlinedRectangle, 
+    ButtonContent, 
+    #[skip] ButtonStyle, 
+    #[skip] ButtonState, 
+    #[skip] Option<ElementID>,
+    #[skip] pub Box<dyn FnMut(&mut Context)>, 
+);
+
 impl Button {
     pub fn new(
+        // App Context
         ctx: &mut Context,
+        // Optional User Avatar 
         avatar: Option<AvatarContent>,
+        // Optional Icon to Left of Label
         icon_l: Option<&'static str>,
+        // Optional Label
         label: Option<&'static str>,
+        // Optional Icon to Right of Label
         icon_r: Option<&'static str>,
+        // Size of Button (Medium, Large)
         size: ButtonSize,
+        // Width of Button (Expand, Hug)
         width: ButtonWidth,
+        // Style of Button
         style: ButtonStyle,
+        // State of Button
         state: ButtonState,
+        // Alignment of Inner Content
         offset: Offset,
-        on_click: impl FnMut(&mut Context) + 'static,
+        // Optional Identifier
         id: Option<ElementID>,
+        // Code to Run On Click
+        on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
+        // Get height and padding of background based off the ButtonSize enum.
         let (height, padding) = size.background();
+        // Get colors for label, background, outline based off the ButtonStyle enum.
         let colors = state.color(ctx, style);
+        // Create the ButtonContent
         let content = ButtonContent::new(ctx, avatar, icon_l, label, icon_r, size, colors.label, padding);
 
+        // Calculate button width
         let width = match width {
             ButtonWidth::Hug => Size::custom(move |widths: Vec<(f32, f32)>|
                 (widths[1].0, widths[1].1)
@@ -46,43 +66,61 @@ impl Button {
             ),
         };
 
+        // Build background shape
         let background = OutlinedRectangle::new(colors.background, colors.outline, height/2.0, 1.0);
+        // Create stack layout
         let layout = Stack(offset, Offset::Center, width, Size::Static(height), Padding::default());
 
-        Button(layout, background, content, style, state, Box::new(on_click), id)
+        Button(layout, background, content, style, state, id, Box::new(on_click))
     }
 
+    // Recolor button
     pub fn color(&mut self, ctx: &mut Context) {
+        // Get colors based off ButtonStyle and ButtonState
         let colors = self.4.color(ctx, self.3);
+        // Set color for label and icons
         self.2.set_color(colors.label);
+        // Set color for outline
         *self.1.outline() = colors.outline;
+        // Set color for background
         *self.1.background() = colors.background;
     }
 
-    pub fn id(&self) -> Option<ElementID> {self.6}
+    // Get button's ElementID
+    pub fn id(&self) -> Option<ElementID> {self.5}
+    // Get button's ButtonState
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
 impl Events for Button {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
+            // Handle ButtonState on mouse event
             if let Some(state) = self.4.handle(ctx, *event) {
+                // Recolor button for new state
                 self.color(ctx);
             }
+            // Run on_click when pressed
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {
-                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.5)(ctx),
+                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.6)(ctx),
                     _ => {}
                 }
             }
         } else if let Some(SetActiveEvent(id)) = event.downcast_ref::<SetActiveEvent>() {
-            if self.6.is_some() && *id == self.6.unwrap() {
+            // Check if received SetActiveEvent
+            if self.5.is_some() && *id == self.5.unwrap() {
+                // Set state to Default
                 self.4 = ButtonState::Default;
+                // Recolor button
                 self.color(ctx);
             }
         } else if let Some(SetInactiveEvent(id)) = event.downcast_ref::<SetInactiveEvent>() {
-            if self.6.is_some() && *id == self.6.unwrap() {
+            // Check if received SetInactiveEvent
+            if self.5.is_some() && *id == self.5.unwrap() {
+                // Set state to Disabled
                 self.4 = ButtonState::Disabled;
+                // Recolr button
                 self.color(ctx);
             }
         }
@@ -90,6 +128,7 @@ impl Events for Button {
     }
 }
 
+// Implement Debug for Button
 impl std::fmt::Debug for Button {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Button(...)")
@@ -103,37 +142,63 @@ impl Events for ButtonContent {}
 
 impl ButtonContent {
     fn new(
+        // App Context
         ctx: &mut Context,
+        // Optional User Avatar
         avatar: Option<AvatarContent>,
+        // Optional Icon to Left of Label
         icon_l: Option<&'static str>,
+        // Optional Label
         label: Option<&'static str>,
+        // Optional Icon to Right of Label
         icon_r: Option<&'static str>,
+        // Size of Button (Medium, Large)
         size: ButtonSize,
+        // Color of Label and Icons
         color: Color,
+        // Space Between Label and Icons
         padding: f32,
     ) -> Self {
+        // Calculate sizes based off ButtonSize enum.
         let (text_size, icon_size, spacing) = size.content(ctx);
         ButtonContent(
+            // Create row layout.
             Row(spacing, Offset::Center, Size::Fit, Padding(padding, 0.0, padding, 0.0)),
+            // Create avatar if provided
             avatar.map(|content| Avatar::new(ctx, content, None, false, icon_size)),
+            // Create left icon if provided
             icon_l.map(|icon| Icon::new(ctx, icon, color, icon_size)),
+            // Create label if provided
             label.map(|label| Text::new(ctx, label, TextStyle::Label(color), text_size, TextAlign::Left)),
+            // Create right icon if provided
             icon_r.map(|icon| Icon::new(ctx, icon, color, icon_size)),
         )
     }
 
     fn set_color(&mut self, color: Color) {
+        // Set color for left icon
         if let Some(icon) = &mut self.2 { icon.color = Some(color); }
+        // Set color for label
         if let Some(text) = &mut self.3 { text.color = color; }
+        // Set color for right icon
         if let Some(icon) = &mut self.4 { icon.color = Some(color); }
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum ButtonWidth {
+    // Button width expands as wide as possible
+    Expand,
+    // Button width will hug it's content
+    Hug,
+}
+
 impl Button {
-    pub fn primary(
+    // Primary Button Preset
+    pub fn primary (
         ctx: &mut Context,
         label: &'static str,
-        id: Option<ElementID>,
+        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -147,16 +212,18 @@ impl Button {
             ButtonStyle::Primary,
             ButtonState::Default,
             Offset::Center,
+            element_id,
             on_click,
-            id,
         )
     }
 
+    // Secondary Button Preset
     pub fn secondary(
         ctx: &mut Context,
         icon_l: Option<&'static str>,
         label: &'static str,
         icon_r: Option<&'static str>,
+        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -170,14 +237,16 @@ impl Button {
             ButtonStyle::Secondary,
             ButtonState::Default,
             Offset::Center,
+            element_id,
             on_click,
-            None,
         )
     }
 
+    // Ghost Button Preset
     pub fn ghost(
         ctx: &mut Context,
         label: &'static str,
+        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -191,15 +260,16 @@ impl Button {
             ButtonStyle::Ghost,
             ButtonState::Default,
             Offset::Center,
+            element_id,
             on_click,
-            None,
         )
     }
 
+    // Disabled Button Preset
     pub fn disabled(
         ctx: &mut Context,
         label: &'static str,
-        id: Option<ElementID>,
+        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -213,15 +283,17 @@ impl Button {
             ButtonStyle::Primary,
             ButtonState::Disabled,
             Offset::Center,
+            element_id,
             on_click,
-            id,
         )
     }
 
+    // Numeric Keypad Button Preset
     pub fn keypad(
         ctx: &mut Context,
         label: Option<&'static str>,
         icon: Option<&'static str>,
+        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -235,17 +307,18 @@ impl Button {
             ButtonStyle::Ghost,
             ButtonState::Default,
             Offset::Center,
+            element_id,
             on_click,
-            None,
         )
     }
 
+    // Desktop Navigator Button Preset
     pub fn navigation(
         ctx: &mut Context,
         icon: &'static str,
         label: &'static str,
         selected: bool,
-        id: ElementID,
+        element_id: ElementID,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -259,17 +332,18 @@ impl Button {
             ButtonStyle::Ghost,
             if selected {ButtonState::Selected} else {ButtonState::Default},
             Offset::Start,
+            Some(element_id),
             on_click,
-            Some(id),
         )
     }
 
+    // Desktop Navigator Profile Button Preset
     pub fn photo(
         ctx: &mut Context,
         label: &'static str,
         photo: AvatarContent,
         selected: bool,
-        id: ElementID,
+        element_id: ElementID,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -283,14 +357,16 @@ impl Button {
             ButtonStyle::Ghost,
             if selected {ButtonState::Pressed} else {ButtonState::Default},
             Offset::Start,
+            Some(element_id),
             on_click,
-            Some(id),
         )
     }
 
+    // Close Page Button Preset
     pub fn close(
         ctx: &mut Context,
         label: &'static str,
+        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -304,37 +380,11 @@ impl Button {
             ButtonStyle::Secondary,
             ButtonState::Default,
             Offset::Center,
+            element_id,
             on_click,
-            None
         )
     }
 }
-
-#[derive(Debug, Component)]
-pub struct ButtonColumn(Column, Vec<Button>);
-impl Events for ButtonColumn {}
-
-impl ButtonColumn {
-    pub fn new(buttons: Vec<Button>) -> Self {
-        ButtonColumn(Column::center(8.0), buttons)
-    }
-
-    pub fn buttons(&mut self) -> &mut Vec<Button> {&mut self.1}
-}
-
-// #[derive(Debug, Component)]
-// pub struct QuickActions(Stack, QuickActionsContent);
-// impl Events for QuickActions {}
-
-// impl QuickActions {
-//     pub fn new(buttons: Vec<Button>) -> Self {
-//         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
-//         QuickActions(
-//             Stack(Offset::Start, Offset::Start, width, Size::Fit, Padding::default()),
-//             QuickActionsContent::new(buttons)
-//         )
-//     }
-// }
 
 #[derive(Debug, Component)]
 pub struct QuickActions(Wrap, Vec<Button>);
@@ -342,6 +392,7 @@ impl Events for QuickActions {}
 
 impl QuickActions {
     pub fn new(buttons: Vec<Button>) -> Self {
+        // Wrap of custom buttons (secondary)
         QuickActions(Wrap(8.0, 8.0, Offset::Start, Offset::Center, Padding::default()), buttons)
     }
 }
@@ -352,7 +403,8 @@ impl Events for QuickDeselectButton {}
 
 impl QuickDeselectButton {
     pub fn new(ctx: &mut Context, name: &'static str, id: ElementID) -> Self {
-        let button = Button::secondary(ctx, None, name, Some("close"), move |ctx: &mut Context| ctx.trigger_event(RemoveContactEvent(id)));
+        // Wrap of secondary contact buttons
+        let button = Button::secondary(ctx, None, name, Some("close"), None, move |ctx: &mut Context| ctx.trigger_event(RemoveContactEvent(id)));
         QuickDeselectButton(Stack::default(), button, id)
     }
 

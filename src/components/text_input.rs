@@ -219,7 +219,7 @@ impl InputContent {
         let (icon_button, callback) = icon_button.map(|(icon, on_click)| {
             let (sender, receiver) = mpsc::channel();
             (
-                Some(IconButton::input(ctx, icon, move |_| {sender.send(0).unwrap();})),
+                Some(IconButton::input(ctx, icon, None, move |_| {sender.send(0).unwrap();})),
                 Some((receiver, Box::new(on_click) as SubmitCallback)),
             )
         }).unwrap_or((None, None));

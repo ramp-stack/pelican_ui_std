@@ -4,7 +4,7 @@ use crate::events::NavigatorSelect;
 use crate::elements::images::Brand;
 use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::Rectangle;
-use crate::components::button::{Button, IconButton, ButtonColumn, ButtonState};
+use crate::components::button::{Button, IconButton, ButtonState};
 use crate::components::avatar::{AvatarIconStyle, AvatarContent, AvatarRow};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::{PelicanUI, ElementID};
@@ -118,6 +118,21 @@ impl Events for DesktopNavigator {
         true
     }
 }
+
+
+// Column of Buttons
+#[derive(Debug, Component)]
+pub struct ButtonColumn(Column, Vec<Button>);
+impl Events for ButtonColumn {}
+
+impl ButtonColumn {
+    pub fn new(buttons: Vec<Button>) -> Self {
+        ButtonColumn(Column::center(8.0), buttons)
+    }
+
+    pub fn buttons(&mut self) -> &mut Vec<Button> {&mut self.1}
+}
+
 
 
 #[derive(Debug, Component)]
