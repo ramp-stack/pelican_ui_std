@@ -7,7 +7,7 @@ use crate::elements::shapes::Rectangle;
 use crate::components::button::{Button, IconButton, ButtonColumn, ButtonState};
 use crate::components::avatar::{AvatarIconStyle, AvatarContent, AvatarRow};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
-use crate::PelicanUI;
+use crate::{PelicanUI, ElementID};
 
 #[derive(Debug, Component)]
 pub struct MobileNavigator(Row, Vec<IconButton>);
@@ -19,10 +19,10 @@ impl MobileNavigator {
         mut profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)
     ) -> Self {
         if navigation.1.is_empty() {panic!("MobileNavigator: Parameter 1 was empty. Navigator has no data.")}
-        let profile_id = uuid::Uuid::new_v4();
+        let profile_id = ElementID::new();
 
         let mut tabs: Vec<IconButton> = navigation.1.into_iter().enumerate().map(|(y, (i, _, mut c))| {
-            let id = uuid::Uuid::new_v4();
+            let id = ElementID::new();
             IconButton::tab_nav(ctx, i, y == navigation.0, id, move |ctx: &mut Context| {
                 println!("triggered");
                 ctx.trigger_event(NavigatorSelect(id));
@@ -73,10 +73,10 @@ impl DesktopNavigator {
 
         let theme = &ctx.get::<PelicanUI>().theme;
         let (wordmark, color) = (theme.brand.wordmark.clone(), theme.colors.shades.transparent);
-        let profile_id = uuid::Uuid::new_v4();
+        let profile_id = ElementID::new();
 
         let mut tabs: Vec<Button> = navigation.1.into_iter().enumerate().map(|(y, (i, n, mut c))| {
-            let id = uuid::Uuid::new_v4();
+            let id = ElementID::new();
             Button::navigation(ctx, i, n, y == navigation.0, id, move |ctx: &mut Context| {
                 ctx.trigger_event(NavigatorSelect(id));
                 (c)(ctx);
@@ -107,12 +107,11 @@ impl Events for DesktopNavigator {
             buttons.push(&mut self.4);
             buttons.iter_mut().for_each(|button| {
                 if button.id().unwrap() == *id {
-                    println!("Select");
                     *button.status() = ButtonState::Selected;
+                    button.color(ctx);
                 } else {
-                    println!("Deselect");
                     *button.status() = ButtonState::Default;
-                    button.color(ctx, ButtonState::Default);
+                    button.color(ctx);
                 }
             });
         }
@@ -211,5 +210,30 @@ impl HeaderIcon {
             Stack(Offset::Center, Offset::Center, Size::Static(48.0), Size::Static(48.0), Padding::default()),
             icon
         )
+    }
+}
+
+
+#[derive(Debug, Component)]
+pub struct Bumper (Stack, BumperContent);
+impl Events for Bumper {}
+
+impl Bumper {
+    pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
+        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, 375.0));
+        Bumper(
+            Stack(Offset::Center, Offset::Start, width, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
+            BumperContent::new(content)
+        )
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct BumperContent (Row, Vec<Box<dyn Drawable>>);
+impl Events for BumperContent {}
+
+impl BumperContent {
+    pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
+        BumperContent(Row::center(16.0), content)
     }
 }

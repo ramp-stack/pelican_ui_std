@@ -49,12 +49,25 @@ pub trait PageName: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'stati
 
 dyn_clone::clone_trait_object!(PageName);
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ElementID(uuid::Uuid);
+
+impl ElementID {
+    pub fn new() -> Self {
+        ElementID(uuid::Uuid::new_v4())
+    }
+
+    pub fn as_uuid(&self) -> uuid::Uuid {
+        self.0
+    }
+}
 // pub trait Application: std::fmt::Debug + Copy + Clone + 'static {
 //     type ApplicationPage: ApplicationPages + Copy + Clone + std::fmt::Debug + 'static;
 // }
 
 
 pub mod prelude {
+    pub use crate::ElementID;
     pub use crate::PageName;
     pub use crate::events::*;
     pub use crate::interface::*;

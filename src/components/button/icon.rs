@@ -2,14 +2,14 @@ use rust_on_rails::prelude::*;
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::layout::{Stack, Offset, Size, Padding};
-
+use crate::ElementID;
 use super::{ButtonStyle, ButtonSize, ButtonState};
 
 #[derive(Component)]
 pub struct IconButton(
         Stack, OutlinedRectangle, Image,
         #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>,
-        #[skip] Option<uuid::Uuid>
+        #[skip] Option<ElementID>
 );
 
 impl IconButton {
@@ -20,7 +20,7 @@ impl IconButton {
         style: ButtonStyle,
         state: ButtonState,
         on_click: impl FnMut(&mut Context) + 'static,
-        id: Option<uuid::Uuid>,
+        id: Option<ElementID>,
     ) -> Self {
         let colors = state.color(ctx, style);
         let (size, icon_size, radius) = match (style, size) {
@@ -47,7 +47,7 @@ impl IconButton {
         self.2.color = Some(colors.label);
     }
 
-    pub fn id(&self) -> Option<uuid::Uuid> {self.6}
+    pub fn id(&self) -> Option<ElementID> {self.6}
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
@@ -136,7 +136,7 @@ impl IconButton {
         ctx: &mut Context, 
         icon: &'static str, 
         selected: bool,
-        id: uuid::Uuid,
+        id: ElementID,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let state = if selected {ButtonState::Default} else {ButtonState::UnSelected};

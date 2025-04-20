@@ -4,15 +4,15 @@ use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text,TextStyle, ExpandableText};
 use crate::components::button::IconButton;
-use crate::events::{SummonKeyboardEvent, HideKeyboardEvent};
+use crate::events::{KeyboardActiveEvent, SetActiveEvent, SetInactiveEvent};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
-use crate::PelicanUI;
+use crate::{PelicanUI, ElementID};
 
 use std::sync::mpsc::{self, Receiver};
 
 
 #[derive(Debug, Component)]
-pub struct TextInput(Column, Option<BasicText>, InputField, Option<BasicText>, Option<BasicText>);
+pub struct TextInput(Column, Option<BasicText>, InputField, Option<BasicText>, Option<BasicText>, #[skip] Option<Vec<ElementID>>);
 
 impl TextInput {
     pub fn new(
@@ -20,6 +20,7 @@ impl TextInput {
         label: Option<&'static str>,
         placeholder: &'static str,
         help_text: Option<&'static str>,
+        to_disable: Option<Vec<ElementID>>,
         icon_button: Option<(&'static str, impl FnMut(&mut Context, &mut String) + 'static)>,
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
@@ -30,6 +31,7 @@ impl TextInput {
             InputField::new(ctx, placeholder, icon_button),
             help_text.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm, TextAlign::Left)),
             None,
+            to_disable,
             // SubText::new(ctx, help_text)
         )
     }
@@ -40,7 +42,7 @@ impl TextInput {
         self.3 = None;
     }
 
-    pub fn remove_error(&mut self, ctx: &mut Context, help: &'static str) {
+    pub fn set_help(&mut self, ctx: &mut Context, help: &'static str) {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
         self.3 = Some(Text::new(ctx, help, TextStyle::Secondary, font_size, TextAlign::Left));
         self.4 = None;
@@ -48,9 +50,15 @@ impl TextInput {
 }
 
 impl Events for TextInput {
-    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
-            *self.2.error() = self.3.is_some();
+            *self.2.error() = self.4.is_some();
+            if let Some(ids) = &self.5 {
+                match !self.4.is_some() && !self.2.input().is_empty() {
+                    true => ids.into_iter().for_each(|id| ctx.trigger_event(SetActiveEvent(*id))),
+                    false => ids.into_iter().for_each(|id| ctx.trigger_event(SetInactiveEvent(*id)))
+                }
+            }
         }
         true
     }
@@ -119,6 +127,7 @@ impl InputField {
     }
 
     pub fn error(&mut self) -> &mut bool { &mut self.4 }
+    pub fn input(&mut self) -> &mut String {self.2.input()}
 }
 
 impl Events for InputField {
@@ -134,15 +143,15 @@ impl Events for InputField {
             *self.1.background() = background;
             *self.1.outline() = outline;
             *self.2.focus() = self.3 == InputState::Focus;
-        } else if let Some(_event) = event.downcast_ref::<HideKeyboardEvent>() {
-            if self.3 == InputState::Focus {
+        } else if let Some(KeyboardActiveEvent(enabled)) = event.downcast_ref::<KeyboardActiveEvent>() {
+            if !enabled && self.3 == InputState::Focus {
                 if self.4 { self.3 = InputState::Error } else { self.3 = InputState::Default }
             }
         } else if let Some(event) = event.downcast_ref::<MouseEvent>() {
             self.3 = match self.3 {
                 InputState::Default => {
                     match event {
-                        MouseEvent{state: MouseState::Pressed, position: Some(_)} => {ctx.trigger_event(SummonKeyboardEvent); Some(InputState::Focus)},
+                        MouseEvent{state: MouseState::Pressed, position: Some(_)} => {ctx.trigger_event(KeyboardActiveEvent(true)); Some(InputState::Focus)},
                         MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
                         _ => None
                     }

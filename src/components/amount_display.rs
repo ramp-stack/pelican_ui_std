@@ -1,16 +1,16 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
+use crate::events::{SetActiveEvent, SetInactiveEvent};
 use crate::elements::images::Icon;
 use crate::elements::text::{Text, TextStyle};
 use crate::layout::{Row, Stack, Column, Offset, Size, Padding};
-use crate::PelicanUI;
+use crate::{PelicanUI, ElementID};
 
 #[derive(Debug, Component)]
 pub struct AmountDisplay(Column, BasicText, SubText);
 impl Events for AmountDisplay {}
-
 impl AmountDisplay {
-    pub fn new(ctx: &mut Context, usd: &'static str, btc: &'static str, err: Option<&'static str>) -> Self {
+    pub fn new(ctx: &mut Context, usd: &'static str, btc: &'static str, _err: Option<&'static str>) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
 
         let font_size = match usd.len() {
@@ -22,42 +22,59 @@ impl AmountDisplay {
         AmountDisplay (
             Column(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
             Text::new(ctx, usd, TextStyle::Heading, font_size, TextAlign::Left),
-            SubText::new(ctx, btc, err)
+            SubText::new(ctx, btc)
         )
     }
 }
 
 #[derive(Debug, Component)]
-struct SubText(Row, Option<Image>, BasicText);
+struct SubText(Row, Option<Image>, BasicText, #[skip] bool);
 impl Events for SubText {}
 
 impl SubText {
-    fn new(ctx: &mut Context, btc: &'static str, err: Option<&'static str>) -> Self {
-        let theme = &ctx.get::<PelicanUI>().theme;
-        let (font_size, color) = (theme.fonts.size.lg, theme.colors.status.danger);
-        let (icon, style, text) = match err {
-            Some(err) => (Some(Icon::new(ctx, "error", color, 24.0)), TextStyle::Error, err),
-            None => (None, TextStyle::Secondary, btc)
-        };
+    fn new(ctx: &mut Context, btc: &'static str) -> Self {
+        let text_size = ctx.get::<PelicanUI>().theme.fonts.size.lg;
+        SubText(Row::center(8.0), None, Text::new(ctx, btc, TextStyle::Secondary, text_size, TextAlign::Left), true)
+    }
 
-        SubText(
-            Row::center(8.0),
-            icon, Text::new(ctx, text, style, font_size, TextAlign::Left)
-        )
+    fn set_error(&mut self, ctx: &mut Context, err: &'static str) {
+        let theme = &ctx.get::<PelicanUI>().theme;
+        let (color, text_size) = (theme.colors.status.danger, theme.fonts.size.lg);
+        self.1 = Some(Icon::new(ctx, "error", color, 24.0));
+        self.2 = Text::new(ctx, err, TextStyle::Error, text_size, TextAlign::Left);
+    }
+
+    fn set_subtext(&mut self, ctx: &mut Context, txt: &'static str) {
+        let text_size = ctx.get::<PelicanUI>().theme.fonts.size.lg;
+        self.1 = None;
+        self.2 = Text::new(ctx, txt, TextStyle::Secondary, text_size, TextAlign::Left);
     }
 }
 
 
 #[derive(Debug, Component)]
-pub struct AmountInput(Stack, AmountInputContent);
-impl Events for AmountInput {}
+pub struct AmountInput(Stack, AmountInputContent, #[skip] Option<Vec<ElementID>>);
 
 impl AmountInput {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context, to_disable: Option<Vec<ElementID>>) -> Self {
         AmountInput (
             Stack(Offset::Center, Offset::Center, Size::Fit, Size::fill(), Padding::default()),
-            AmountInputContent::new(ctx)
+            AmountInputContent::new(ctx), to_disable
         )
+    }
+}
+
+impl Events for AmountInput {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(TickEvent) = event.downcast_ref() {
+            if let Some(ids) = &self.2 {
+                match self.1.2.3 {
+                    false => ids.into_iter().for_each(|id| ctx.trigger_event(SetActiveEvent(*id))),
+                    true => ids.into_iter().for_each(|id| ctx.trigger_event(SetInactiveEvent(*id)))
+                }
+            }
+        }
+        true
     }
 }
 
@@ -70,7 +87,7 @@ impl AmountInputContent {
         AmountInputContent (
             Column(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
             Display::new(ctx),
-            SubText::new(ctx, subtext, None), 
+            SubText::new(ctx, subtext), 
         )
     }
 }
@@ -156,13 +173,33 @@ impl Events for AmountInputContent {
             self.1.zeros().line_height = size * 1.25;
             self.1.amount().text = t_formatted.clone();
 
-            self.2.2.text = match t_formatted.as_str() {
-                "$0" | "$0." | "$0.0" | "$0.00" if !crate::config::IS_MOBILE => "Type dollar amount.".to_string(),
-                _ => "0.00001234 BTC".to_string()
-            };
+            let min = 2.14; // MINIMUM EXAMPLE
+            let max = 80.03; // MAXIMUM EXAMPLE
 
-        }
+            match t_formatted.as_str() {
+                "$0" | "$0." | "$0.0" | "$0.00" if !crate::config::IS_MOBILE => {
+                    println!("IS ZERO< CANNOT CONTINUE");
+                    self.2.set_subtext(ctx, "Type dollar amount.");
+                    self.2.3 = true;
+                },
+                _ => {
+                    if t_formatted.trim_start_matches('$').parse::<f64>().unwrap_or(0.0) < min {
+                        println!("IS MIN< CANNOCT ONTINUE");
+                        self.2.set_error(ctx, "$2.18 Minimum.");
+                        self.2.3 = true;
+                    } else if t_formatted.trim_start_matches('$').parse::<f64>().unwrap_or(0.0) > max {
+                        println!("IS MAX< CANNOT CONTINUE");
+                        self.2.set_error(ctx, "$80.14 Maximum.");
+                        self.2.3 = true;
+                    } else {
+                        println!("IS GUT< CAN WILL CONTINUE");
+                        self.2.set_subtext(ctx, "0.00001234 BTC");
+                        self.2.3 = false;
+                    }
+                }
+            }
             
+        }  
         true
     }
 }

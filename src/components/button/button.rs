@@ -1,11 +1,12 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::events::RemoveContactEvent;
+use crate::events::{RemoveContactEvent, SetActiveEvent, SetInactiveEvent};
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text, TextStyle};
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::layout::{Stack, Offset, Size, Wrap, Padding, Row, Column};
+use crate::ElementID;
 
 use super::{ButtonState, ButtonStyle, ButtonSize};
 
@@ -16,7 +17,7 @@ pub enum ButtonWidth {
 }
 
 #[derive(Component)]
-pub struct Button(Stack, OutlinedRectangle, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] Option<uuid::Uuid>);
+pub struct Button(Stack, OutlinedRectangle, ButtonContent, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] Option<ElementID>);
 impl Button {
     pub fn new(
         ctx: &mut Context,
@@ -30,7 +31,7 @@ impl Button {
         state: ButtonState,
         offset: Offset,
         on_click: impl FnMut(&mut Context) + 'static,
-        id: Option<uuid::Uuid>,
+        id: Option<ElementID>,
     ) -> Self {
         let (height, padding) = size.background();
         let colors = state.color(ctx, style);
@@ -51,14 +52,14 @@ impl Button {
         Button(layout, background, content, style, state, Box::new(on_click), id)
     }
 
-    pub fn color(&mut self, ctx: &mut Context, state: ButtonState) {
-        let colors = state.color(ctx, self.3);
+    pub fn color(&mut self, ctx: &mut Context) {
+        let colors = self.4.color(ctx, self.3);
         self.2.set_color(colors.label);
         *self.1.outline() = colors.outline;
         *self.1.background() = colors.background;
     }
 
-    pub fn id(&self) -> Option<uuid::Uuid> {self.6}
+    pub fn id(&self) -> Option<ElementID> {self.6}
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
@@ -66,7 +67,7 @@ impl Events for Button {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if let Some(state) = self.4.handle(ctx, *event) {
-                self.color(ctx, state);
+                self.color(ctx);
             }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {
@@ -74,8 +75,18 @@ impl Events for Button {
                     _ => {}
                 }
             }
-            false
-        } else {true}
+        } else if let Some(SetActiveEvent(id)) = event.downcast_ref::<SetActiveEvent>() {
+            if self.6.is_some() && *id == self.6.unwrap() {
+                self.4 = ButtonState::Default;
+                self.color(ctx);
+            }
+        } else if let Some(SetInactiveEvent(id)) = event.downcast_ref::<SetInactiveEvent>() {
+            if self.6.is_some() && *id == self.6.unwrap() {
+                self.4 = ButtonState::Disabled;
+                self.color(ctx);
+            }
+        }
+        false
     }
 }
 
@@ -122,6 +133,7 @@ impl Button {
     pub fn primary(
         ctx: &mut Context,
         label: &'static str,
+        id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -136,7 +148,7 @@ impl Button {
             ButtonState::Default,
             Offset::Center,
             on_click,
-            None
+            id,
         )
     }
 
@@ -184,6 +196,28 @@ impl Button {
         )
     }
 
+    pub fn disabled(
+        ctx: &mut Context,
+        label: &'static str,
+        id: Option<ElementID>,
+        on_click: impl FnMut(&mut Context) + 'static,
+    ) -> Self {
+        Button::new(
+            ctx,
+            None,
+            None,
+            Some(label),
+            None,
+            ButtonSize::Large,
+            ButtonWidth::Expand,
+            ButtonStyle::Primary,
+            ButtonState::Disabled,
+            Offset::Center,
+            on_click,
+            id,
+        )
+    }
+
     pub fn keypad(
         ctx: &mut Context,
         label: Option<&'static str>,
@@ -211,7 +245,7 @@ impl Button {
         icon: &'static str,
         label: &'static str,
         selected: bool,
-        id: uuid::Uuid,
+        id: ElementID,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -235,7 +269,7 @@ impl Button {
         label: &'static str,
         photo: AvatarContent,
         selected: bool,
-        id: uuid::Uuid,
+        id: ElementID,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -313,14 +347,14 @@ impl QuickActions {
 }
 
 #[derive(Debug, Component)]
-pub struct QuickDeselectButton(Stack, Button, #[skip] uuid::Uuid);
+pub struct QuickDeselectButton(Stack, Button, #[skip] ElementID);
 impl Events for QuickDeselectButton {}
 
 impl QuickDeselectButton {
-    pub fn new(ctx: &mut Context, name: &'static str, id: uuid::Uuid) -> Self {
+    pub fn new(ctx: &mut Context, name: &'static str, id: ElementID) -> Self {
         let button = Button::secondary(ctx, None, name, Some("close"), move |ctx: &mut Context| ctx.trigger_event(RemoveContactEvent(id)));
         QuickDeselectButton(Stack::default(), button, id)
     }
 
-    pub fn id(&self) -> uuid::Uuid {self.2}
+    pub fn id(&self) -> ElementID {self.2}
 }

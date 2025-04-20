@@ -7,12 +7,11 @@ use crate::elements::shapes::Rectangle;
 use crate::components::button::{ButtonState, QuickDeselectButton};
 use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
 use crate::layout::{Column, Stack, Row, Wrap, Padding, Offset, Size};
-use crate::PelicanUI;
-use uuid::Uuid;
+use crate::{PelicanUI, ElementID};
 
 
 #[derive(Component)]
-pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] Uuid);
+pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] ElementID);
 
 impl ListItem {
     pub fn new(
@@ -26,7 +25,7 @@ impl ListItem {
         right_subtitle: Option<&'static str>,
         radio_button: Option<bool>,
         circle_icon: Option<AvatarContent>,
-        id: Uuid,
+        id: ElementID,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
@@ -211,7 +210,7 @@ impl ListItem {
         nym: &'static str,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), Uuid::new_v4(), on_click)
+        ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), ElementID::new(), on_click)
     }
 
     pub fn recipient(
@@ -220,7 +219,7 @@ impl ListItem {
         name: &'static str,
         nym: &'static str,
     ) -> Self {
-        let id = Uuid::new_v4();
+        let id = ElementID::new();
         ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), id, move |ctx: &mut Context| ctx.trigger_event(AddContactEvent(name, id)))
     }
 
@@ -231,7 +230,7 @@ impl ListItem {
         recent: &'static str,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        ListItem::new(ctx, true, name, None, Some(recent), None, None, None, None, Some(data), Uuid::new_v4(), on_click)
+        ListItem::new(ctx, true, name, None, Some(recent), None, None, None, None, Some(data), ElementID::new(), on_click)
     }
 
     pub fn group_message(
@@ -241,7 +240,7 @@ impl ListItem {
     ) -> Self {
         let description = Box::leak(names.join(", ").into_boxed_str());
         let avatar = AvatarContent::Icon("group", AvatarIconStyle::Secondary);
-        ListItem::new(ctx, true, "Group Message", None, None, Some(description), None, None, None, Some(avatar), Uuid::new_v4(), on_click)
+        ListItem::new(ctx, true, "Group Message", None, None, Some(description), None, None, None, Some(avatar), ElementID::new(), on_click)
     }
 
     pub fn room(
@@ -252,7 +251,7 @@ impl ListItem {
         description: &'static str,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        ListItem::new(ctx, true, name, None, Some(members), Some(description), None, None, None, Some(data), Uuid::new_v4(), on_click)
+        ListItem::new(ctx, true, name, None, Some(members), Some(description), None, None, None, Some(data), ElementID::new(), on_click)
     }
 
     pub fn bitcoin(
@@ -264,7 +263,7 @@ impl ListItem {
     ) -> Self {
         let title = if is_received { "Received Bitcoin" } else { "Sent Bitcoin" };
         let usd = Box::leak(format!("{:.2}", usd).into_boxed_str());
-        ListItem::new(ctx, true, title, None, Some(date), None, Some(usd), Some("Details"), None, None, Uuid::new_v4(), on_click)
+        ListItem::new(ctx, true, title, None, Some(date), None, Some(usd), Some("Details"), None, None, ElementID::new(), on_click)
     }
 
     pub fn bitcoin_sending(
@@ -278,7 +277,7 @@ impl ListItem {
         let flair = ("warning", color);
         let usd =  Box::leak(format!("${:.2}", usd).into_boxed_str());
         let btc =  Box::leak(format!("${:.8} BTC", btc).into_boxed_str());
-        ListItem::new(ctx, true, "Sending Bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, Uuid::new_v4(), on_click)
+        ListItem::new(ctx, true, "Sending Bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, ElementID::new(), on_click)
     }
 
     pub fn selection(
@@ -289,7 +288,7 @@ impl ListItem {
         description: &'static str,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
-        ListItem::new(ctx, false, title, None, Some(subtitle), Some(description), None, None, Some(selected), None, Uuid::new_v4(), on_click)
+        ListItem::new(ctx, false, title, None, Some(subtitle), Some(description), None, None, Some(selected), None, ElementID::new(), on_click)
     }
 }
 

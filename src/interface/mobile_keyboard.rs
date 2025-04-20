@@ -3,7 +3,7 @@ use rust_on_rails::prelude::Text as BasicText;
 use rust_on_rails::prelude::Key as WinitKey;
 use crate::elements::shapes::{Rectangle, RoundedRectangle};
 use crate::elements::images::Icon;
-use crate::events::HideKeyboardEvent;
+use crate::events::KeyboardActiveEvent;
 use crate::elements::text::{Text, TextStyle};
 use crate::components::button::{IconButton, ButtonState};
 use crate::layout::{Stack, Bin, Column, Row, Offset, Size, Padding};
@@ -65,7 +65,7 @@ impl IconButtonRow {
                 Stack(Offset::Center, Offset::Center, Size::Fill(1.0, f32::MAX), Size::Static(1.0),  Padding::default()), 
                 Rectangle::new(color)
             ),
-            IconButton::keyboard(ctx, "down_arrow", |ctx: &mut Context| ctx.trigger_event(HideKeyboardEvent)),
+            IconButton::keyboard(ctx, "down_arrow", |ctx: &mut Context| ctx.trigger_event(KeyboardActiveEvent(false))),
         )
     }
 }

@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use crate::elements::shapes::{Rectangle};
-use crate::events::{SummonKeyboardEvent, HideKeyboardEvent, NavigateEvent};
+use crate::events::{KeyboardActiveEvent, NavigateEvent};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size, Opt};
 use crate::components::avatar::AvatarContent;
 use crate::PelicanUI;
@@ -8,7 +8,7 @@ use crate::PageName;
 use std::fmt::Debug;
 
 use super::mobile_keyboard::MobileKeyboard;
-use super::navigation::{MobileNavigator, DesktopNavigator, Header};
+use super::navigation::{MobileNavigator, DesktopNavigator, Header, Bumper};
 
 #[derive(Debug, Component)]
 pub struct Interface (Stack, Option<MobileInterface>, Option<DesktopInterface>);
@@ -55,10 +55,11 @@ impl Events for MobileInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(_event) = event.downcast_ref::<TickEvent>() {
             self.2.display(self.1.navigator_status());
-        } else if let Some(_event) = event.downcast_ref::<SummonKeyboardEvent>() {
-            self.3 = Some(MobileKeyboard::new(ctx));
-        } else if let Some(_event) = event.downcast_ref::<HideKeyboardEvent>() {
-            self.3 = None;
+        } else if let Some(KeyboardActiveEvent(enabled)) = event.downcast_ref::<KeyboardActiveEvent>() {
+            self.3 = match enabled {
+                true => Some(MobileKeyboard::new(ctx)),
+                false => None
+            };
         } else if let Some(NavigateEvent(page, has_nav)) = event.downcast_ref::<NavigateEvent>() {
             self.1 = page.build_page(ctx);
             self.2.display(*has_nav);
@@ -116,30 +117,6 @@ impl Page {
     }
 
     pub fn navigator_status(&self) -> bool {self.4}
-}
-
-#[derive(Debug, Component)]
-pub struct Bumper (Stack, BumperContent);
-impl Events for Bumper {}
-
-impl Bumper {
-    pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
-        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, 375.0));
-        Bumper(
-            Stack(Offset::Center, Offset::Start, width, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
-            BumperContent::new(content)
-        )
-    }
-}
-
-#[derive(Debug, Component)]
-pub struct BumperContent (Row, Vec<Box<dyn Drawable>>);
-impl Events for BumperContent {}
-
-impl BumperContent {
-    pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
-        BumperContent(Row::center(16.0), content)
-    }
 }
 
 #[derive(Debug, Component)]
