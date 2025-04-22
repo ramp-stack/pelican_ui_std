@@ -24,39 +24,23 @@ pub struct Button(
 
 impl Button {
     pub fn new(
-        // App Context
         ctx: &mut Context,
-        // Optional User Avatar 
         avatar: Option<AvatarContent>,
-        // Optional Icon to Left of Label
         icon_l: Option<&'static str>,
-        // Optional Label
         label: Option<&'static str>,
-        // Optional Icon to Right of Label
         icon_r: Option<&'static str>,
-        // Size of Button (Medium, Large)
         size: ButtonSize,
-        // Width of Button (Expand, Hug)
         width: ButtonWidth,
-        // Style of Button
         style: ButtonStyle,
-        // State of Button
         state: ButtonState,
-        // Alignment of Inner Content
         offset: Offset,
-        // Optional Identifier
         id: Option<ElementID>,
-        // Code to Run On Click
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
-        // Get height and padding of background based off the ButtonSize enum.
         let (height, padding) = size.background();
-        // Get colors for label, background, outline based off the ButtonStyle enum.
         let colors = state.color(ctx, style);
-        // Create the ButtonContent
         let content = ButtonContent::new(ctx, avatar, icon_l, label, icon_r, size, colors.label, padding);
 
-        // Calculate button width
         let width = match width {
             ButtonWidth::Hug => Size::custom(move |widths: Vec<(f32, f32)>|
                 (widths[1].0, widths[1].1)
@@ -66,41 +50,29 @@ impl Button {
             ),
         };
 
-        // Build background shape
         let background = OutlinedRectangle::new(colors.background, colors.outline, height/2.0, 1.0);
-        // Create stack layout
         let layout = Stack(offset, Offset::Center, width, Size::Static(height), Padding::default());
 
         Button(layout, background, content, style, state, id, Box::new(on_click))
     }
 
-    // Recolor button
     pub fn color(&mut self, ctx: &mut Context) {
-        // Get colors based off ButtonStyle and ButtonState
         let colors = self.4.color(ctx, self.3);
-        // Set color for label and icons
         self.2.set_color(colors.label);
-        // Set color for outline
         *self.1.outline() = colors.outline;
-        // Set color for background
         *self.1.background() = colors.background;
     }
 
-    // Get button's ElementID
     pub fn id(&self) -> Option<ElementID> {self.5}
-    // Get button's ButtonState
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
- impl OnEvent for Button {
+impl OnEvent for Button {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            // Handle ButtonState on mouse event
             if let Some(state) = self.4.handle(ctx, *event) {
-                // Recolor button for new state
                 self.color(ctx);
             }
-            // Run on_click when pressed
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.6)(ctx),
@@ -108,19 +80,13 @@ impl Button {
                 }
             }
         } else if let Some(SetActiveEvent(id)) = event.downcast_ref::<SetActiveEvent>() {
-            // Check if received SetActiveEvent
             if self.5.is_some() && *id == self.5.unwrap() {
-                // Set state to Default
                 self.4 = ButtonState::Default;
-                // Recolor button
                 self.color(ctx);
             }
         } else if let Some(SetInactiveEvent(id)) = event.downcast_ref::<SetInactiveEvent>() {
-            // Check if received SetInactiveEvent
             if self.5.is_some() && *id == self.5.unwrap() {
-                // Set state to Disabled
                 self.4 = ButtonState::Disabled;
-                // Recolr button
                 self.color(ctx);
             }
         }
@@ -138,58 +104,39 @@ impl std::fmt::Debug for Button {
 
 #[derive(Debug, Component)]
 struct ButtonContent(Row, Option<Avatar>, Option<Image>, Option<BasicText>, Option<Image>);
- impl OnEvent for ButtonContent {}
+impl OnEvent for ButtonContent {}
 
 impl ButtonContent {
     fn new(
-        // App Context
         ctx: &mut Context,
-        // Optional User Avatar
         avatar: Option<AvatarContent>,
-        // Optional Icon to Left of Label
         icon_l: Option<&'static str>,
-        // Optional Label
         label: Option<&'static str>,
-        // Optional Icon to Right of Label
         icon_r: Option<&'static str>,
-        // Size of Button (Medium, Large)
         size: ButtonSize,
-        // Color of Label and Icons
         color: Color,
-        // Space Between Label and Icons
         padding: f32,
     ) -> Self {
-        // Calculate sizes based off ButtonSize enum.
         let (text_size, icon_size, spacing) = size.content(ctx);
         ButtonContent(
-            // Create row layout.
             Row(spacing, Offset::Center, Size::Fit, Padding(padding, 0.0, padding, 0.0)),
-            // Create avatar if provided
             avatar.map(|content| Avatar::new(ctx, content, None, false, icon_size)),
-            // Create left icon if provided
             icon_l.map(|icon| Icon::new(ctx, icon, color, icon_size)),
-            // Create label if provided
-            label.map(|label| Text::new(ctx, label, TextStyle::Label(color), text_size, TextAlign::Left)),
-            // Create right icon if provided
+            label.map(|label| Text::new(ctx, label, TextStyle::Label(color), text_size, Align::Left)),
             icon_r.map(|icon| Icon::new(ctx, icon, color, icon_size)),
         )
     }
 
     fn set_color(&mut self, color: Color) {
-        // Set color for left icon
         if let Some(icon) = &mut self.2 { icon.color = Some(color); }
-        // Set color for label
-        if let Some(text) = &mut self.3 { text.color = color; }
-        // Set color for right icon
+        if let Some(text) = &mut self.3 { *text.color() = color; }
         if let Some(icon) = &mut self.4 { icon.color = Some(color); }
     }
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum ButtonWidth {
-    // Button width expands as wide as possible
     Expand,
-    // Button width will hug it's content
     Hug,
 }
 
@@ -388,7 +335,7 @@ impl Button {
 
 #[derive(Debug, Component)]
 pub struct QuickActions(Wrap, Vec<Button>);
- impl OnEvent for QuickActions {}
+impl OnEvent for QuickActions {}
 
 impl QuickActions {
     pub fn new(buttons: Vec<Button>) -> Self {
@@ -399,7 +346,7 @@ impl QuickActions {
 
 #[derive(Debug, Component)]
 pub struct QuickDeselectButton(Stack, Button, #[skip] ElementID);
- impl OnEvent for QuickDeselectButton {}
+impl OnEvent for QuickDeselectButton {}
 
 impl QuickDeselectButton {
     pub fn new(ctx: &mut Context, name: &'static str, id: ElementID) -> Self {

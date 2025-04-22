@@ -3,7 +3,7 @@ use crate::layout::Stack;
 
 #[derive(Debug, Component)]
 pub struct OutlinedRectangle(Stack, RoundedRectangle, RoundedRectangle);
- impl OnEvent for OutlinedRectangle {}
+impl OnEvent for OutlinedRectangle {}
 
 impl OutlinedRectangle {
     pub fn new(bg: Color, oc: Color, radius: f32, stroke: f32) -> Self {
@@ -29,7 +29,7 @@ impl RoundedRectangle {
     }
 }
 
- impl OnEvent for RoundedRectangle {}
+impl OnEvent for RoundedRectangle {}
 impl Component for RoundedRectangle {
     fn children_mut(&mut self) -> Vec<&mut dyn Drawable> {vec![&mut self.0]}
     fn children(&self) -> Vec<&dyn Drawable> {vec![&self.0]}
@@ -53,7 +53,7 @@ impl Rectangle {
     }
 }
 
- impl OnEvent for Rectangle {}
+impl OnEvent for Rectangle {}
 impl Component for Rectangle {
     fn children_mut(&mut self) -> Vec<&mut dyn Drawable> {vec![&mut self.0]}
     fn children(&self) -> Vec<&dyn Drawable> {vec![&self.0]}

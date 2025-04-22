@@ -7,31 +7,34 @@ use crate::layout::{Column, Stack, Offset, Size, Padding};
 use crate::PelicanUI;
 
 #[derive(Debug, Component)]
-pub struct QRCodeScanner(Stack, Option<Image>, QRGuide);
+pub struct QRCodeScanner(Stack, Option<Image>, QRGuide, #[skip] Camera);
 
 impl QRCodeScanner {
     pub fn new(ctx: &mut Context) -> Self {
-        QRCodeScanner(Stack::center(), None, QRGuide::new(ctx))
+        QRCodeScanner(Stack::center(), None, QRGuide::new(ctx), Camera::new())
     }
 }
 
- impl OnEvent for QRCodeScanner {
+impl OnEvent for QRCodeScanner {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
-            match Camera::access() {
-                Ok(val) if val == "cameraEnabled".to_string() => {*self.2.message() = None; *self.2.background() = None;},
-                Ok(val) if val == "waitForCamera".to_string() || val == "Error: unknown".to_string() => {
-                    *self.2.message() = Some(Message::new(ctx, "camera", "Accessing device camera."));
+            let frame = self.3.get_frame();
+            match frame {
+                Ok(f) => {
+                    *self.2.message() = None; *self.2.background() = None;
+                    let image = resources::Image::new(ctx, f);
+                    self.1 = Some(Image{shape: ShapeType::Rectangle(0.0, (300.0, 300.0)), image, color: None});
                 },
-                _ => *self.2.message() = Some(Message::new(ctx, "settings", "Enable camera in settings."))
-            }
-            #[cfg(any(target_os = "ios", target_os = "macos"))] {
-                let frame = match Camera::get() {
-                    Some(frame) => frame,
-                    None => return true,
-                };
-                let image = resources::Image::new(ctx, frame);
-                self.1 = Some(Image{shape: ShapeType::Rectangle(0.0, (300.0, 300.0)), image, color: None});
+                Err(CameraViewError::AccessDenied) => {
+                    let background = ctx.get::<PelicanUI>().theme.colors.background.secondary;
+                    *self.2.background() = Some(RoundedRectangle::new(0.0, 8.0, background));
+                    *self.2.message() = Some(Message::new(ctx, "settings", "Enable camera in settings."));
+                },
+                Err(CameraViewError::FailedToGetFrame) => {
+                    let background = ctx.get::<PelicanUI>().theme.colors.background.secondary;
+                    *self.2.background() = Some(RoundedRectangle::new(0.0, 8.0, background));
+                    *self.2.message() = Some(Message::new(ctx, "camera", "Accessing device camera."));
+                }
             }
         }
         true
@@ -41,7 +44,7 @@ impl QRCodeScanner {
 
 #[derive(Debug, Component)]
 struct QRGuide(Stack, Option<RoundedRectangle>, RoundedRectangle, Option<Message>);
- impl OnEvent for QRGuide {}
+impl OnEvent for QRGuide {}
 
 impl QRGuide {
     pub fn new(ctx: &mut Context) -> Self {
@@ -61,7 +64,7 @@ impl QRGuide {
 
 #[derive(Debug, Component)]
 struct Message(Column, Image, BasicText);
- impl OnEvent for Message {}
+impl OnEvent for Message {}
 
 impl Message {
     pub fn new(ctx: &mut Context, icon: &'static str, msg: &'static str) -> Self {
@@ -69,7 +72,7 @@ impl Message {
         let (color, font_size) = (theme.colors.shades.lighten, theme.fonts.size.sm);
         Message(Column::center(4.0), 
             Icon::new(ctx, icon, color, 48.0),
-            Text::new(ctx, msg, TextStyle::Secondary, font_size, TextAlign::Left)
+            Text::new(ctx, msg, TextStyle::Secondary, font_size, Align::Left)
         )
     }
 }

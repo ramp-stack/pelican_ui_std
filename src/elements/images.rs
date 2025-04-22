@@ -10,7 +10,7 @@ impl Icon {
         Image{shape: ShapeType::Rectangle(0.0, (size, size)), image: icon, color: Some(color)}
     }
 }
- impl OnEvent for Icon {}
+impl OnEvent for Icon {}
 
 #[derive(Clone, Debug)]
 pub struct Brand;
@@ -20,4 +20,4 @@ impl Brand {
         Image{shape: ShapeType::Rectangle(0.0, (size.0, size.1)), image, color: None}
     }
 }
- impl OnEvent for Brand {}
+impl OnEvent for Brand {}

@@ -304,7 +304,7 @@ impl Layout for Wrap {
 
 #[derive(Debug, Component)]
 pub struct Bin<L: Layout, D: Drawable>(pub L, pub D);
-impl<L: Layout, D: Drawable> Events for Bin<L, D> {}
+impl<L: Layout, D: Drawable> OnEvent for Bin<L, D> {}
 
 impl<L: Layout, D: Drawable> Bin<L, D> {
     pub fn inner(&mut self) -> &mut D {&mut self.1}
@@ -312,7 +312,7 @@ impl<L: Layout, D: Drawable> Bin<L, D> {
 
 #[derive(Debug, Component)]
 pub struct Opt<D: Drawable + 'static>(Stack, Option<D>, #[skip] Option<D>);
-impl<D: Drawable + 'static> Events for Opt<D> {}
+impl<D: Drawable + 'static> OnEvent for Opt<D> {}
 
 impl<D: Drawable + 'static> Opt<D> {
     pub fn new(item: D, display: bool) -> Self {
@@ -335,7 +335,7 @@ impl<D: Drawable + 'static> Opt<D> {
 
 #[derive(Debug, Component)]
 pub struct EitherOr<L: Drawable + 'static, R: Drawable + 'static>(Stack, Opt<L>, Opt<R>);
-impl<L: Drawable + 'static, R: Drawable + 'static> Events for EitherOr<L, R> {}
+impl<L: Drawable + 'static, R: Drawable + 'static> OnEvent for EitherOr<L, R> {}
 
 impl<L: Drawable + 'static, R: Drawable + 'static> EitherOr<L, R> {
     pub fn new(left: L, right: R) -> Self {

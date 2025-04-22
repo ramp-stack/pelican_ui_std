@@ -20,24 +20,15 @@ pub struct IconButton(
 
 impl IconButton {
     pub fn new(
-        // App Context
         ctx: &mut Context,
-        // Display Icon
         icon: &'static str,
-        // Size of Button (Medium, Large)
         size: ButtonSize,
-        // Style of Button (Secondary, Ghost)
         style: ButtonStyle,
-        // State of Button
         state: ButtonState,
-        // Optional Identifier
         id: Option<ElementID>,
-        // Code to Run On Click
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
-        // Generate colors based off ButtonState and ButtonStyle enums.
         let colors = state.color(ctx, style);
-        // Calculate sizes based off ButtonSize and ButtonStyle enums.
         let (size, icon_size, radius) = match (style, size) {
             (ButtonStyle::Secondary, ButtonSize::Large) => (52.0, 32.0, 12.0),
             (ButtonStyle::Secondary, ButtonSize::Medium) => (36.0, 20.0, 8.0),
@@ -46,9 +37,7 @@ impl IconButton {
             _ => panic!("{:?} is not a valid IconButton tyle", style)
         };
 
-        // Create icon image
         let icon = Icon::new(ctx, icon, colors.label, icon_size);
-        // Create background shape
         let background = OutlinedRectangle::new(colors.background, colors.outline, radius, 1.0);
 
 
@@ -58,34 +47,24 @@ impl IconButton {
         )
     }
 
-    // Recolor Icon Button
     pub fn color(&mut self, ctx: &mut Context, state: ButtonState) {
-        // Generate colors based off ButtonState and ButtonStyle enums.
         let colors = state.color(ctx, self.3);
-        // Update background color
         *self.1.background() = colors.background;
-        // Update outline color
         *self.1.outline() = colors.outline;
-        // Update icon color
         self.2.color = Some(colors.label);
     }
 
-    // Get IconButton Optional Identifier
     pub fn id(&self) -> Option<ElementID> {self.5}
-    // Get IconButton ButtonState
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
- impl OnEvent for IconButton {
+impl OnEvent for IconButton {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            // Handle ButtonState change on Mouse Event
             if let Some(state) = self.4.handle(ctx, *event) {
-                // Recolor based off new ButtonState
                 self.color(ctx, state);
             }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
-                // Run On Click when pressed
                 match self.4 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.6)(ctx),
                     _ => {}

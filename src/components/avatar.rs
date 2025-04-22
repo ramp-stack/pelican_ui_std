@@ -36,7 +36,7 @@ impl AvatarIconStyle {
 
 #[derive(Debug, Component)]
 pub struct Avatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>, Option<Flair>);
- impl OnEvent for Avatar {}
+impl OnEvent for Avatar {}
 
 impl Avatar {
     pub fn new(ctx: &mut Context, content: AvatarContent, flair: Option<(&'static str, AvatarIconStyle)>, outline: bool, size: f32) -> Self {
@@ -59,7 +59,7 @@ impl Avatar {
 
 #[derive(Debug, Component)]
 struct AvatarIcon(Stack, Shape, Image);
- impl OnEvent for AvatarIcon {}
+impl OnEvent for AvatarIcon {}
 
 impl AvatarIcon {
     fn new(ctx: &mut Context, name: &'static str, style: AvatarIconStyle, size: f32) -> Self {
@@ -75,7 +75,7 @@ impl AvatarIcon {
 
 #[derive(Debug, Component)]
 struct Flair(Stack, AvatarIcon, Shape);
- impl OnEvent for Flair {}
+impl OnEvent for Flair {}
 
 impl Flair {
     fn new(ctx: &mut Context, name: &'static str, style: AvatarIconStyle, size: f32) -> Self {
@@ -90,7 +90,7 @@ impl Flair {
 
 #[derive(Debug, Component)]
 pub struct AvatarRow(Row, Vec<Avatar>);
- impl OnEvent for AvatarRow {}
+impl OnEvent for AvatarRow {}
 
 impl AvatarRow {
     pub fn new(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {

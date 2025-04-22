@@ -12,7 +12,7 @@ use super::navigation::{MobileNavigator, DesktopNavigator, Header, Bumper};
 
 #[derive(Debug, Component)]
 pub struct Interface (Stack, Option<MobileInterface>, Option<DesktopInterface>);
- impl OnEvent for Interface {}
+impl OnEvent for Interface {}
 
 impl Interface {
     pub fn new(
@@ -51,7 +51,7 @@ impl MobileInterface {
     }
 }
 
- impl OnEvent for MobileInterface {
+impl OnEvent for MobileInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(_event) = event.downcast_ref::<TickEvent>() {
             self.2.display(self.1.navigator_status());
@@ -91,7 +91,7 @@ impl DesktopInterface {
     }
 }
 
- impl OnEvent for DesktopInterface {
+impl OnEvent for DesktopInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigateEvent(page, _)) = event.downcast_ref::<NavigateEvent>() {
             self.3 = page.build_page(ctx);
@@ -102,7 +102,7 @@ impl DesktopInterface {
 
 #[derive(Debug, Component)]
 pub struct Page (Column, Header, Content, Option<Bumper>, #[skip] bool);
- impl OnEvent for Page {}
+impl OnEvent for Page {}
 
 impl Page {
     pub fn new(header: Header, content: Content, bumper: Option<Bumper>, has_nav: bool) -> Self {
@@ -121,7 +121,7 @@ impl Page {
 
 #[derive(Debug, Component)]
 pub struct Content (Stack, ContentChildren);
- impl OnEvent for Content {}
+impl OnEvent for Content {}
 
 impl Content {
     pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
@@ -136,7 +136,7 @@ impl Content {
 
 #[derive(Debug, Component)]
 struct ContentChildren (Column, Vec<Box<dyn Drawable>>);
- impl OnEvent for ContentChildren {}
+impl OnEvent for ContentChildren {}
 
 impl ContentChildren {
     pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {

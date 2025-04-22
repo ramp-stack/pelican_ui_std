@@ -41,7 +41,7 @@ impl MobileNavigator {
     }
 }
 
- impl OnEvent for MobileNavigator {
+impl OnEvent for MobileNavigator {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigatorSelect(id)) = event.downcast_ref::<NavigatorSelect>() {
             println!("Navigator selected");
@@ -99,7 +99,7 @@ impl DesktopNavigator {
     }
 }
 
- impl OnEvent for DesktopNavigator {
+impl OnEvent for DesktopNavigator {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigatorSelect(id)) = event.downcast_ref::<NavigatorSelect>() {
             println!("Navigator selected");
@@ -123,7 +123,7 @@ impl DesktopNavigator {
 // Column of Buttons
 #[derive(Debug, Component)]
 pub struct ButtonColumn(Column, Vec<Button>);
- impl OnEvent for ButtonColumn {}
+impl OnEvent for ButtonColumn {}
 
 impl ButtonColumn {
     pub fn new(buttons: Vec<Button>) -> Self {
@@ -137,7 +137,7 @@ impl ButtonColumn {
 
 #[derive(Debug, Component)]
 pub struct Header(Row, HeaderIcon, HeaderContent, HeaderIcon);
- impl OnEvent for Header {}
+impl OnEvent for Header {}
 
 impl Header {
     pub fn home(ctx: &mut Context, title: &'static str) -> Self {
@@ -180,7 +180,7 @@ impl Header {
 
 #[derive(Debug, Component)]
 struct HeaderContent(Column, BasicText, Option<AvatarRow>);
- impl OnEvent for HeaderContent {}
+impl OnEvent for HeaderContent {}
 
 impl HeaderContent {
     pub fn home(ctx: &mut Context, title: &'static str) -> Self {
@@ -188,7 +188,7 @@ impl HeaderContent {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
             Column(10.0, Offset::Center, width, Padding::default()), 
-            Text::new(ctx, title, TextStyle::Heading, text_size, TextAlign::Left),
+            Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
             None,
         )
     }
@@ -198,7 +198,7 @@ impl HeaderContent {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
             Column(10.0, Offset::Center, width, Padding::default()),  
-            Text::new(ctx, title, TextStyle::Heading, text_size, TextAlign::Left),
+            Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
             None,
         )
     }
@@ -209,7 +209,7 @@ impl HeaderContent {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
             Column(10.0, Offset::Center, width, Padding::default()), 
-            Text::new(ctx, title, TextStyle::Heading, text_size, TextAlign::Left),
+            Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
             Some(AvatarRow::new(ctx, avatars)),
         )
     }
@@ -217,7 +217,7 @@ impl HeaderContent {
 
 #[derive(Debug, Component)]
 struct HeaderIcon(Stack, Option<IconButton>);
- impl OnEvent for HeaderIcon {}
+impl OnEvent for HeaderIcon {}
 
 impl HeaderIcon {
     pub fn new(icon: Option<IconButton>) -> Self {
@@ -231,7 +231,7 @@ impl HeaderIcon {
 
 #[derive(Debug, Component)]
 pub struct Bumper (Stack, BumperContent);
- impl OnEvent for Bumper {}
+impl OnEvent for Bumper {}
 
 impl Bumper {
     pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
@@ -245,7 +245,7 @@ impl Bumper {
 
 #[derive(Debug, Component)]
 pub struct BumperContent (Row, Vec<Box<dyn Drawable>>);
- impl OnEvent for BumperContent {}
+impl OnEvent for BumperContent {}
 
 impl BumperContent {
     pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {

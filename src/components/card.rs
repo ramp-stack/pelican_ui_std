@@ -33,7 +33,7 @@ impl Card {
     }
 }
 
- impl OnEvent for Card {
+impl OnEvent for Card {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
@@ -49,7 +49,7 @@ impl Card {
 
 #[derive(Debug, Component)]
 pub struct CardContent(Column, Avatar, BasicText, BasicText, Bin<Stack, Rectangle>, BasicText);
- impl OnEvent for CardContent {}
+impl OnEvent for CardContent {}
 
 impl CardContent {
     fn new(
@@ -64,13 +64,13 @@ impl CardContent {
         CardContent(
             Column(8.0, Offset::Center, Size::Fit, Padding(16.0, 16.0, 16.0, 16.0)),
             Avatar::new(ctx, avatar, None, false, 64.0),
-            Text::new(ctx, title, TextStyle::Heading, font_size.h3, TextAlign::Left),
-            Text::new(ctx, subtitle, TextStyle::Primary, font_size.xs, TextAlign::Left),
+            Text::new(ctx, title, TextStyle::Heading, font_size.h3, Align::Left),
+            Text::new(ctx, subtitle, TextStyle::Primary, font_size.xs, Align::Left),
             Bin (
                 Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1.0), Padding(0.0, 6.0, 0.0, 6.0)), 
                 Rectangle::new(color)
             ),
-            Text::new(ctx, description, TextStyle::Primary, font_size.sm, TextAlign::Left),
+            Text::new(ctx, description, TextStyle::Primary, font_size.sm, Align::Left),
         )
     }
 }

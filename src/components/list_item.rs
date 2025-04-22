@@ -2,7 +2,7 @@ use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 use crate::events::{ListItemSelect, RemoveContactEvent, AddContactEvent};
 use crate::elements::images::Icon;
-use crate::elements::text::{Text, ExpandableText, TextStyle};
+use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::Rectangle;
 use crate::components::button::{ButtonState, QuickDeselectButton};
 use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
@@ -44,7 +44,7 @@ impl ListItem {
     }
 }
 
- impl OnEvent for ListItem {
+impl OnEvent for ListItem {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
@@ -75,7 +75,7 @@ impl std::fmt::Debug for ListItem {
 
 #[derive(Debug, Component)]
 pub struct ListItemContent(Row, Option<RadioButton>, Option<Avatar>, ListItemData, Option<Image>);
- impl OnEvent for ListItemContent {}
+impl OnEvent for ListItemContent {}
 
 impl ListItemContent {
     pub fn new(
@@ -103,7 +103,7 @@ impl ListItemContent {
 
 #[derive(Debug, Component)]
 struct RadioButton(Row, Image);
- impl OnEvent for RadioButton {}
+impl OnEvent for RadioButton {}
 
 impl RadioButton {
     pub fn new(ctx: &mut Context, is_enabled: bool) -> Self {
@@ -125,7 +125,7 @@ impl RadioButton {
 
 #[derive(Debug, Component)]
 struct ListItemData(pub Row, pub LeftData, pub Option<RightData>);
- impl OnEvent for ListItemData {}
+impl OnEvent for ListItemData {}
 
 impl ListItemData {
     pub fn new(
@@ -146,22 +146,22 @@ impl ListItemData {
 }
 #[derive(Debug, Component)]
 struct TitleRow(Row, BasicText, Option<Image>);
- impl OnEvent for TitleRow {}
+impl OnEvent for TitleRow {}
 
 impl TitleRow {
     pub fn new(ctx: &mut Context, title: &'static str, flair: Option<(&'static str, Color)>) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
         TitleRow(
             Row(8.0, Offset::Start, Size::Fit, Padding::default()),
-            Text::new(ctx, title, TextStyle::Heading, font_size, TextAlign::Left),
+            Text::new(ctx, title, TextStyle::Heading, font_size, Align::Left),
             flair.map(|(name, color)| Icon::new(ctx, name, color, 20.0)),
         )
     }
 }
 
 #[derive(Debug, Component)]
-struct LeftData(pub Column, pub TitleRow, pub Option<ExpandableText>, pub Option<ExpandableText>);
- impl OnEvent for LeftData {}
+struct LeftData(pub Column, pub TitleRow, pub Option<BasicText>, pub Option<BasicText>);
+impl OnEvent for LeftData {}
 
 impl LeftData {
     pub fn new(
@@ -175,13 +175,13 @@ impl LeftData {
         LeftData (
             Column(4.0, Offset::Start, Size::custom(|widths: Vec<(f32, f32)>| (widths[0].0, f32::MAX)), Padding::default()),
             TitleRow::new(ctx, title, flair),
-            subtitle.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, TextAlign::Left)),
+            subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size, Align::Left)),
             description.map(|text| {
                 text.len()
                     .checked_sub(70 + 1)
                     .map(|_| format!("{}...", &text[..70_usize.saturating_sub(3)]))
                     .unwrap_or_else(|| text.to_string());
-                ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, TextAlign::Left)
+                Text::new(ctx, text, TextStyle::Secondary, font_size, Align::Left)
             }),
         )
     }
@@ -189,15 +189,15 @@ impl LeftData {
 
 #[derive(Debug, Component)]
 struct RightData(Column, BasicText, Option<BasicText>);
- impl OnEvent for RightData {}
+impl OnEvent for RightData {}
 
 impl RightData {
     pub fn new(ctx: &mut Context, title: &'static str, subtitle: Option<&'static str>) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         RightData (
             Column(4.0, Offset::End, Size::Fit, Padding::default()),
-            Text::new(ctx, title, TextStyle::Heading, font_size.h5, TextAlign::Left),
-            subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size.xs, TextAlign::Left)),
+            Text::new(ctx, title, TextStyle::Heading, font_size.h5, Align::Left),
+            subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size.xs, Align::Left)),
         )
     }
 }
@@ -294,7 +294,7 @@ impl ListItem {
 
 #[derive(Debug, Component)]
 pub struct ListItemSelector(Column, ListItem, ListItem, Option<ListItem>, Option<ListItem>);
- impl OnEvent for ListItemSelector {}
+impl OnEvent for ListItemSelector {}
 
 impl ListItemSelector {
     pub fn new(
@@ -315,7 +315,7 @@ impl ListItemSelector {
 
 #[derive(Debug, Component)]
 pub struct ListItemGroup(Column, Vec<ListItem>);
- impl OnEvent for ListItemGroup {}
+impl OnEvent for ListItemGroup {}
 
 impl ListItemGroup {
     pub fn new(items: Vec<ListItem>) -> Self {
@@ -336,7 +336,7 @@ impl QuickDeselect {
     }
 }
 
- impl OnEvent for QuickDeselect {
+impl OnEvent for QuickDeselect {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(AddContactEvent(name, id)) = event.downcast_ref::<AddContactEvent>() {
             let button = QuickDeselectButton::new(ctx, name, *id);
@@ -361,7 +361,7 @@ impl QuickDeselect {
 
 #[derive(Debug, Component)]
 pub struct QuickDeselectContent(Wrap, Vec<QuickDeselectButton>);
- impl OnEvent for QuickDeselectContent {}
+impl OnEvent for QuickDeselectContent {}
 
 impl QuickDeselectContent {
     pub fn new(first: QuickDeselectButton) -> Self {

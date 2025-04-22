@@ -41,10 +41,10 @@ impl Fonts {
 
     pub fn default(ctx: &mut Context) -> Self {
         println!("loading font resources");
-        let bold = resources::Font::new(ctx, ctx.load_file("fonts/outfit_bold.ttf").unwrap());
-        let medium = resources::Font::new(ctx, ctx.load_file("fonts/outfit_medium.ttf").unwrap());
-        let regular = resources::Font::new(ctx, ctx.load_file("fonts/outfit_regular.ttf").unwrap());
-        let emoji = resources::Font::new(ctx, ctx.load_file("fonts/noto_color_emoji.ttf").unwrap());
+        let bold = resources::Font::new(ctx, &ctx.load_file("fonts/outfit_bold.ttf").unwrap());
+        let medium = resources::Font::new(ctx, &ctx.load_file("fonts/outfit_medium.ttf").unwrap());
+        let regular = resources::Font::new(ctx, &ctx.load_file("fonts/outfit_regular.ttf").unwrap());
+        let emoji = resources::Font::new(ctx, &ctx.load_file("fonts/noto_color_emoji.ttf").unwrap());
         Self {
             heading: bold.clone(),
             text: regular.clone(),

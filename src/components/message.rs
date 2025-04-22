@@ -24,7 +24,7 @@ pub struct Profile {
 
 #[derive(Debug, Component)]
 pub struct Message(Row, Option<Avatar>);
- impl OnEvent for Message {}
+impl OnEvent for Message {}
 
 impl Message {
     pub fn new(
@@ -50,7 +50,7 @@ impl Message {
 
 #[derive(Debug, Component)]
 pub struct MessageContent(Column, Option<MessageData>, MessageBubbles, Option<MessageData>);
- impl OnEvent for MessageContent {}
+impl OnEvent for MessageContent {}
 
 impl MessageContent {
     pub fn new(
@@ -85,7 +85,7 @@ impl MessageContent {
 
 #[derive(Debug, Component)]
 pub struct MessageData(Row, BasicText, Option<BasicText>, BasicText);
- impl OnEvent for MessageData {}
+impl OnEvent for MessageData {}
 
 impl MessageData {
     pub fn new(
@@ -101,9 +101,9 @@ impl MessageData {
         };
         MessageData(
             Row(4.0, Offset::End, Size::Fit, Padding::default()),
-            Text::new(ctx, name, title_style, title_size, TextAlign::Left),
-            divider.then(|| Text::new(ctx, "·", TextStyle::Secondary, text_size.sm, TextAlign::Left)),
-            Text::new(ctx, time, TextStyle::Secondary, text_size.sm, TextAlign::Left),
+            Text::new(ctx, name, title_style, title_size, Align::Left),
+            divider.then(|| Text::new(ctx, "·", TextStyle::Secondary, text_size.sm, Align::Left)),
+            Text::new(ctx, time, TextStyle::Secondary, text_size.sm, Align::Left),
         )
     }
 }
@@ -111,7 +111,7 @@ impl MessageData {
 
 #[derive(Debug, Component)]
 pub struct MessageBubbles(Column, Vec<MessageBubble>);
- impl OnEvent for MessageBubbles {}
+impl OnEvent for MessageBubbles {}
 
 impl MessageBubbles {
     pub fn new(
@@ -126,7 +126,7 @@ impl MessageBubbles {
 
 #[derive(Debug, Component)]
 pub struct MessageBubble(Stack, RoundedRectangle, BasicText);
- impl OnEvent for MessageBubble {}
+impl OnEvent for MessageBubble {}
 
 impl MessageBubble {
     pub fn new(
@@ -143,7 +143,7 @@ impl MessageBubble {
             MessageType::Contact => (colors.background.secondary, TextStyle::Primary),
         };
         let background = RoundedRectangle::new(0.0, 16.0, bg_color);
-        let content = Text::new(ctx, message, text_style, text_size, TextAlign::Left);
+        let content = Text::new(ctx, message, text_style, text_size, Align::Left);
         let layout = Stack(
             Offset::Center, Offset::Center, 
             Size::custom(|widths: Vec<(f32, f32)>| (widths[1].0, 200.0)), 

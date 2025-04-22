@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::text::{Text, ExpandableText, TextStyle};
+use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::Circle;
 use crate::components::button::Button;
 use crate::layout::{Column, Row, Stack, Padding, Offset, Size};
@@ -8,7 +8,7 @@ use crate::PelicanUI;
 
 #[derive(Debug, Component)]
 pub struct DataItem(Row, Option<Number>, DataItemContent);
- impl OnEvent for DataItem {}
+impl OnEvent for DataItem {}
 
 impl DataItem {
     pub fn new(
@@ -30,7 +30,7 @@ impl DataItem {
 
 #[derive(Debug, Component)]
 struct Number(Stack, Shape, BasicText);
- impl OnEvent for Number {}
+impl OnEvent for Number {}
 
 impl Number {
     pub fn new(ctx: &mut Context, txt: &'static str) -> Self {
@@ -39,14 +39,14 @@ impl Number {
         Number(
             Stack::center(),
             Circle::new(32.0, color),
-            Text::new(ctx, txt, TextStyle::Heading, font_size, TextAlign::Left), 
+            Text::new(ctx, txt, TextStyle::Heading, font_size, Align::Left), 
         )
     }
 }
 
 #[derive(Debug, Component)]
-struct DataItemContent(Column, BasicText, Option<ExpandableText>, Option<ExpandableText>, Option<Table>, Option<QuickActions>);
- impl OnEvent for DataItemContent {}
+struct DataItemContent(Column, BasicText, Option<BasicText>, Option<BasicText>, Option<Table>, Option<QuickActions>);
+impl OnEvent for DataItemContent {}
 
 impl DataItemContent {
     fn new(
@@ -60,9 +60,9 @@ impl DataItemContent {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         DataItemContent(
             Column(16.0, Offset::Start, Size::fill(), Padding::default()),
-            Text::new(ctx, label, TextStyle::Heading, font_size.h5, TextAlign::Left),
-            text.map(|t| ExpandableText::new(ctx, t, TextStyle::Primary, font_size.md, TextAlign::Left)),
-            secondary.map(|t|ExpandableText::new(ctx, t, TextStyle::Secondary, font_size.sm, TextAlign::Left)),
+            Text::new(ctx, label, TextStyle::Heading, font_size.h5, Align::Left),
+            text.map(|t| Text::new(ctx, t, TextStyle::Primary, font_size.md, Align::Left)),
+            secondary.map(|t|Text::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left)),
             table.map(|tabulars| Table::new(ctx, tabulars)),
             quick_actions.map(|actions| QuickActions::new(actions)),
         )
@@ -71,7 +71,7 @@ impl DataItemContent {
 
 #[derive(Debug, Component)]
 struct Table(pub Column, pub Vec<Tabular>);
- impl OnEvent for Table {}
+impl OnEvent for Table {}
 
 impl Table {
     pub fn new(ctx: &mut Context, items: Vec<(&'static str, &'static str)>) -> Self {
@@ -83,23 +83,23 @@ impl Table {
 }
 
 #[derive(Debug, Component)]
-struct Tabular(Row, ExpandableText, BasicText);
- impl OnEvent for Tabular {}
+struct Tabular(Row, BasicText, BasicText);
+impl OnEvent for Tabular {}
 
 impl Tabular {
     fn new(ctx: &mut Context, name: &'static str, data: &'static str) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
         Tabular (
             Row(8.0, Offset::Start, Size::Fit, Padding(0.0, 4.0, 0.0, 4.0)),
-            ExpandableText::new(ctx, name, TextStyle::Primary, font_size, TextAlign::Left),
-            Text::new(ctx, data, TextStyle::Primary, font_size, TextAlign::Left),
+            Text::new(ctx, name, TextStyle::Primary, font_size, Align::Left),
+            Text::new(ctx, data, TextStyle::Primary, font_size, Align::Left),
         )
     }
 }
 
 #[derive(Debug, Component)]
 struct QuickActions(Row, Vec<Button>); // Row should be wrap
- impl OnEvent for QuickActions {}
+impl OnEvent for QuickActions {}
 
 impl QuickActions {
     fn new(buttons: Vec<Button>) -> Self {

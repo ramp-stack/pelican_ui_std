@@ -2,7 +2,7 @@ use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 // use cli_clipboard::{ClipboardContext, ClipboardProvider};
 use crate::elements::shapes::OutlinedRectangle;
-use crate::elements::text::{Text,TextStyle, ExpandableText};
+use crate::elements::text::{Text,TextStyle};
 use crate::components::button::IconButton;
 use crate::events::{KeyboardActiveEvent, SetActiveEvent, SetInactiveEvent};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
@@ -27,9 +27,9 @@ impl TextInput {
 
         TextInput(
             Column(16.0, Offset::Start, Size::Fit, Padding::default()),
-            label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5, TextAlign::Left)),
+            label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5, Align::Left)),
             InputField::new(ctx, placeholder, icon_button),
-            help_text.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm, TextAlign::Left)),
+            help_text.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left)),
             None,
             to_disable,
             // SubText::new(ctx, help_text)
@@ -38,18 +38,18 @@ impl TextInput {
 
     pub fn set_error(&mut self, ctx: &mut Context, error: &'static str) {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
-        self.4 = Some(Text::new(ctx, error, TextStyle::Error, font_size, TextAlign::Left));
+        self.4 = Some(Text::new(ctx, error, TextStyle::Error, font_size, Align::Left));
         self.3 = None;
     }
 
     pub fn set_help(&mut self, ctx: &mut Context, help: &'static str) {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
-        self.3 = Some(Text::new(ctx, help, TextStyle::Secondary, font_size, TextAlign::Left));
+        self.3 = Some(Text::new(ctx, help, TextStyle::Secondary, font_size, Align::Left));
         self.4 = None;
     }
 }
 
- impl OnEvent for TextInput {
+impl OnEvent for TextInput {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             *self.2.error() = self.4.is_some();
@@ -89,7 +89,7 @@ impl TextInput {
 //     }
 // }
 
-//  impl OnEvent for SubText {
+// impl OnEvent for SubText {
 //     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
 //         if let Some(TickEvent) = event.downcast_ref() {
 //             let error = !self.error().is_empty();
@@ -130,7 +130,7 @@ impl InputField {
     pub fn input(&mut self) -> &mut String {self.2.input()}
 }
 
- impl OnEvent for InputField {
+impl OnEvent for InputField {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             self.3 = match self.3 {
@@ -205,7 +205,7 @@ pub type SubmitCallback = Box<dyn FnMut(&mut Context, &mut String)>;
 
 #[derive(Component)]
 struct InputContent(
-    Row, Bin<Stack, EitherOr<ExpandableText, ExpandableText>>, Option<IconButton>,
+    Row, Bin<Stack, EitherOr<BasicText, BasicText>>, Option<IconButton>,
     #[skip] bool, #[skip] Option<(Receiver<u8>, SubmitCallback)>
 );
 
@@ -229,8 +229,8 @@ impl InputContent {
             Bin(
                 Stack(Offset::default(), Offset::End, Size::Fit, Size::Fit, Padding(8.0, 6.0, 8.0, 6.0)),
                 EitherOr::new(
-                    ExpandableText::new(ctx, "", TextStyle::Primary, font_size, TextAlign::Left),
-                    ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size, TextAlign::Left)
+                    Text::new(ctx, "", TextStyle::Primary, font_size, Align::Left),
+                    Text::new(ctx, placeholder, TextStyle::Secondary, font_size, Align::Left)
                 )
             ),
             icon_button,
@@ -243,7 +243,7 @@ impl InputContent {
     pub fn focus(&mut self) -> &mut bool {&mut self.3}
 }
 
- impl OnEvent for InputContent {
+impl OnEvent for InputContent {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             if let Some((receiver, on_submit)) = self.4.as_mut() {

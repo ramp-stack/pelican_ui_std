@@ -13,7 +13,7 @@ use std::sync::mpsc::{self, Receiver, Sender};
 
 #[derive(Component, Debug)]
 pub struct MobileKeyboard(Stack, Rectangle, KeyboardContent);
- impl OnEvent for MobileKeyboard {}
+impl OnEvent for MobileKeyboard {}
 
 impl MobileKeyboard {
     pub fn new(ctx: &mut Context) -> Self {
@@ -32,7 +32,7 @@ impl MobileKeyboard {
 
 #[derive(Component, Debug)]
 pub struct KeyboardHeader(Column, IconButtonRow, Bin<Stack, Rectangle>);
- impl OnEvent for KeyboardHeader {}
+impl OnEvent for KeyboardHeader {}
 
 impl KeyboardHeader {
     pub fn new(ctx: &mut Context) -> Self {
@@ -50,7 +50,7 @@ impl KeyboardHeader {
 
 #[derive(Component, Debug)]
 pub struct IconButtonRow(Row, IconButton, IconButton, IconButton, IconButton, Bin<Stack, Rectangle>, IconButton );
- impl OnEvent for IconButtonRow {}
+impl OnEvent for IconButtonRow {}
 
 impl IconButtonRow {
     pub fn new(ctx: &mut Context) -> Self {
@@ -97,8 +97,8 @@ impl KeyboardContent {
     }
 }
 
- impl OnEvent for KeyboardContent {
-    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
+impl OnEvent for KeyboardContent {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             match self.6.try_recv() {
                 Ok(0) => {println!("CAPSLOCK"); self.update();},
@@ -113,7 +113,7 @@ impl KeyboardContent {
 
 #[derive(Component, Debug)]
 pub struct KeyRow(Row, Vec<Key>);
- impl OnEvent for KeyRow {}
+impl OnEvent for KeyRow {}
 
 impl KeyRow {
     pub fn new(ctx: &mut Context, keys: Vec<&'static str>) -> Self {
@@ -127,7 +127,7 @@ impl KeyRow {
 #[derive(Component, Debug)]
 pub struct KeyboardRow(Row, Option<Capslock>, Option<Paginator>, Option<KeyRow>, Option<Key>, Option<Key>);
 // Capslock, Paginator, Character Row, Spacebar, Return
- impl OnEvent for KeyboardRow {}
+impl OnEvent for KeyboardRow {}
 
 impl KeyboardRow {
     fn top(ctx: &mut Context) -> Self {
@@ -164,20 +164,20 @@ impl KeyboardRow {
     
         if let Some(spacebar) = &mut self.4 {
             if let Some(text) = spacebar.1.character().get_text().as_mut() {
-                text.text = format_text("space");
+                *text.text() = format_text("space");
             }
         }
     
         if let Some(newline) = &mut self.5 {
             if let Some(text) = newline.1.character().get_text().as_mut() {
-                text.text = format_text("return");
+                *text.text() = format_text("return");
             }
         }
 
         if let Some(keys) = &mut self.3 {
             keys.keys().iter_mut().enumerate().for_each(|(i, k)| {
                 if let Some(text) = k.1.character().get_text().as_mut() {
-                    text.text = format_text(new[i]);
+                    *text.text() = format_text(new[i]);
                 }
                 let key = format_text(new[i]);
                 k.3 = WinitKey::Character(SmolStr::new(key.as_str()));
@@ -220,7 +220,7 @@ impl Key {
     pub fn content(&mut self) -> &mut KeyContent {&mut self.1}
 }
 
- impl OnEvent for Key {
+impl OnEvent for Key {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             let colors = ctx.get::<PelicanUI>().theme.colors;
@@ -270,7 +270,7 @@ impl std::fmt::Debug for Capslock {
     }
 }
 
- impl OnEvent for Capslock {
+impl OnEvent for Capslock {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             let colors = ctx.get::<PelicanUI>().theme.colors;
@@ -323,7 +323,7 @@ impl std::fmt::Debug for Paginator {
     }
 }
 
- impl OnEvent for Paginator {
+impl OnEvent for Paginator {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             let colors = ctx.get::<PelicanUI>().theme.colors;
@@ -349,9 +349,9 @@ impl std::fmt::Debug for Paginator {
                     _ => (dim, dim, highlight),
                 };
 
-                self.1.character().2.as_mut().unwrap().color = styles.0;
-                self.1.character().3.as_mut().unwrap().color = styles.1;
-                self.1.character().4.as_mut().unwrap().color = styles.2;
+                *self.1.character().2.as_mut().unwrap().color() = styles.0;
+                *self.1.character().3.as_mut().unwrap().color() = styles.1;
+                *self.1.character().4.as_mut().unwrap().color() = styles.2;
             }
 
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
@@ -367,7 +367,7 @@ impl std::fmt::Debug for Paginator {
 
 #[derive(Component, Debug)]
 pub struct KeyContent(Stack, RoundedRectangle, KeyCharacter);
- impl OnEvent for KeyContent {}
+impl OnEvent for KeyContent {}
 
 impl KeyContent {
     pub fn new(ctx: &mut Context, size: f32, offset: Offset, content: KeyCharacter) -> Self {
@@ -384,7 +384,7 @@ impl KeyContent {
 
 #[derive(Component, Debug)]
 pub struct KeyCharacter(Row, Option<Image>, Option<BasicText>, Option<BasicText>, Option<BasicText>);
- impl OnEvent for KeyCharacter {}
+impl OnEvent for KeyCharacter {}
 
 impl KeyCharacter {
     pub fn char(ctx: &mut Context, key: &'static str) -> Self {
@@ -392,14 +392,14 @@ impl KeyCharacter {
         KeyCharacter(
             Row(0.0, Offset::Center, Size::Fit, Padding(0.0, 0.0, 0.0, 10.0)),
             None,
-            Some(Text::new(ctx, key, TextStyle::Keyboard, size, TextAlign::Left)),
+            Some(Text::new(ctx, key, TextStyle::Keyboard, size, Align::Left)),
             None, None
         )
     }
 
     pub fn text(ctx: &mut Context, key: &'static str) -> Self {
         let size = ctx.get::<PelicanUI>().theme.fonts.size.md;
-        KeyCharacter(Row::center(0.0), None, Some(Text::new(ctx, key, TextStyle::Keyboard, size, TextAlign::Left)), None, None)
+        KeyCharacter(Row::center(0.0), None, Some(Text::new(ctx, key, TextStyle::Keyboard, size, Align::Left)), None, None)
     }
 
     pub fn icon(ctx: &mut Context, i: &'static str) -> Self {
@@ -420,9 +420,9 @@ impl KeyCharacter {
         KeyCharacter(
             Row::center(1.0),
             None,
-            Some(Text::new(ctx, "•", styles.0, size, TextAlign::Left)),
-            Some(Text::new(ctx, "•", styles.1, size, TextAlign::Left)),
-            Some(Text::new(ctx, "•", styles.2, size, TextAlign::Left)),
+            Some(Text::new(ctx, "•", styles.0, size, Align::Left)),
+            Some(Text::new(ctx, "•", styles.1, size, Align::Left)),
+            Some(Text::new(ctx, "•", styles.2, size, Align::Left)),
         )
     }
 
