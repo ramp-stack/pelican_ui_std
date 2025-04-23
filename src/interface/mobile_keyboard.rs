@@ -88,8 +88,8 @@ impl KeyboardContent {
     }
 
     pub fn update(&mut self) {
-        let caps = self.4.capslock().as_mut().unwrap().status().clone();
-        let page = self.5.paginator().as_mut().unwrap().status().clone();
+        let caps = *self.4.capslock().as_mut().unwrap().status();
+        let page = *self.5.paginator().as_mut().unwrap().status();
         self.2.update(top_keys(page), caps);
         self.3.update(mid_keys(page), caps);
         self.4.update(bot_keys(page), caps);
@@ -164,20 +164,20 @@ impl KeyboardRow {
     
         if let Some(spacebar) = &mut self.4 {
             if let Some(text) = spacebar.1.character().get_text().as_mut() {
-                *text.text() = format_text("space");
+                text.spans[0].text = format_text("space");
             }
         }
     
         if let Some(newline) = &mut self.5 {
             if let Some(text) = newline.1.character().get_text().as_mut() {
-                *text.text() = format_text("return");
+                text.spans[0].text = format_text("return");
             }
         }
 
         if let Some(keys) = &mut self.3 {
             keys.keys().iter_mut().enumerate().for_each(|(i, k)| {
                 if let Some(text) = k.1.character().get_text().as_mut() {
-                    *text.text() = format_text(new[i]);
+                    text.spans[0].text = format_text(new[i]);
                 }
                 let key = format_text(new[i]);
                 k.3 = WinitKey::Character(SmolStr::new(key.as_str()));
@@ -349,9 +349,9 @@ impl OnEvent for Paginator {
                     _ => (dim, dim, highlight),
                 };
 
-                *self.1.character().2.as_mut().unwrap().color() = styles.0;
-                *self.1.character().3.as_mut().unwrap().color() = styles.1;
-                *self.1.character().4.as_mut().unwrap().color() = styles.2;
+                self.1.character().2.as_mut().unwrap().spans[0].color = styles.0;
+                self.1.character().3.as_mut().unwrap().spans[0].color = styles.1;
+                self.1.character().4.as_mut().unwrap().spans[0].color = styles.2;
             }
 
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {

@@ -2,7 +2,7 @@ use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 // use cli_clipboard::{ClipboardContext, ClipboardProvider};
 use crate::elements::shapes::OutlinedRectangle;
-use crate::elements::text::{Text,TextStyle};
+use crate::elements::text::{ExpandableText, Text, TextStyle};
 use crate::components::button::IconButton;
 use crate::events::{KeyboardActiveEvent, SetActiveEvent, SetInactiveEvent};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
@@ -205,7 +205,7 @@ pub type SubmitCallback = Box<dyn FnMut(&mut Context, &mut String)>;
 
 #[derive(Component)]
 struct InputContent(
-    Row, Bin<Stack, EitherOr<BasicText, BasicText>>, Option<IconButton>,
+    Row, Bin<Stack, EitherOr<ExpandableText, ExpandableText>>, Option<IconButton>,
     #[skip] bool, #[skip] Option<(Receiver<u8>, SubmitCallback)>
 );
 
@@ -227,10 +227,10 @@ impl InputContent {
         InputContent(
             Row(16.0, Offset::End, Size::Fit, Padding(16.0, 8.0, 8.0, 8.0)),
             Bin(
-                Stack(Offset::default(), Offset::End, Size::Fit, Size::Fit, Padding(8.0, 6.0, 8.0, 6.0)),
+                Stack(Offset::default(), Offset::End, Size::fill(), Size::Fit, Padding(8.0, 6.0, 8.0, 6.0)),
                 EitherOr::new(
-                    Text::new(ctx, "", TextStyle::Primary, font_size, Align::Left),
-                    Text::new(ctx, placeholder, TextStyle::Secondary, font_size, Align::Left)
+                    ExpandableText::new(ctx, "", TextStyle::Primary, font_size, Align::Right),
+                    ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size, Align::Left)
                 )
             ),
             icon_button,
@@ -239,7 +239,7 @@ impl InputContent {
         )
     }
 
-    pub fn input(&mut self) -> &mut String { self.1.inner().left().text() }
+    pub fn input(&mut self) -> &mut String { &mut self.1.inner().left().0.spans[0].text }
     pub fn focus(&mut self) -> &mut bool {&mut self.3}
 }
 
@@ -248,11 +248,11 @@ impl OnEvent for InputContent {
         if let Some(TickEvent) = event.downcast_ref() {
             if let Some((receiver, on_submit)) = self.4.as_mut() {
                 if receiver.try_recv().is_ok() {
-                    on_submit(ctx, self.1.inner().left().text())
+                    on_submit(ctx, &mut self.1.inner().left().0.spans[0].text)
                 }
             }
 
-            let input = !self.1.inner().left().text().is_empty();
+            let input = !self.1.inner().left().0.spans[0].text.is_empty();
             self.1.inner().display_left(input || self.3)
         }
         true
