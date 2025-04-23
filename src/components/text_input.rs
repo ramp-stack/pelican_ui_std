@@ -12,7 +12,7 @@ use std::sync::mpsc::{self, Receiver};
 
 
 #[derive(Debug, Component)]
-pub struct TextInput(Column, Option<BasicText>, InputField, Option<BasicText>, Option<BasicText>, #[skip] Option<Vec<ElementID>>);
+pub struct TextInput(Column, Option<BasicText>, InputField, Option<BasicText>, Option<BasicText>);
 
 impl TextInput {
     pub fn new(
@@ -20,7 +20,6 @@ impl TextInput {
         label: Option<&'static str>,
         placeholder: &'static str,
         help_text: Option<&'static str>,
-        to_disable: Option<Vec<ElementID>>,
         icon_button: Option<(&'static str, impl FnMut(&mut Context, &mut String) + 'static)>,
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
@@ -30,8 +29,7 @@ impl TextInput {
             label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5, Align::Left)),
             InputField::new(ctx, placeholder, icon_button),
             help_text.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left)),
-            None,
-            to_disable,
+            None
             // SubText::new(ctx, help_text)
         )
     }
@@ -47,18 +45,15 @@ impl TextInput {
         self.3 = Some(Text::new(ctx, help, TextStyle::Secondary, font_size, Align::Left));
         self.4 = None;
     }
+
+    pub fn get_error(&mut self) -> &mut bool {self.2.error()}
+    pub fn get_value(&mut self) -> &mut String {self.2.input()}
 }
 
 impl OnEvent for TextInput {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             *self.2.error() = self.4.is_some();
-            if let Some(ids) = &self.5 {
-                match !self.4.is_some() && !self.2.input().is_empty() {
-                    true => ids.into_iter().for_each(|id| ctx.trigger_event(SetActiveEvent(*id))),
-                    false => ids.into_iter().for_each(|id| ctx.trigger_event(SetInactiveEvent(*id)))
-                }
-            }
         }
         true
     }
@@ -117,7 +112,7 @@ impl InputField {
         let background = OutlinedRectangle::new(background, outline, 8.0, 1.0);
 
         InputField(Stack(
-            Offset::Center, Offset::End, Size::fill(),
+            Offset::Start, Offset::Start, Size::fill(),
             Size::custom(|heights: Vec<(f32, f32)>| (
                 if heights[1].0 > 48.0 {heights[1].0} else {48.0},
                 if heights[1].1 > 48.0 {heights[1].1} else {48.0}
@@ -225,9 +220,9 @@ impl InputContent {
         }).unwrap_or((None, None));
 
         InputContent(
-            Row(16.0, Offset::End, Size::Fit, Padding(16.0, 8.0, 8.0, 8.0)),
+            Row(16.0, Offset::Start, Size::Fit, Padding(16.0, 8.0, 8.0, 8.0)),
             Bin(
-                Stack(Offset::default(), Offset::End, Size::Fit, Size::Fit, Padding(8.0, 6.0, 8.0, 6.0)),
+                Stack(Offset::default(), Offset::Start, Size::Fit, Size::Fit, Padding(8.0, 6.0, 8.0, 6.0)),
                 EitherOr::new(
                     Text::new(ctx, "", TextStyle::Primary, font_size, Align::Left),
                     Text::new(ctx, placeholder, TextStyle::Secondary, font_size, Align::Left)

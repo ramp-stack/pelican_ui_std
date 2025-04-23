@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use crate::elements::shapes::{Rectangle};
-use crate::events::{KeyboardActiveEvent, NavigateEvent};
+use crate::events::{KeyboardActiveEvent, NavigateEvent, RequestRedraw};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size, Opt};
 use crate::components::avatar::AvatarContent;
 use crate::PelicanUI;
@@ -17,25 +17,25 @@ impl OnEvent for Interface {}
 impl Interface {
     pub fn new(
         ctx: &mut Context, 
-        page: Page, 
+        start_page: impl PageName, 
         navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>),
         profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
     ) -> Self {
         let (mobile, desktop) = match crate::config::IS_MOBILE {
-            true => (Some(MobileInterface::new(ctx, page, navigation, profile)), None),
-            false => (None, Some(DesktopInterface::new(ctx, page, navigation, profile)))
+            true => (Some(MobileInterface::new(ctx, start_page, navigation, profile)), None),
+            false => (None, Some(DesktopInterface::new(ctx, start_page, navigation, profile)))
         };
         Interface(Stack::default(), mobile, desktop)
     }
 }
 
 #[derive(Debug, Component)]
-struct MobileInterface (Column, Page, Opt<MobileNavigator>, Option<MobileKeyboard>);
+struct MobileInterface (Column, Page, Opt<MobileNavigator>, Option<MobileKeyboard>, #[skip] Box<dyn PageName>);
 
 impl MobileInterface {
     pub fn new(
         ctx: &mut Context, 
-        page: Page,
+        start_page: impl PageName,
         navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>),
         profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
     ) -> Self {
@@ -46,7 +46,7 @@ impl MobileInterface {
         let insets = (0., 0., 0., 0.);
         MobileInterface(
             Column(0.0, Offset::Center, Size::Fit, Padding(0.0, insets.0, 0.0, insets.1)), 
-            page, Opt::new(navigator, false), None
+            start_page.build_page(ctx), Opt::new(navigator, false), None, Box::new(start_page)
         )
     }
 }
@@ -61,20 +61,24 @@ impl OnEvent for MobileInterface {
                 false => None
             };
         } else if let Some(NavigateEvent(page, has_nav)) = event.downcast_ref::<NavigateEvent>() {
-            self.1 = page.build_page(ctx);
+            self.4 = page.clone();
+            self.1 = self.4.build_page(ctx);
             self.2.display(*has_nav);
+        } else if let Some(_) = event.downcast_ref::<RequestRedraw>() {
+            println!("Rebuilding page");
+            self.1 = self.4.build_page(ctx);
         }
         true
     }
 }
 
 #[derive(Debug, Component)]
-struct DesktopInterface (Row, DesktopNavigator, Bin<Stack, Rectangle>, Page);
+struct DesktopInterface (Row, DesktopNavigator, Bin<Stack, Rectangle>, Page, #[skip] Box<dyn PageName>);
 
 impl DesktopInterface {
     pub fn new(
         ctx: &mut Context, 
-        page: Page, 
+        start_page: impl PageName, 
         navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>),
         profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
     ) -> Self {
@@ -86,7 +90,8 @@ impl DesktopInterface {
                 Stack(Offset::default(), Offset::default(), Size::Static(1.0),  Size::Fit, Padding::default()), 
                 Rectangle::new(color)
             ),
-           page
+            start_page.build_page(ctx),
+            Box::new(start_page)
         )
     }
 }
@@ -94,7 +99,11 @@ impl DesktopInterface {
 impl OnEvent for DesktopInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigateEvent(page, _)) = event.downcast_ref::<NavigateEvent>() {
-            self.3 = page.build_page(ctx);
+            self.4 = page.clone();
+            self.3 = self.4.build_page(ctx)
+        } else if let Some(_) = event.downcast_ref::<RequestRedraw>() {
+            println!("Rebuilding page");
+            self.3 = self.4.build_page(ctx)
         }
         true
     }

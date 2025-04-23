@@ -17,8 +17,7 @@ pub struct Button(
     OutlinedRectangle, 
     ButtonContent, 
     #[skip] ButtonStyle, 
-    #[skip] ButtonState, 
-    #[skip] Option<ElementID>,
+    #[skip] ButtonState,
     #[skip] pub Box<dyn FnMut(&mut Context)>, 
 );
 
@@ -34,7 +33,6 @@ impl Button {
         style: ButtonStyle,
         state: ButtonState,
         offset: Offset,
-        id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let (height, padding) = size.background();
@@ -53,7 +51,7 @@ impl Button {
         let background = OutlinedRectangle::new(colors.background, colors.outline, height/2.0, 1.0);
         let layout = Stack(offset, Offset::Center, width, Size::Static(height), Padding::default());
 
-        Button(layout, background, content, style, state, id, Box::new(on_click))
+        Button(layout, background, content, style, state, Box::new(on_click))
     }
 
     pub fn color(&mut self, ctx: &mut Context) {
@@ -63,7 +61,6 @@ impl Button {
         *self.1.background() = colors.background;
     }
 
-    pub fn id(&self) -> Option<ElementID> {self.5}
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
@@ -75,19 +72,9 @@ impl OnEvent for Button {
             }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {
-                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.6)(ctx),
+                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.5)(ctx),
                     _ => {}
                 }
-            }
-        } else if let Some(SetActiveEvent(id)) = event.downcast_ref::<SetActiveEvent>() {
-            if self.5.is_some() && *id == self.5.unwrap() {
-                self.4 = ButtonState::Default;
-                self.color(ctx);
-            }
-        } else if let Some(SetInactiveEvent(id)) = event.downcast_ref::<SetInactiveEvent>() {
-            if self.5.is_some() && *id == self.5.unwrap() {
-                self.4 = ButtonState::Disabled;
-                self.color(ctx);
             }
         }
         false
@@ -145,7 +132,6 @@ impl Button {
     pub fn primary (
         ctx: &mut Context,
         label: &'static str,
-        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -159,7 +145,6 @@ impl Button {
             ButtonStyle::Primary,
             ButtonState::Default,
             Offset::Center,
-            element_id,
             on_click,
         )
     }
@@ -170,7 +155,6 @@ impl Button {
         icon_l: Option<&'static str>,
         label: &'static str,
         icon_r: Option<&'static str>,
-        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -184,7 +168,6 @@ impl Button {
             ButtonStyle::Secondary,
             ButtonState::Default,
             Offset::Center,
-            element_id,
             on_click,
         )
     }
@@ -193,7 +176,6 @@ impl Button {
     pub fn ghost(
         ctx: &mut Context,
         label: &'static str,
-        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -207,7 +189,6 @@ impl Button {
             ButtonStyle::Ghost,
             ButtonState::Default,
             Offset::Center,
-            element_id,
             on_click,
         )
     }
@@ -216,7 +197,6 @@ impl Button {
     pub fn disabled(
         ctx: &mut Context,
         label: &'static str,
-        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -230,7 +210,6 @@ impl Button {
             ButtonStyle::Primary,
             ButtonState::Disabled,
             Offset::Center,
-            element_id,
             on_click,
         )
     }
@@ -240,7 +219,6 @@ impl Button {
         ctx: &mut Context,
         label: Option<&'static str>,
         icon: Option<&'static str>,
-        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -254,7 +232,6 @@ impl Button {
             ButtonStyle::Ghost,
             ButtonState::Default,
             Offset::Center,
-            element_id,
             on_click,
         )
     }
@@ -265,7 +242,6 @@ impl Button {
         icon: &'static str,
         label: &'static str,
         selected: bool,
-        element_id: ElementID,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -279,7 +255,6 @@ impl Button {
             ButtonStyle::Ghost,
             if selected {ButtonState::Selected} else {ButtonState::Default},
             Offset::Start,
-            Some(element_id),
             on_click,
         )
     }
@@ -290,7 +265,6 @@ impl Button {
         label: &'static str,
         photo: AvatarContent,
         selected: bool,
-        element_id: ElementID,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -304,7 +278,6 @@ impl Button {
             ButtonStyle::Ghost,
             if selected {ButtonState::Pressed} else {ButtonState::Default},
             Offset::Start,
-            Some(element_id),
             on_click,
         )
     }
@@ -313,7 +286,6 @@ impl Button {
     pub fn close(
         ctx: &mut Context,
         label: &'static str,
-        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -327,7 +299,6 @@ impl Button {
             ButtonStyle::Secondary,
             ButtonState::Default,
             Offset::Center,
-            element_id,
             on_click,
         )
     }
@@ -351,7 +322,7 @@ impl OnEvent for QuickDeselectButton {}
 impl QuickDeselectButton {
     pub fn new(ctx: &mut Context, name: &'static str, id: ElementID) -> Self {
         // Wrap of secondary contact buttons
-        let button = Button::secondary(ctx, None, name, Some("close"), None, move |ctx: &mut Context| ctx.trigger_event(RemoveContactEvent(id)));
+        let button = Button::secondary(ctx, None, name, Some("close"), move |ctx: &mut Context| ctx.trigger_event(RemoveContactEvent(id)));
         QuickDeselectButton(Stack::default(), button, id)
     }
 

@@ -147,7 +147,6 @@ impl UniformExpand {
     }
 }
 
-
 #[derive(Debug)]
 pub struct Row(pub f32, pub Offset, pub Size, pub Padding);
 
@@ -191,7 +190,6 @@ impl Column {
         Column(spacing, Offset::Center, Size::Fit, Padding::default())
     }
 }
-
 
 impl Layout for Column {
     fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {

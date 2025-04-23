@@ -61,7 +61,7 @@ impl OnEvent for MobileNavigator {
 
 
 #[derive(Debug, Component)]
-pub struct DesktopNavigator(Column, Image, ButtonColumn, Bin<Stack, Rectangle>, Button);
+pub struct DesktopNavigator(Column, Image, ButtonColumn, Bin<Stack, Rectangle>, NavigationButton);
 
 impl DesktopNavigator {
     pub fn new(
@@ -75,13 +75,19 @@ impl DesktopNavigator {
         let (wordmark, color) = (theme.brand.wordmark.clone(), theme.colors.shades.transparent);
         let profile_id = ElementID::new();
 
-        let mut tabs: Vec<Button> = navigation.1.into_iter().enumerate().map(|(y, (i, n, mut c))| {
+        let mut tabs: Vec<NavigationButton> = navigation.1.into_iter().enumerate().map(|(y, (i, n, mut c))| {
             let id = ElementID::new();
-            Button::navigation(ctx, i, n, y == navigation.0, id, move |ctx: &mut Context| {
+            let nb = Button::navigation(ctx, i, n, y == navigation.0, move |ctx: &mut Context| {
                 ctx.trigger_event(NavigatorSelect(id));
                 (c)(ctx);
-            })
+            });
+            NavigationButton::new(ctx, id, nb)
         }).collect();
+
+        let pb = Button::photo(ctx, profile.0, profile.1, false, move |ctx: &mut Context| {
+            ctx.trigger_event(NavigatorSelect(profile_id));
+            (profile.2)(ctx);
+        });
 
         DesktopNavigator(
             Column(32.0, Offset::Center, Size::Fill(100.0, 200.0), Padding(16.0, 32.0, 16.0, 32.0)),
@@ -91,10 +97,7 @@ impl DesktopNavigator {
                 Stack(Offset::Center, Offset::Center, Size::Fill(100.0, 200.0), Size::Fill(100.0, f32::MAX), Padding::default()), 
                 Rectangle::new(color)
             ),
-            Button::photo(ctx, profile.0, profile.1, false, profile_id, move |ctx: &mut Context| {
-                ctx.trigger_event(NavigatorSelect(profile_id));
-                (profile.2)(ctx);
-            }),
+            NavigationButton::new(ctx, profile_id, pb)
         )
     }
 }
@@ -103,15 +106,15 @@ impl OnEvent for DesktopNavigator {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigatorSelect(id)) = event.downcast_ref::<NavigatorSelect>() {
             println!("Navigator selected");
-            let mut buttons: Vec<&mut Button> = self.2.buttons().iter_mut().map(|btn| btn).collect();
+            let mut buttons: Vec<&mut NavigationButton> = self.2.buttons().iter_mut().map(|btn| btn).collect();
             buttons.push(&mut self.4);
             buttons.iter_mut().for_each(|button| {
-                if button.id().unwrap() == *id {
-                    *button.status() = ButtonState::Selected;
-                    button.color(ctx);
+                if button.id() == *id {
+                    *button.1.status() = ButtonState::Selected;
+                    button.1.color(ctx);
                 } else {
-                    *button.status() = ButtonState::Default;
-                    button.color(ctx);
+                    *button.1.status() = ButtonState::Default;
+                    button.1.color(ctx);
                 }
             });
         }
@@ -119,21 +122,31 @@ impl OnEvent for DesktopNavigator {
     }
 }
 
-
 // Column of Buttons
 #[derive(Debug, Component)]
-pub struct ButtonColumn(Column, Vec<Button>);
+pub struct ButtonColumn(Column, Vec<NavigationButton>);
 impl OnEvent for ButtonColumn {}
 
 impl ButtonColumn {
-    pub fn new(buttons: Vec<Button>) -> Self {
+    pub fn new(buttons: Vec<NavigationButton>) -> Self {
         ButtonColumn(Column::center(8.0), buttons)
     }
 
-    pub fn buttons(&mut self) -> &mut Vec<Button> {&mut self.1}
+    pub fn buttons(&mut self) -> &mut Vec<NavigationButton> {&mut self.1}
 }
 
 
+#[derive(Debug, Component)]
+pub struct NavigationButton(Stack, Button, #[skip] ElementID);
+impl OnEvent for NavigationButton {}
+
+impl NavigationButton {
+    pub fn new(ctx: &mut Context, id: ElementID, button: Button) -> Self {
+        NavigationButton(Stack::default(), button, id)
+    }
+
+    pub fn id(&self) -> ElementID {self.2}
+}
 
 #[derive(Debug, Component)]
 pub struct Header(Row, HeaderIcon, HeaderContent, HeaderIcon);

@@ -64,3 +64,11 @@ impl Event for SetInactiveEvent {
         children.into_iter().map(|_| Some(Box::new(*self) as Box<dyn Event>)).collect()
     }
 }
+
+#[derive(Debug, Clone, Copy)]
+pub struct RequestRedraw();
+impl Event for RequestRedraw {
+    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
+        children.into_iter().map(|_| Some(Box::new(*self) as Box<dyn Event>)).collect()
+    }
+}
