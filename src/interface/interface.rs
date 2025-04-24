@@ -4,7 +4,7 @@ use crate::events::{KeyboardActiveEvent, NavigateEvent, RequestRedraw};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size, Opt};
 use crate::components::avatar::AvatarContent;
 use crate::PelicanUI;
-use crate::PageName;
+use crate::{AppFlow, AppPage};
 use std::fmt::Debug;
 
 use super::mobile_keyboard::MobileKeyboard;
@@ -17,7 +17,7 @@ impl OnEvent for Interface {}
 impl Interface {
     pub fn new(
         ctx: &mut Context, 
-        start_page: impl PageName, 
+        start_page: impl AppPage, 
         navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>),
         profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
     ) -> Self {
@@ -30,23 +30,23 @@ impl Interface {
 }
 
 #[derive(Debug, Component)]
-struct MobileInterface (Column, Page, Opt<MobileNavigator>, Option<MobileKeyboard>, #[skip] Box<dyn PageName>);
+struct MobileInterface (Column, Box<dyn AppPage>, Opt<MobileNavigator>, Option<MobileKeyboard>);
 
 impl MobileInterface {
     pub fn new(
         ctx: &mut Context, 
-        start_page: impl PageName,
+        start_page: impl AppPage,
         navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>),
         profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
     ) -> Self {
         let navigator = MobileNavigator::new(ctx, navigation, profile);
-        #[cfg(target_os = "ios")]
+        #[cfg(target_os = "ios")] // move to rust_on_rails layer
         let insets = safe_area_insets();
         #[cfg(not(target_os = "ios"))]
         let insets = (0., 0., 0., 0.);
         MobileInterface(
             Column(0.0, Offset::Center, Size::Fit, Padding(0.0, insets.0, 0.0, insets.1)), 
-            start_page.build_page(ctx), Opt::new(navigator, false), None, Box::new(start_page)
+            Box::new(start_page), Opt::new(navigator, false), None,
         )
     }
 }
@@ -54,31 +54,28 @@ impl MobileInterface {
 impl OnEvent for MobileInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(_event) = event.downcast_ref::<TickEvent>() {
-            self.2.display(self.1.navigator_status());
+            // self.2.display(self.1.navigator_status());
         } else if let Some(KeyboardActiveEvent(enabled)) = event.downcast_ref::<KeyboardActiveEvent>() {
             self.3 = match enabled {
                 true => Some(MobileKeyboard::new(ctx)),
                 false => None
             };
-        } else if let Some(NavigateEvent(page, has_nav)) = event.downcast_ref::<NavigateEvent>() {
-            self.4 = page.clone();
-            self.1 = self.4.build_page(ctx);
-            self.2.display(*has_nav);
-        } else if let Some(_) = event.downcast_ref::<RequestRedraw>() {
-            println!("Rebuilding page");
-            self.1 = self.4.build_page(ctx);
+        } else if let Some(NavigateEvent(page)) = event.downcast_ref::<NavigateEvent>() {
+            let page = page.get_page(ctx);
+            println!("Page: {:?}", page);
+            self.1 = page;
         }
         true
     }
 }
 
 #[derive(Debug, Component)]
-struct DesktopInterface (Row, DesktopNavigator, Bin<Stack, Rectangle>, Page, #[skip] Box<dyn PageName>);
+struct DesktopInterface (Row, DesktopNavigator, Bin<Stack, Rectangle>, Box<dyn AppPage>);
 
 impl DesktopInterface {
     pub fn new(
         ctx: &mut Context, 
-        start_page: impl PageName, 
+        start_page: impl AppPage, 
         navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>),
         profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
     ) -> Self {
@@ -90,7 +87,6 @@ impl DesktopInterface {
                 Stack(Offset::default(), Offset::default(), Size::Static(1.0),  Size::Fit, Padding::default()), 
                 Rectangle::new(color)
             ),
-            start_page.build_page(ctx),
             Box::new(start_page)
         )
     }
@@ -98,12 +94,11 @@ impl DesktopInterface {
 
 impl OnEvent for DesktopInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(NavigateEvent(page, _)) = event.downcast_ref::<NavigateEvent>() {
-            self.4 = page.clone();
-            self.3 = self.4.build_page(ctx)
-        } else if let Some(_) = event.downcast_ref::<RequestRedraw>() {
-            println!("Rebuilding page");
-            self.3 = self.4.build_page(ctx)
+        if let Some(NavigateEvent(page)) = event.downcast_ref::<NavigateEvent>() {
+            // self.3 = page.get_page(ctx);
+            let page = page.get_page(ctx);
+            println!("Page: {:#?}", page.get());
+            self.3 = page;
         }
         true
     }
@@ -125,6 +120,9 @@ impl Page {
         )
     }
 
+    pub fn header(&mut self) -> &mut Header {&mut self.1}
+    pub fn content(&mut self) -> &mut Content {&mut self.2}
+    pub fn bumper(&mut self) -> &mut Option<Bumper> {&mut self.3}
     pub fn navigator_status(&self) -> bool {self.4}
 }
 
@@ -141,6 +139,8 @@ impl Content {
             ContentChildren::new(content),
         )
     }
+    
+    pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.1.1}
 }
 
 #[derive(Debug, Component)]

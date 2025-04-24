@@ -1,8 +1,8 @@
 use rust_on_rails::prelude::*;
-use crate::{PageName, ElementID};
+use crate::{AppFlow, ElementID};
 
 #[derive(Debug, Clone)]
-pub struct NavigateEvent(pub Box<dyn PageName>, pub bool);
+pub struct NavigateEvent(pub Box<dyn AppFlow>);
 impl Event for NavigateEvent {
     fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
         children.into_iter().map(|_| Some(Box::new(*self.clone()) as Box<dyn Event>)).collect()

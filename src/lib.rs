@@ -7,7 +7,7 @@ pub mod components;
 pub mod interface;
 
 use rust_on_rails::prelude::*;
-
+use downcast_rs::{DowncastSync, impl_downcast};
 use crate::theme::Theme;
 
 #[cfg(target_os = "ios")]
@@ -41,15 +41,18 @@ impl Plugin for PelicanUI {
     }
 }
 
-pub trait PageName: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static {
-    fn build_page(&self, ctx: &mut Context) -> crate::interface::Page;
-
-    fn navigate(self, ctx: &mut Context) where Self: Sized {
-        ctx.trigger_event(crate::events::NavigateEvent(Box::new(self) as Box<dyn PageName>, true));
-    }
+pub trait AppPage: Drawable + std::fmt::Debug + 'static {
+    fn get(&self) -> &crate::interface::interface::Page;
 }
 
-dyn_clone::clone_trait_object!(PageName);
+pub trait AppFlow: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static {
+    fn get_page(&self, ctx: &mut Context) -> Box<dyn crate::AppPage>;
+
+    fn navigate(self, ctx: &mut Context) where Self: Sized {
+        ctx.trigger_event(crate::events::NavigateEvent(Box::new(self) as Box<dyn AppFlow>));
+    }
+}
+dyn_clone::clone_trait_object!(AppFlow);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ElementID(uuid::Uuid);
@@ -70,7 +73,8 @@ impl ElementID {
 
 pub mod prelude {
     pub use crate::ElementID;
-    pub use crate::PageName;
+    pub use crate::AppFlow;
+    pub use crate::AppPage;
     pub use crate::events::*;
     pub use crate::interface::*;
     pub use crate::layout::*;

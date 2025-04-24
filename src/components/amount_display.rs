@@ -95,7 +95,7 @@ impl OnEvent for AmountInputContent {
             // Get font sizes from theme
             let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
             // Remove commas from input string
-            let mut t = self.1.amount().text().replace(",", "");
+            let mut t = self.1.amount().text.replace(",", "");
             // Count digits (excluding dots and commas)
             let mut digit_count = t.chars().filter(|ch| ch.is_ascii_digit()).count();
 
@@ -142,7 +142,7 @@ impl OnEvent for AmountInputContent {
             }
 
             // Set placeholder zeroes after the decimal point
-            *self.1.zeros().text() = match t.find('.') {
+            self.1.zeros().text = match t.find('.') {
                 Some(i) => match t[i + 1..].len() {
                     0 => "00",
                     1 => "0",
@@ -171,17 +171,17 @@ impl OnEvent for AmountInputContent {
             let t_formatted = format!("{}{}", formatted_dollars, cents.unwrap_or(""));
 
             // Choose font size based on total digits (including decimal placeholders)
-            let total_digits = digit_count + self.1.zeros().text().len();
+            let total_digits = digit_count + self.1.zeros().text.len();
             let size = if total_digits <= 5 { font_size.title } else { font_size.h1 };
 
             // Set final text
-            *self.1.amount().text() = t_formatted.clone();
+            self.1.amount().text = t_formatted.clone();
 
             // Apply font size and line height to amount and zeros
-            *self.1.amount().font_size() = size;
-            *self.1.amount().line_height() = size * 1.25;
-            *self.1.zeros().font_size() = size;
-            *self.1.zeros().line_height() = size * 1.25;
+            self.1.amount().font_size = size;
+            self.1.amount().line_height = size * 1.25;
+            self.1.zeros().font_size = size;
+            self.1.zeros().line_height = size * 1.25;
 
             // Set min and max allowed values
             let min = 2.14;
@@ -231,6 +231,6 @@ impl Display {
         )
     }
 
-    pub fn amount(&mut self) -> &mut BasicText {&mut self.2}
-    pub fn zeros(&mut self) -> &mut BasicText {&mut self.3}
+    pub fn amount(&mut self) -> &mut Span {&mut self.2.spans[0]}
+    pub fn zeros(&mut self) -> &mut Span {&mut self.3.spans[0]}
 }

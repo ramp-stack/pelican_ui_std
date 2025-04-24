@@ -254,6 +254,18 @@ impl Bumper {
             BumperContent::new(content)
         )
     }
+
+    pub fn double_button(a: Button, b: Button) -> Self {
+        Self::new(vec![Box::new(a), Box::new(b)])
+    }
+
+    pub fn single_button(a: Button) -> Self {
+        Self::new(vec![Box::new(a)])
+    }
+
+    // pub fn message_input(a: TextInput) -> Self {
+    //     Self::new(vec![Box::new(a)])
+    // }
 }
 
 #[derive(Debug, Component)]

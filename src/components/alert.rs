@@ -22,5 +22,5 @@ impl Alert {
         )
     }
 
-    pub fn message(&mut self) -> &mut String { self.2.text() }
+    pub fn message(&mut self) -> &mut String { &mut self.2.spans[0].text }
 }
