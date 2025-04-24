@@ -225,11 +225,11 @@ impl InputContent {
         }).unwrap_or((None, None));
 
         InputContent(
-            Row(16.0, Offset::End, Size::Fit, Padding(16.0, 8.0, 8.0, 8.0)),
+            Row(0.0, Offset::End, Size::Fit, Padding(16.0, 8.0, 8.0, 8.0)),
             Bin(
-                Stack(Offset::default(), Offset::End, Size::fill(), Size::Fit, Padding(8.0, 6.0, 8.0, 6.0)),
+                Stack(Offset::default(), Offset::End, Size::fill(), Size::Fit, Padding(8.0, 8.0, 8.0, 8.0)),
                 EitherOr::new(
-                    ExpandableText::new(ctx, "", TextStyle::Primary, font_size, Align::Right),
+                    ExpandableText::new(ctx, "", TextStyle::Primary, font_size, Align::Left),
                     ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size, Align::Left)
                 )
             ),
