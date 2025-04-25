@@ -23,16 +23,16 @@ pub struct Profile {
 }
 
 #[derive(Debug, Component)]
-pub struct Message(Row, Option<Avatar>);
+pub struct Message(Row, Option<Avatar>, MessageContent);
 impl OnEvent for Message {}
 
 impl Message {
     pub fn new(
         ctx: &mut Context,
         style: MessageType,
-        _messages: Vec<&'static str>,
+        messages: Vec<&'static str>,
         sender: Profile,
-        _time: &'static str,
+        time: &'static str,
     ) -> Self {
         let (offset, avatar) = match style {
             MessageType::You => (Offset::End, false),
@@ -43,7 +43,7 @@ impl Message {
         Message (
             Row(8.0, offset, Size::Fit, Padding::default()),
             avatar.then(|| Avatar::new(ctx, sender.avatar.clone(), None, false, 24.0)),
-            // MessageContent::new(ctx, style, messages, sender, time)
+            MessageContent::new(ctx, style, messages, sender, time)
         )
     }
 }
@@ -77,7 +77,7 @@ impl MessageContent {
         };
 
         MessageContent(
-            Column(8.0, offset, Size::Fill(0.0, 300.0), Padding::default()),
+            Column(8.0, offset, Size::custom(|widths: Vec<(f32, f32)>| (widths[1].0, f32::MAX)), Padding::default()),
             top, MessageBubbles::new(ctx, messages, style), bottom
         )
     }
@@ -120,7 +120,7 @@ impl MessageBubbles {
         style: MessageType,
     ) -> Self {
         let messages = messages.iter().map(|m| MessageBubble::new(ctx, m, style)).collect();
-        MessageBubbles(Column::center(8.0), messages)
+        MessageBubbles(Column(8.0, Offset::Start, Size::Fit, Padding::default()), messages)
     }
 }
 
@@ -142,12 +142,17 @@ impl MessageBubble {
             MessageType::Group => (colors.background.secondary, TextStyle::Primary),
             MessageType::Contact => (colors.background.secondary, TextStyle::Primary),
         };
+
+        let (hp, vp) = (12.0, 12.0);
         let background = RoundedRectangle::new(0.0, 16.0, bg_color);
         let content = Text::new(ctx, message, text_style, text_size, Align::Left);
         let layout = Stack(
             Offset::Center, Offset::Center, 
-            Size::custom(|widths: Vec<(f32, f32)>| (widths[1].0, 200.0)), 
-            Size::custom(|heights: Vec<(f32, f32)>| heights[1]), 
+            Size::custom(move |widths: Vec<(f32, f32)>| {
+                let size = widths[1].1.min(200.0);
+                (size+hp, size+hp)
+            }),
+            Size::custom(move |heights: Vec<(f32, f32)>| (heights[1].0+vp, heights[1].1+vp)), 
             Padding::default()
         );
 

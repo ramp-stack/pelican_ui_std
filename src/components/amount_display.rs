@@ -50,29 +50,17 @@ impl SubText {
 
 
 #[derive(Debug, Component)]
-pub struct AmountInput(Stack, AmountInputContent, #[skip] Option<Vec<ElementID>>);
-
+pub struct AmountInput(Stack, AmountInputContent);
+impl OnEvent for AmountInput {}
 impl AmountInput {
-    pub fn new(ctx: &mut Context, to_disable: Option<Vec<ElementID>>) -> Self {
+    pub fn new(ctx: &mut Context) -> Self {
         AmountInput (
             Stack(Offset::Center, Offset::Center, Size::Fit, Size::fill(), Padding::default()),
-            AmountInputContent::new(ctx), to_disable
+            AmountInputContent::new(ctx),
         )
     }
-}
 
-impl OnEvent for AmountInput {
-    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(TickEvent) = event.downcast_ref() {
-            if let Some(ids) = &self.2 {
-                match self.1.2.3 {
-                    false => ids.into_iter().for_each(|id| ctx.trigger_event(SetActiveEvent(*id))),
-                    true => ids.into_iter().for_each(|id| ctx.trigger_event(SetInactiveEvent(*id)))
-                }
-            }
-        }
-        true
-    }
+    pub fn has_error(&mut self) -> &mut bool {&mut self.1.2.3}
 }
 
 #[derive(Debug, Component)]

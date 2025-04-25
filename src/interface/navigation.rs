@@ -266,6 +266,7 @@ impl Bumper {
     // pub fn message_input(a: TextInput) -> Self {
     //     Self::new(vec![Box::new(a)])
     // }
+    pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.1.1}
 }
 
 #[derive(Debug, Component)]

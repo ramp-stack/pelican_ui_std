@@ -62,7 +62,6 @@ impl OnEvent for MobileInterface {
             };
         } else if let Some(NavigateEvent(page)) = event.downcast_ref::<NavigateEvent>() {
             let page = page.get_page(ctx);
-            println!("Page: {:?}", page);
             self.1 = page;
         }
         true
@@ -95,9 +94,7 @@ impl DesktopInterface {
 impl OnEvent for DesktopInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigateEvent(page)) = event.downcast_ref::<NavigateEvent>() {
-            // self.3 = page.get_page(ctx);
             let page = page.get_page(ctx);
-            println!("Page: {:#?}", page.get());
             self.3 = page;
         }
         true
@@ -133,7 +130,7 @@ impl OnEvent for Content {}
 impl Content {
     pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, 375.0));
-        let height = Size::custom(move |heights: Vec<(f32, f32)>|(heights[0].0, f32::MAX));
+        let height = Size::custom(move |heights: Vec<(f32, f32)>|(0.0, f32::MAX));
         Content(
             Stack(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0)),
             ContentChildren::new(content),

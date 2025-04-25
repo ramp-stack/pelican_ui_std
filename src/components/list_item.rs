@@ -11,7 +11,7 @@ use crate::{PelicanUI, ElementID};
 
 
 #[derive(Component)]
-pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] ElementID);
+pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] Option<ElementID>);
 
 impl ListItem {
     pub fn new(
@@ -25,7 +25,7 @@ impl ListItem {
         right_subtitle: Option<&'static str>,
         radio_button: Option<bool>,
         circle_icon: Option<AvatarContent>,
-        id: ElementID,
+        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
@@ -40,7 +40,7 @@ impl ListItem {
             Padding(0.0, 16.0, 0.0, 16.0)
         );
 
-        ListItem(layout, Rectangle::new(color), content, ButtonState::Default, Box::new(on_click), id)
+        ListItem(layout, Rectangle::new(color), content, ButtonState::Default, Box::new(on_click), element_id)
     }
 }
 
@@ -48,7 +48,7 @@ impl OnEvent for ListItem {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
-                self.2.1.as_mut().map(|radio| {radio.select(ctx); ctx.trigger_event(ListItemSelect(self.5));});
+                self.2.1.as_mut().map(|radio| {radio.select(ctx); ctx.trigger_event(ListItemSelect(self.5.expect("Selectable List Items Require ElementIDs")));});
                 match self.3 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
                         #[cfg(target_os = "ios")]
@@ -59,8 +59,10 @@ impl OnEvent for ListItem {
                 }
             }
         }  if let Some(ListItemSelect(id)) = event.downcast_ref::<ListItemSelect>() {
-            if *id != self.5 {
-                self.2.1.as_mut().map(|radio| radio.deselect(ctx));
+            if let Some(self_id) = &self.5 {
+                if *id != *self_id {
+                    self.2.1.as_mut().map(|radio| radio.deselect(ctx));
+                }
             }
         }
         false
@@ -210,7 +212,7 @@ impl ListItem {
         nym: &'static str,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), ElementID::new(), on_click)
+        ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), None, on_click)
     }
 
     pub fn recipient(
@@ -219,8 +221,10 @@ impl ListItem {
         name: &'static str,
         nym: &'static str,
     ) -> Self {
-        let id = ElementID::new();
-        ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), id, move |ctx: &mut Context| ctx.trigger_event(AddContactEvent(name, id)))
+        ListItem::new(
+            ctx, true, name, None, Some(nym), None, None, None, None, Some(data), None, 
+            move |ctx: &mut Context| ctx.trigger_event(AddContactEvent(name, ElementID::new()))
+        )
     }
 
     pub fn direct_message(
@@ -230,7 +234,7 @@ impl ListItem {
         recent: &'static str,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        ListItem::new(ctx, true, name, None, Some(recent), None, None, None, None, Some(data), ElementID::new(), on_click)
+        ListItem::new(ctx, true, name, None, Some(recent), None, None, None, None, Some(data), None, on_click)
     }
 
     pub fn group_message(
@@ -240,7 +244,7 @@ impl ListItem {
     ) -> Self {
         let description = Box::leak(names.join(", ").into_boxed_str());
         let avatar = AvatarContent::Icon("group", AvatarIconStyle::Secondary);
-        ListItem::new(ctx, true, "Group Message", None, None, Some(description), None, None, None, Some(avatar), ElementID::new(), on_click)
+        ListItem::new(ctx, true, "Group Message", None, None, Some(description), None, None, None, Some(avatar), None, on_click)
     }
 
     pub fn room(
@@ -251,7 +255,7 @@ impl ListItem {
         description: &'static str,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        ListItem::new(ctx, true, name, None, Some(members), Some(description), None, None, None, Some(data), ElementID::new(), on_click)
+        ListItem::new(ctx, true, name, None, Some(members), Some(description), None, None, None, Some(data), None, on_click)
     }
 
     pub fn bitcoin(
@@ -263,7 +267,7 @@ impl ListItem {
     ) -> Self {
         let title = if is_received { "Received Bitcoin" } else { "Sent Bitcoin" };
         let usd = Box::leak(format!("{:.2}", usd).into_boxed_str());
-        ListItem::new(ctx, true, title, None, Some(date), None, Some(usd), Some("Details"), None, None, ElementID::new(), on_click)
+        ListItem::new(ctx, true, title, None, Some(date), None, Some(usd), Some("Details"), None, None, None, on_click)
     }
 
     pub fn bitcoin_sending(
@@ -277,7 +281,7 @@ impl ListItem {
         let flair = ("warning", color);
         let usd =  Box::leak(format!("${:.2}", usd).into_boxed_str());
         let btc =  Box::leak(format!("${:.8} BTC", btc).into_boxed_str());
-        ListItem::new(ctx, true, "Sending Bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, ElementID::new(), on_click)
+        ListItem::new(ctx, true, "Sending Bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, None, on_click)
     }
 
     pub fn selection(
@@ -288,7 +292,7 @@ impl ListItem {
         description: &'static str,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
-        ListItem::new(ctx, false, title, None, Some(subtitle), Some(description), None, None, Some(selected), None, ElementID::new(), on_click)
+        ListItem::new(ctx, false, title, None, Some(subtitle), Some(description), None, None, Some(selected), None, Some(ElementID::new()), on_click)
     }
 }
 
