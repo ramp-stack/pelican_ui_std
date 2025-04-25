@@ -6,7 +6,7 @@ mod button;
 pub use button::{Button, ButtonWidth, QuickActions, QuickDeselectButton};
 
 mod icon;
-pub use icon::IconButton;
+pub use icon::{IconButton, IconButtonRow};
 
 #[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]
 pub enum ButtonStyle {

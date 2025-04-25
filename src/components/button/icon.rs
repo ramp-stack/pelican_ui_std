@@ -3,7 +3,7 @@ use rust_on_rails::prelude::*;
 use crate::ElementID;
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
-use crate::layout::{Offset, Padding, Size, Stack};
+use crate::layout::{Offset, Padding, Size, Row, Stack};
 
 use super::{ButtonSize, ButtonState, ButtonStyle};
 
@@ -13,8 +13,7 @@ pub struct IconButton(
         OutlinedRectangle, 
         Image,
         #[skip] ButtonStyle,
-        #[skip] ButtonState, 
-        #[skip] Option<ElementID>,
+        #[skip] ButtonState,
         #[skip] pub Box<dyn FnMut(&mut Context)>,
 );
 
@@ -25,8 +24,7 @@ impl IconButton {
         size: ButtonSize,
         style: ButtonStyle,
         state: ButtonState,
-        id: Option<ElementID>,
-        on_click: impl FnMut(&mut Context) + 'static,
+        on_click: Box<dyn FnMut(&mut Context)>,
     ) -> Self {
         let colors = state.color(ctx, style);
         let (size, icon_size, radius) = match (style, size) {
@@ -43,7 +41,7 @@ impl IconButton {
 
         IconButton(
             Stack(Offset::Center, Offset::Center, Size::Static(size), Size::Static(size), Padding::default()),
-            background, icon, style, state, id, Box::new(on_click)
+            background, icon, style, state, on_click
         )
     }
 
@@ -54,7 +52,6 @@ impl IconButton {
         self.2.color = Some(colors.label);
     }
 
-    pub fn id(&self) -> Option<ElementID> {self.5}
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
@@ -66,7 +63,7 @@ impl OnEvent for IconButton {
             }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {
-                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.6)(ctx),
+                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.5)(ctx),
                     _ => {}
                 }
             }
@@ -75,12 +72,37 @@ impl OnEvent for IconButton {
     }
 }
 
+#[derive(Debug, Component)]
+pub struct IconButtonRow(Row, Vec<IconButton>);
+impl OnEvent for IconButtonRow {}
+
+impl IconButtonRow {
+    pub fn new(ctx: &mut Context, buttons: Vec<(&'static str, Box<dyn FnMut(&mut Context)>)>) -> Self {
+        let buttons = buttons.into_iter().map(|(i, on_click)| IconButton::secondary(ctx, i, on_click)).collect();
+        IconButtonRow(Row::center(24.0), buttons)
+    }
+}
+
 impl IconButton {
+    pub fn secondary(
+        ctx: &mut Context, 
+        icon: &'static str, 
+        on_click: Box<dyn FnMut(&mut Context)>
+    ) -> Self {
+        IconButton::new(
+            ctx,
+            icon,
+            ButtonSize::Large,
+            ButtonStyle::Secondary,
+            ButtonState::Default,
+            on_click,
+        )
+    }
+
     // IconButton Preset for Input Fields
     pub fn input(
         ctx: &mut Context, 
         icon: &'static str, 
-        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
         IconButton::new(
@@ -89,8 +111,7 @@ impl IconButton {
             ButtonSize::Medium,
             ButtonStyle::Secondary,
             ButtonState::Default,
-            element_id,
-            on_click,
+            Box::new(on_click),
         )
     }
 
@@ -98,7 +119,6 @@ impl IconButton {
     pub fn keyboard(
         ctx: &mut Context, 
         icon: &'static str,
-        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
         IconButton::new(
@@ -107,8 +127,7 @@ impl IconButton {
             ButtonSize::Medium,
             ButtonStyle::Ghost,
             ButtonState::Default,
-            element_id,
-            on_click,
+            Box::new(on_click),
         )
     }
     
@@ -116,7 +135,6 @@ impl IconButton {
     pub fn navigation(
         ctx: &mut Context, 
         icon: &'static str, 
-        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
         IconButton::new(
@@ -125,15 +143,13 @@ impl IconButton {
             ButtonSize::Medium,
             ButtonStyle::Ghost,
             ButtonState::Default,
-            element_id,
-            on_click,
+            Box::new(on_click),
         )
     }
 
     // IconButton Preset for Closing Page
     pub fn close(
         ctx: &mut Context, 
-        element_id: Option<ElementID>,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
         IconButton::new(
@@ -142,8 +158,7 @@ impl IconButton {
             ButtonSize::Medium,
             ButtonStyle::Ghost,
             ButtonState::Default,
-            element_id,
-            on_click,
+            Box::new(on_click),
         )
     }
 
@@ -152,7 +167,6 @@ impl IconButton {
         ctx: &mut Context, 
         icon: &'static str, 
         selected: bool,
-        element_id: ElementID,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let state = if selected {ButtonState::Selected} else {ButtonState::UnSelected};
@@ -162,8 +176,7 @@ impl IconButton {
             ButtonSize::Medium,
             ButtonStyle::Ghost,
             state,
-            Some(element_id),
-            on_click,
+            Box::new(on_click),
         )
     }
 }

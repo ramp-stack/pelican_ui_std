@@ -10,7 +10,7 @@ use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::{PelicanUI, ElementID};
 
 #[derive(Debug, Component)]
-pub struct MobileNavigator(Row, Vec<IconButton>);
+pub struct MobileNavigator(Row, Vec<NavigationButton>);
 
 impl MobileNavigator {
     pub fn new(
@@ -21,21 +21,22 @@ impl MobileNavigator {
         if navigation.1.is_empty() {panic!("MobileNavigator: Parameter 1 was empty. Navigator has no data.")}
         let profile_id = ElementID::new();
 
-        let mut tabs: Vec<IconButton> = navigation.1.into_iter().enumerate().map(|(y, (i, _, mut c))| {
+        let mut tabs: Vec<NavigationButton> = navigation.1.into_iter().enumerate().map(|(y, (i, _, mut c))| {
             let id = ElementID::new();
-            IconButton::tab_nav(ctx, i, y == navigation.0, id, move |ctx: &mut Context| {
+            let ib = IconButton::tab_nav(ctx, i, y == navigation.0, move |ctx: &mut Context| {
                 println!("triggered");
                 ctx.trigger_event(NavigatorSelect(id));
                 (c)(ctx);
-            })
+            });
+            NavigationButton::new(ctx, id, None, Some(ib))
         }).collect();
 
-        tabs.push(
-            IconButton::tab_nav(ctx, "profile", false, profile_id, move |ctx: &mut Context| {
-                ctx.trigger_event(NavigatorSelect(profile_id));
-                (profile.2)(ctx);
-            }),
-        );
+        let ib = IconButton::tab_nav(ctx, "profile", false, move |ctx: &mut Context| {
+            ctx.trigger_event(NavigatorSelect(profile_id));
+            (profile.2)(ctx);
+        });
+
+        tabs.push(NavigationButton::new(ctx, profile_id, None, Some(ib)));
 
         MobileNavigator(Row(48.0, Offset::Center, Size::Fit, Padding(0.0, 8.0, 0.0, 8.0)), tabs)
     }
@@ -46,12 +47,8 @@ impl OnEvent for MobileNavigator {
         if let Some(NavigatorSelect(id)) = event.downcast_ref::<NavigatorSelect>() {
             println!("Navigator selected");
             self.1.iter_mut().for_each(|button| {
-                if button.id().unwrap() == *id {
-                    *button.status() = ButtonState::Selected;
-                } else {
-                    *button.status() = ButtonState::UnSelected;
-                    button.color(ctx, ButtonState::UnSelected);
-                }
+                *button.1.as_mut().unwrap().status() = if button.id() == *id {ButtonState::Selected} else {ButtonState::UnSelected};
+                button.1.as_mut().unwrap().color(ctx);
             });
         }
         true
@@ -81,7 +78,7 @@ impl DesktopNavigator {
                 ctx.trigger_event(NavigatorSelect(id));
                 (c)(ctx);
             });
-            NavigationButton::new(ctx, id, nb)
+            NavigationButton::new(ctx, id, Some(nb), None)
         }).collect();
 
         let pb = Button::photo(ctx, profile.0, profile.1, false, move |ctx: &mut Context| {
@@ -97,7 +94,7 @@ impl DesktopNavigator {
                 Stack(Offset::Center, Offset::Center, Size::Fill(100.0, 200.0), Size::Fill(100.0, f32::MAX), Padding::default()), 
                 Rectangle::new(color)
             ),
-            NavigationButton::new(ctx, profile_id, pb)
+            NavigationButton::new(ctx, profile_id, Some(pb), None)
         )
     }
 }
@@ -109,20 +106,14 @@ impl OnEvent for DesktopNavigator {
             let mut buttons: Vec<&mut NavigationButton> = self.2.buttons().iter_mut().map(|btn| btn).collect();
             buttons.push(&mut self.4);
             buttons.iter_mut().for_each(|button| {
-                if button.id() == *id {
-                    *button.1.status() = ButtonState::Selected;
-                    button.1.color(ctx);
-                } else {
-                    *button.1.status() = ButtonState::Default;
-                    button.1.color(ctx);
-                }
+                *button.1.as_mut().unwrap().status() = if button.id() == *id {ButtonState::Selected} else {ButtonState::Default};
+                button.1.as_mut().unwrap().color(ctx);
             });
         }
         true
     }
 }
 
-// Column of Buttons
 #[derive(Debug, Component)]
 pub struct ButtonColumn(Column, Vec<NavigationButton>);
 impl OnEvent for ButtonColumn {}
@@ -135,17 +126,16 @@ impl ButtonColumn {
     pub fn buttons(&mut self) -> &mut Vec<NavigationButton> {&mut self.1}
 }
 
-
 #[derive(Debug, Component)]
-pub struct NavigationButton(Stack, Button, #[skip] ElementID);
+pub struct NavigationButton(Stack, Option<Button>, Option<IconButton>, #[skip] ElementID);
 impl OnEvent for NavigationButton {}
 
 impl NavigationButton {
-    pub fn new(ctx: &mut Context, id: ElementID, button: Button) -> Self {
-        NavigationButton(Stack::default(), button, id)
+    pub fn new(ctx: &mut Context, id: ElementID, button: Option<Button>, icon_button: Option<IconButton>) -> Self {
+        NavigationButton(Stack::default(), button, icon_button, id)
     }
 
-    pub fn id(&self) -> ElementID {self.2}
+    pub fn id(&self) -> ElementID {self.3}
 }
 
 #[derive(Debug, Component)]

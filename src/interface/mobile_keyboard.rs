@@ -31,7 +31,7 @@ impl MobileKeyboard {
 }
 
 #[derive(Component, Debug)]
-pub struct KeyboardHeader(Column, IconButtonRow, Bin<Stack, Rectangle>);
+pub struct KeyboardHeader(Column, KeyboardIcons, Bin<Stack, Rectangle>);
 impl OnEvent for KeyboardHeader {}
 
 impl KeyboardHeader {
@@ -39,7 +39,7 @@ impl KeyboardHeader {
         let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
         KeyboardHeader(
             Column(0.0, Offset::Start, Size::Fit, Padding::default()),
-            IconButtonRow::new(ctx),
+            KeyboardIcons::new(ctx),
             Bin (
                 Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1.0), Padding(0.0,0.0,0.0,2.0)), 
                 Rectangle::new(color)
@@ -49,23 +49,23 @@ impl KeyboardHeader {
 }
 
 #[derive(Component, Debug)]
-pub struct IconButtonRow(Row, IconButton, IconButton, IconButton, IconButton, Bin<Stack, Rectangle>, IconButton );
-impl OnEvent for IconButtonRow {}
+pub struct KeyboardIcons(Row, IconButton, IconButton, IconButton, IconButton, Bin<Stack, Rectangle>, IconButton );
+impl OnEvent for KeyboardIcons {}
 
-impl IconButtonRow {
+impl KeyboardIcons {
     pub fn new(ctx: &mut Context) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.shades.transparent;
-        IconButtonRow(
+        KeyboardIcons(
             Row(16.0, Offset::Start, Size::Fit, Padding(12.0, 6.0, 12.0, 6.0)), 
-            IconButton::keyboard(ctx, "emoji", None, |_ctx: &mut Context| ()),
-            IconButton::keyboard(ctx, "gif", None, |_ctx: &mut Context| ()),
-            IconButton::keyboard(ctx, "photos", None, |_ctx: &mut Context| ()),
-            IconButton::keyboard(ctx, "camera", None, |_ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "emoji", |_ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "gif", |_ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "photos", |_ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "camera", |_ctx: &mut Context| ()),
             Bin (
                 Stack(Offset::Center, Offset::Center, Size::Fill(1.0, f32::MAX), Size::Static(1.0),  Padding::default()), 
                 Rectangle::new(color)
             ),
-            IconButton::keyboard(ctx, "down_arrow", None, |ctx: &mut Context| ctx.trigger_event(KeyboardActiveEvent(false))),
+            IconButton::keyboard(ctx, "down_arrow", |ctx: &mut Context| ctx.trigger_event(KeyboardActiveEvent(false))),
         )
     }
 }
