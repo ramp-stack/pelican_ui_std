@@ -21,9 +21,9 @@ impl BrandResources {
 
     pub fn default(ctx: &mut Context) -> Self {
         BrandResources{
-            logomark: resources::Image::svg(ctx, &ctx.load_file("brand/logomark.svg").unwrap(), 8.0),
-            wordmark: resources::Image::svg(ctx, &ctx.load_file("brand/wordmark.svg").unwrap(), 8.0),
-            app_icon: resources::Image::svg(ctx, &ctx.load_file("brand/app_icon.svg").unwrap(), 8.0),
+            logomark: ctx.add_svg(&ctx.load_file("brand/logomark.svg").unwrap(), 8.0),
+            wordmark: ctx.add_svg(&ctx.load_file("brand/wordmark.svg").unwrap(), 8.0),
+            app_icon: ctx.add_svg(&ctx.load_file("brand/app_icon.svg").unwrap(), 8.0),
             illustrations: Illustrations::default(ctx),
         }
     }
@@ -36,10 +36,10 @@ impl Illustrations {
     pub fn default(ctx: &mut Context) -> Self {
         let mut illustrations = HashMap::new();
 
-        illustrations.insert("dodo", resources::Image::svg(ctx, &ctx.load_file("brand/illustrations/dodo.svg").unwrap(), 8.0));
-        illustrations.insert("hummingbird", resources::Image::svg(ctx, &ctx.load_file("brand/illustrations/hummingbird.svg").unwrap(), 8.0));
-        illustrations.insert("toucan", resources::Image::svg(ctx, &ctx.load_file("brand/illustrations/toucan.svg").unwrap(), 8.0));
-        illustrations.insert("emu", resources::Image::svg(ctx, &ctx.load_file("brand/illustrations/emu.svg").unwrap(), 8.0));
+        illustrations.insert("dodo", ctx.add_svg(&ctx.load_file("brand/illustrations/dodo.svg").unwrap(), 8.0));
+        illustrations.insert("hummingbird", ctx.add_svg(&ctx.load_file("brand/illustrations/hummingbird.svg").unwrap(), 8.0));
+        illustrations.insert("toucan", ctx.add_svg(&ctx.load_file("brand/illustrations/toucan.svg").unwrap(), 8.0));
+        illustrations.insert("emu", ctx.add_svg(&ctx.load_file("brand/illustrations/emu.svg").unwrap(), 8.0));
 
         Self(illustrations)
     }

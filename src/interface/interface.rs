@@ -61,8 +61,7 @@ impl OnEvent for MobileInterface {
                 false => None
             };
         } else if let Some(NavigateEvent(page)) = event.downcast_ref::<NavigateEvent>() {
-            let page = page.get_page(ctx);
-            self.1 = page;
+            self.1 = page.get_page(ctx);
         }
         true
     }
@@ -94,8 +93,7 @@ impl DesktopInterface {
 impl OnEvent for DesktopInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigateEvent(page)) = event.downcast_ref::<NavigateEvent>() {
-            let page = page.get_page(ctx);
-            self.3 = page;
+            self.3 = page.get_page(ctx);
         }
         true
     }

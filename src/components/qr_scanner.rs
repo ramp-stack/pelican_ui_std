@@ -22,7 +22,7 @@ impl OnEvent for QRCodeScanner {
             match frame {
                 Ok(f) => {
                     *self.2.message() = None; *self.2.background() = None;
-                    let image = resources::Image::new(ctx, f);
+                    let image = ctx.add_image(f);
                     self.1 = Some(Image{shape: ShapeType::Rectangle(0.0, (300.0, 300.0)), image, color: None});
                 },
                 Err(CameraViewError::AccessDenied) => {

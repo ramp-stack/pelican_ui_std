@@ -35,15 +35,13 @@ impl PelicanUI {
 impl Plugin for PelicanUI {
     async fn background_tasks(_ctx: &mut HeadlessContext) -> Tasks {vec![]}
 
-    async fn new(ctx: &mut Context<'_>, h_ctx: &mut HeadlessContext) -> (Self, Tasks) {
+    async fn new(ctx: &mut Context, h_ctx: &mut HeadlessContext) -> (Self, Tasks) {
         ctx.include_assets(include_assets!("./resources"));
         (PelicanUI{theme: Theme::default(ctx)}, vec![])
     }
 }
 
-pub trait AppPage: Drawable + std::fmt::Debug + 'static {
-    fn get(&self) -> &crate::interface::interface::Page;
-}
+pub trait AppPage: Drawable + std::fmt::Debug + 'static {}
 
 pub trait AppFlow: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static {
     fn get_page(&self, ctx: &mut Context) -> Box<dyn crate::AppPage>;
