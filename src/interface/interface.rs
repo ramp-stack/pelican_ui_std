@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use crate::elements::shapes::{Rectangle};
-use crate::events::{KeyboardActiveEvent, NavigateEvent, RequestRedraw};
+use crate::events::{KeyboardActiveEvent, NavigateEvent};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size, Opt};
 use crate::components::avatar::AvatarContent;
 use crate::PelicanUI;

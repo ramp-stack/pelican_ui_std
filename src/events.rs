@@ -66,8 +66,8 @@ impl Event for SetInactiveEvent {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct RequestRedraw();
-impl Event for RequestRedraw {
+pub struct SetActiveInput(pub &'static str);
+impl Event for SetActiveInput {
     fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
         children.into_iter().map(|_| Some(Box::new(*self) as Box<dyn Event>)).collect()
     }

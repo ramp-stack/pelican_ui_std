@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::text::{Text, TextStyle};
+use crate::elements::text::{Text, ExpandableText, TextStyle};
 use crate::elements::shapes::RoundedRectangle;
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size};
@@ -96,8 +96,8 @@ impl MessageData {
     ) -> Self {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size;
         let (title_style, title_size, divider) = match style {
-            MessageType::Rooms => (TextStyle::Heading, text_size.h5, true),
-            _ => (TextStyle::Secondary, text_size.sm, false),
+            MessageType::Rooms => (TextStyle::Heading, text_size.h5, false),
+            _ => (TextStyle::Secondary, text_size.sm, true),
         };
         MessageData(
             Row(4.0, Offset::End, Size::Fit, Padding::default()),
@@ -144,13 +144,16 @@ impl MessageBubble {
         };
 
         let (hp, vp) = (12.0, 12.0);
+        let max_w = 200.0-(hp*2.0);
         let background = RoundedRectangle::new(0.0, 16.0, bg_color);
-        let content = Text::new(ctx, message, text_style, text_size, Align::Left);
+        let mut content = Text::new(ctx, message, text_style, text_size, Align::Left);
+        content.width = Some(max_w);
+        println!("width: {:?}", content.width);
         let layout = Stack(
             Offset::Center, Offset::Center, 
             Size::custom(move |widths: Vec<(f32, f32)>| {
-                let size = widths[1].1.min(200.0);
-                (size+hp, size+hp)
+                let size = widths[1].1.min(max_w)+(hp*2.); // whichever is smaller, the text or the max-width
+                (size, size)
             }),
             Size::custom(move |heights: Vec<(f32, f32)>| (heights[1].0+vp, heights[1].1+vp)), 
             Padding::default()

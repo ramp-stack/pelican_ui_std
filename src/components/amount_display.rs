@@ -12,16 +12,18 @@ pub struct AmountDisplay(Column, BasicText, SubText);
 impl OnEvent for AmountDisplay {}
 
 impl AmountDisplay {
-    pub fn new(ctx: &mut Context, usd: &'static str, btc: &'static str, _err: Option<&'static str>) -> Self {
-        let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
-        let font_size = if usd.len() <= 5 { font_size.title } else { font_size.h1 };
+    pub fn new(ctx: &mut Context) -> Self {
+        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.title;
 
         AmountDisplay (
             Column(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
-            Text::new(ctx, usd, TextStyle::Heading, font_size, Align::Left),
-            SubText::new(ctx, btc)
+            Text::new(ctx, "$0.00", TextStyle::Heading, font_size, Align::Left),
+            SubText::new(ctx, "0.00000000 BTC")
         )
     }
+
+    pub fn usd(&mut self) -> &mut String {&mut self.1.spans[0].text}
+    pub fn btc(&mut self) -> &mut String {&mut self.2.2.spans[0].text}
 }
 
 #[derive(Debug, Component)]
@@ -46,6 +48,9 @@ impl SubText {
         self.1 = None;
         self.2 = Text::new(ctx, txt, TextStyle::Secondary, text_size, Align::Left);
     }
+
+    fn error(&mut self) -> &mut bool {&mut self.3}
+    fn text(&mut self) -> &mut String {&mut self.2.spans[0].text}
 }
 
 
@@ -60,12 +65,17 @@ impl AmountInput {
         )
     }
 
-    pub fn has_error(&mut self) -> &mut bool {&mut self.1.2.3}
+    pub fn usd(&mut self) -> String {self.1.1.value()}
+    pub fn btc(&mut self) -> &mut f32 { &mut self.1.5 }
+    pub fn error(&mut self) -> &mut bool {self.1.2.error()}
+    pub fn set_min(&mut self, a: f32) {self.1.3.0 = a;}
+    pub fn set_max(&mut self, a: f32) {self.1.3.1 = a;}
+    pub fn set_price(&mut self, a: f32) {self.1.4 = a;}
 }
 
 #[derive(Debug, Component)]
-pub struct AmountInputContent(Column, Display, SubText);
-
+pub struct AmountInputContent(Column, Display, SubText, #[skip] (f32, f32), #[skip] f32, #[skip] f32);
+// layout, display, subtext, (min, max fee), btc_price, btc input
 impl AmountInputContent {
     pub fn new(ctx: &mut Context) -> Self {
         let subtext = if !crate::config::IS_MOBILE {"Type dollar amount."} else {"0.00001234 BTC"};
@@ -73,6 +83,7 @@ impl AmountInputContent {
             Column(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
             Display::new(ctx),
             SubText::new(ctx, subtext), 
+            (0.0, 0.0), 0.0, 0.0
         )
     }
 }
@@ -165,35 +176,38 @@ impl OnEvent for AmountInputContent {
             // Set final text
             self.1.amount().text = t_formatted.clone();
 
-            // Apply font size and line height to amount and zeros
+            // Apply font size and line height to amount and zeros and currency symbol
             self.1.amount().font_size = size;
             self.1.amount().line_height = size * 1.25;
             self.1.zeros().font_size = size;
             self.1.zeros().line_height = size * 1.25;
-
-            // Set min and max allowed values
-            let min = 2.14;
-            let max = 80.03;
+            self.1.currency().font_size = size;
+            self.1.currency().line_height = size * 1.25;
 
             // Parse final amount as f64 for validation
-            let value = t_formatted.parse::<f64>().unwrap_or(0.0);
+            let value = t_formatted.replace(",", "").parse::<f32>().unwrap_or(0.0);
 
             // Display subtext or error message based on parsed value
+            println!("VAL: {:?}", value);
             match t_formatted.as_str() {
                 "0" | "0." | "0.0" | "0.00" if !crate::config::IS_MOBILE => {
                     self.2.set_subtext(ctx, "Type dollar amount."); // Prompt input
                     self.2.3 = true; // Disable buttons
                 }
-                _ if value < min => {
-                    self.2.set_error(ctx, "$2.18 Minimum."); // Exceeds min -> show error
+                _ if value < self.3.0 => {
+                    let error = format!("${:.2} minimum.", self.3.0);
+                    self.2.set_error(ctx, Box::leak(error.into_boxed_str())); // Exceeds min -> show error
                     self.2.3 = true; // Disable buttons
                 }
-                _ if value > max => {
-                    self.2.set_error(ctx, "$80.14 Maximum."); // Exceeds max -> show error
+                _ if value > self.3.1 => {
+                    let error = format!("${:.2} maximum.", self.3.1);
+                    self.2.set_error(ctx, Box::leak(error.into_boxed_str())); // Exceeds max -> show error
                     self.2.3 = true; // Disable buttons
                 }
                 _ => {
-                    self.2.set_subtext(ctx, "0.00001234 BTC"); // Valid -> show BTC equivalent
+                    self.5 = value*self.4;
+                    let amount = format!("{:.8} BTC", self.5);
+                    self.2.set_subtext(ctx, Box::leak(amount.into_boxed_str()));
                     self.2.3 = false; // Enable buttons
                 }
             }
@@ -219,6 +233,8 @@ impl Display {
         )
     }
 
+    pub fn value(&mut self) -> String {self.amount().text.clone()+"."+&self.zeros().text}
     pub fn amount(&mut self) -> &mut Span {&mut self.2.spans[0]}
     pub fn zeros(&mut self) -> &mut Span {&mut self.3.spans[0]}
+    pub fn currency(&mut self) -> &mut Span {&mut self.1.spans[0]}
 }
