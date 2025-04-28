@@ -13,6 +13,10 @@ impl IconResources {
         icons.insert("add", ctx.add_svg(&ctx.load_file("icons/add.svg").unwrap(), quality));
         icons.insert("app_store", ctx.add_svg(&ctx.load_file("icons/app_store.svg").unwrap(), quality));
         icons.insert("back", ctx.add_svg(&ctx.load_file("icons/back.svg").unwrap(), quality));
+        icons.insert("block", ctx.add_svg(&ctx.load_file("icons/block.svg").unwrap(), quality));
+        icons.insert("unblock", ctx.add_svg(&ctx.load_file("icons/unblock.svg").unwrap(), quality));
+        icons.insert("boot", ctx.add_svg(&ctx.load_file("icons/boot.svg").unwrap(), quality));
+        icons.insert("unboot", ctx.add_svg(&ctx.load_file("icons/unboot.svg").unwrap(), quality));
         icons.insert("back_arrow", ctx.add_svg(&ctx.load_file("icons/back_arrow.svg").unwrap(), quality));
         icons.insert("back_to", ctx.add_svg(&ctx.load_file("icons/back_arrow.svg").unwrap(), quality));
         icons.insert("backspace", ctx.add_svg(&ctx.load_file("icons/backspace.svg").unwrap(), quality));

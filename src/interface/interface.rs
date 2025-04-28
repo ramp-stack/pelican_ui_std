@@ -127,7 +127,7 @@ impl OnEvent for Content {}
 
 impl Content {
     pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
-        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, 375.0));
+        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(375.0), 375.0));
         let height = Size::custom(move |heights: Vec<(f32, f32)>|(0.0, f32::MAX));
         Content(
             Stack(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0)),
