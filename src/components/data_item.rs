@@ -59,7 +59,7 @@ impl DataItemContent {
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         DataItemContent(
-            Column(16.0, Offset::Start, Size::fill(), Padding::default()),
+            Column::new(16.0, Offset::Start, Size::fill(), Padding::default()),
             Text::new(ctx, label, TextStyle::Heading, font_size.h5, Align::Left),
             text.map(|t| Text::new(ctx, t, TextStyle::Primary, font_size.md, Align::Left)),
             secondary.map(|t|Text::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left)),
@@ -76,7 +76,7 @@ impl OnEvent for Table {}
 impl Table {
     pub fn new(ctx: &mut Context, items: Vec<(&'static str, &'static str)>) -> Self {
         Table (
-            Column(0.0, Offset::Start, Size::Fit, Padding::default()),
+            Column::new(0.0, Offset::Start, Size::Fit, Padding::default()),
             items.iter().map(|(name, data)| Tabular::new(ctx, name, data)).collect()
         )
     }

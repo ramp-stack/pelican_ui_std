@@ -77,7 +77,7 @@ impl MessageContent {
         };
 
         MessageContent(
-            Column(8.0, offset, Size::custom(|widths: Vec<(f32, f32)>| (widths[1].0, f32::MAX)), Padding::default()),
+            Column::new(8.0, offset, Size::custom(|widths: Vec<(f32, f32)>| (widths[1].0, f32::MAX)), Padding::default()),
             top, MessageBubbles::new(ctx, messages, style), bottom
         )
     }
@@ -100,7 +100,7 @@ impl MessageData {
             _ => (TextStyle::Secondary, text_size.sm, true),
         };
         MessageData(
-            Row(4.0, Offset::End, Size::Fit, Padding::default()),
+            Row(8.0, Offset::End, Size::Fit, Padding::default()),
             Text::new(ctx, name, title_style, title_size, Align::Left),
             divider.then(|| Text::new(ctx, "·", TextStyle::Secondary, text_size.sm, Align::Left)),
             Text::new(ctx, time, TextStyle::Secondary, text_size.sm, Align::Left),
@@ -120,7 +120,7 @@ impl MessageBubbles {
         style: MessageType,
     ) -> Self {
         let messages = messages.iter().map(|m| MessageBubble::new(ctx, m, style)).collect();
-        MessageBubbles(Column(8.0, Offset::Start, Size::Fit, Padding::default()), messages)
+        MessageBubbles(Column::new(8.0, Offset::Start, Size::Fit, Padding::default()), messages)
     }
 }
 
@@ -148,11 +148,13 @@ impl MessageBubble {
         let background = RoundedRectangle::new(0.0, 16.0, bg_color);
         let mut content = Text::new(ctx, message, text_style, text_size, Align::Left);
         content.width = Some(max_w);
-        println!("width: {:?}", content.width);
+        println!("Max: {:?}, content: {:?}", max_w, content.width);
+        // println!("width: {:?}", content.width);
         let layout = Stack(
             Offset::Center, Offset::Center, 
             Size::custom(move |widths: Vec<(f32, f32)>| {
-                let size = widths[1].1.min(max_w)+(hp*2.); // whichever is smaller, the text or the max-width
+                println!("Text Width: {:?}", widths[1].1+(hp*2.));
+                let size = (widths[1].1+(hp*2.)).min(max_w+(hp*2.)); // whichever is smaller, the text or the max-width
                 (size, size)
             }),
             Size::custom(move |heights: Vec<(f32, f32)>| (heights[1].0+vp, heights[1].1+vp)), 

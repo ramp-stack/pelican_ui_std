@@ -183,12 +183,17 @@ impl Layout for Row {
 }
 
 #[derive(Debug)]
-pub struct Column(pub f32, pub Offset, pub Size, pub Padding);
+pub struct Column(f32, Offset, Size, Padding, f32);
 
 impl Column {
-    pub fn center(spacing: f32) -> Self {
-        Column(spacing, Offset::Center, Size::Fit, Padding::default())
+    pub fn new(sp: f32, o: Offset, s: Size, p: Padding) -> Self {
+        Column(sp, o, s, p, 0.0)
     }
+    pub fn center(spacing: f32) -> Self {
+        Column(spacing, Offset::Center, Size::Fit, Padding::default(), 0.0)
+    }
+
+    pub fn scroll(&mut self) -> &mut f32 {&mut self.4}
 }
 
 impl Layout for Column {
@@ -211,7 +216,8 @@ impl Layout for Column {
         let mut offset = 0.0;
         children.into_iter().zip(heights).map(|(i, height)| {
             let size = i.get((col_size.0, height));
-            let off = self.3.adjust_offset((self.1.get(col_size.0, size.0), offset as f32));
+            let y_offset = (offset - self.4);
+            let off = self.3.adjust_offset((self.1.get(col_size.0, size.0), y_offset));
             offset += size.1+self.0;
             Area{offset: off, size}
         }).collect()
@@ -297,6 +303,31 @@ impl Layout for Wrap {
             items.push(*child);
             area
         }).collect()
+    }
+}
+
+
+#[derive(Debug, Component)]
+pub struct VerticalScrollable(Column, Vec<Box<dyn Drawable>>);
+
+impl VerticalScrollable {
+    pub fn new(items: Vec<Box<dyn Drawable>>) -> Self {
+        VerticalScrollable(Column::center(0.0), items)
+    }
+}
+
+impl OnEvent for VerticalScrollable {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(event) = event.downcast_ref::<MouseEvent>() {
+            // if let Some(state) = self.4.handle(ctx, *event) {
+            //     self.color(ctx);
+            // }
+            if let MouseEvent{state: MouseState::Scroll(x, y), ..} = event {
+                println!("MouseWheel Event: pos {:?}", (x, y));
+                println!("Column offset: {:?}", self.0.1);
+            }
+        }
+        false
     }
 }
 

@@ -16,7 +16,7 @@ impl AmountDisplay {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.title;
 
         AmountDisplay (
-            Column(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
+            Column::new(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
             Text::new(ctx, "$0.00", TextStyle::Heading, font_size, Align::Left),
             SubText::new(ctx, "0.00000000 BTC")
         )
@@ -80,7 +80,7 @@ impl AmountInputContent {
     pub fn new(ctx: &mut Context) -> Self {
         let subtext = if !crate::config::IS_MOBILE {"Type dollar amount."} else {"0.00001234 BTC"};
         AmountInputContent (
-            Column(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
+            Column::new(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
             Display::new(ctx),
             SubText::new(ctx, subtext), 
             (0.0, 0.0), 0.0, 0.0

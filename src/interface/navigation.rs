@@ -87,7 +87,7 @@ impl DesktopNavigator {
         });
 
         DesktopNavigator(
-            Column(32.0, Offset::Center, Size::Fill(100.0, 200.0), Padding(16.0, 32.0, 16.0, 32.0)),
+            Column::new(32.0, Offset::Center, Size::Fill(100.0, 200.0), Padding(16.0, 32.0, 16.0, 32.0)),
             Brand::new(wordmark, (80.0, 44.0)),
             ButtonColumn::new(tabs),
             Bin (
@@ -190,7 +190,7 @@ impl HeaderContent {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size.h3;
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
-            Column(10.0, Offset::Center, width, Padding::default()), 
+            Column::new(10.0, Offset::Center, width, Padding::default()), 
             Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
             None,
         )
@@ -200,7 +200,7 @@ impl HeaderContent {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size.h4;
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
-            Column(10.0, Offset::Center, width, Padding::default()),  
+            Column::new(10.0, Offset::Center, width, Padding::default()),  
             Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
             None,
         )
@@ -211,7 +211,7 @@ impl HeaderContent {
         let title = if avatars.len() > 1 {"Ella Couch"} else {"Group Message"};
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
-            Column(10.0, Offset::Center, width, Padding::default()), 
+            Column::new(10.0, Offset::Center, width, Padding::default()), 
             Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
             Some(AvatarRow::new(ctx, avatars)),
         )

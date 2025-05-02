@@ -38,7 +38,7 @@ impl KeyboardHeader {
     pub fn new(ctx: &mut Context) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
         KeyboardHeader(
-            Column(0.0, Offset::Start, Size::Fit, Padding::default()),
+            Column::new(0.0, Offset::Start, Size::Fit, Padding::default()),
             KeyboardIcons::new(ctx),
             Bin (
                 Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1.0), Padding(0.0,0.0,0.0,2.0)), 
@@ -77,7 +77,7 @@ impl KeyboardContent {
     pub fn new(ctx: &mut Context) -> Self {
         let (sender, receiver) = mpsc::channel();
         KeyboardContent(
-            Column(0.0, Offset::Center, Size::Fit, Padding(8.0, 8.0, 8.0, 8.0)),
+            Column::new(0.0, Offset::Center, Size::Fit, Padding(8.0, 8.0, 8.0, 8.0)),
             KeyboardHeader::new(ctx),
             KeyboardRow::top(ctx),
             KeyboardRow::middle(ctx),

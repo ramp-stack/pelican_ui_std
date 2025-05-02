@@ -26,7 +26,7 @@ impl TextInput {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
 
         TextInput(
-            Column(16.0, Offset::Start, Size::fill(), Padding::default()),
+            Column::new(16.0, Offset::Start, Size::fill(), Padding::default()),
             label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5, Align::Left)),
             InputField::new(ctx, value, placeholder, icon_button),
             help_text.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left)),

@@ -45,7 +45,7 @@ impl MobileInterface {
         #[cfg(not(target_os = "ios"))]
         let insets = (0., 0., 0., 0.);
         MobileInterface(
-            Column(0.0, Offset::Center, Size::Fit, Padding(0.0, insets.0, 0.0, insets.1)), 
+            Column::new(0.0, Offset::Center, Size::Fit, Padding(0.0, insets.0, 0.0, insets.1)), 
             Box::new(start_page), Opt::new(navigator, false), None,
         )
     }
@@ -107,7 +107,7 @@ impl Page {
     pub fn new(header: Header, content: Content, bumper: Option<Bumper>, has_nav: bool) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[1].0, f32::MAX));
         Page(
-            Column(12.0, Offset::Center, width, Padding::default()),
+            Column::new(12.0, Offset::Center, width, Padding::default()),
             header,
             content,
             bumper,
@@ -123,7 +123,6 @@ impl Page {
 
 #[derive(Debug, Component)]
 pub struct Content (Stack, ContentChildren);
-impl OnEvent for Content {}
 
 impl Content {
     pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
@@ -136,6 +135,19 @@ impl Content {
     }
     
     pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.1.1}
+}
+
+impl OnEvent for Content {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(event) = event.downcast_ref::<MouseEvent>() {
+            if let MouseEvent{state: MouseState::Scroll(x, y), ..} = event {
+                println!("MouseWheel Event: pos {:?}", (x, y));
+                println!("Column offset: {:?}", self.1.0.scroll());
+                *self.1.0.scroll() = y.max(0.0);
+            }
+        }
+        false
+    }
 }
 
 #[derive(Debug, Component)]

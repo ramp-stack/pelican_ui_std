@@ -6,7 +6,7 @@ use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::Rectangle;
 use crate::components::button::{ButtonState, QuickDeselectButton};
 use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
-use crate::layout::{Column, Stack, Row, Wrap, Padding, Offset, Size};
+use crate::layout::{Column, Stack, Row, Wrap, Padding, Offset, Size, VerticalScrollable};
 use crate::{PelicanUI, ElementID};
 
 
@@ -175,7 +175,7 @@ impl LeftData {
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.xs;
         LeftData (
-            Column(4.0, Offset::Start, Size::custom(|widths: Vec<(f32, f32)>| (widths[0].0, f32::MAX)), Padding::default()),
+            Column::new(4.0, Offset::Start, Size::custom(|widths: Vec<(f32, f32)>| (widths[0].0, f32::MAX)), Padding::default()),
             TitleRow::new(ctx, title, flair),
             subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size, Align::Left)),
             description.map(|text| {
@@ -197,7 +197,7 @@ impl RightData {
     pub fn new(ctx: &mut Context, title: &'static str, subtitle: Option<&'static str>) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         RightData (
-            Column(4.0, Offset::End, Size::Fit, Padding::default()),
+            Column::new(4.0, Offset::End, Size::Fit, Padding::default()),
             Text::new(ctx, title, TextStyle::Heading, font_size.h5, Align::Left),
             subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size.xs, Align::Left)),
         )
@@ -318,24 +318,13 @@ impl ListItemSelector {
 }
 
 #[derive(Debug, Component)]
-pub struct ListItemGroup(Column, Vec<ListItem>);
-impl OnEvent for ListItemGroup {}
-
-impl ListItemGroup {
-    pub fn new(items: Vec<ListItem>) -> Self {
-        ListItemGroup(Column::center(0.0), items)
-    }
-}
-
-
-#[derive(Debug, Component)]
-pub struct QuickDeselect(Column, Option<QuickDeselectContent>, ListItemGroup);
+pub struct QuickDeselect(Column, Option<QuickDeselectContent>, VerticalScrollable);
 
 impl QuickDeselect {
-    pub fn new(list_items: Vec<ListItem>) -> Self {
+    pub fn new(list_items: Vec<Box<dyn Drawable>>) -> Self {
         QuickDeselect(
-            Column(24.0, Offset::Start, Size::Fit, Padding::default()), 
-            None, ListItemGroup::new(list_items)
+            Column::new(24.0, Offset::Start, Size::Fit, Padding::default()), 
+            None, VerticalScrollable::new(list_items)
         )
     }
 }
