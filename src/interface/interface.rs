@@ -141,12 +141,11 @@ impl OnEvent for Content {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if let MouseEvent{state: MouseState::Scroll(x, y), ..} = event {
-                println!("MouseWheel Event: pos {:?}", (x, y));
-                println!("Column offset: {:?}", self.1.0.scroll());
-                *self.1.0.scroll() = y.max(0.0);
+                *self.1.0.scroll() += y;
+                *self.1.0.scroll() = self.1.0.scroll().clamp(0.0, 100.); // 100 = content height
             }
         }
-        false
+        true
     }
 }
 

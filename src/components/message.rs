@@ -148,13 +148,10 @@ impl MessageBubble {
         let background = RoundedRectangle::new(0.0, 16.0, bg_color);
         let mut content = Text::new(ctx, message, text_style, text_size, Align::Left);
         content.width = Some(max_w);
-        println!("Max: {:?}, content: {:?}", max_w, content.width);
-        // println!("width: {:?}", content.width);
         let layout = Stack(
             Offset::Center, Offset::Center, 
             Size::custom(move |widths: Vec<(f32, f32)>| {
-                println!("Text Width: {:?}", widths[1].1+(hp*2.));
-                let size = (widths[1].1+(hp*2.)).min(max_w+(hp*2.)); // whichever is smaller, the text or the max-width
+                let size = (widths[1].1+(hp*2.)).min(max_w+(hp*2.));
                 (size, size)
             }),
             Size::custom(move |heights: Vec<(f32, f32)>| (heights[1].0+vp, heights[1].1+vp)), 
