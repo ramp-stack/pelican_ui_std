@@ -8,7 +8,7 @@ use crate::layout::{Column, Offset, Padding, Row, Size, Stack};
 use crate::{ElementID, PelicanUI};
 
 #[derive(Debug, Component)]
-pub struct AmountDisplay(Column, BasicText, SubText);
+pub struct AmountDisplay(Column, Text, SubText);
 impl OnEvent for AmountDisplay {}
 
 impl AmountDisplay {
@@ -22,12 +22,12 @@ impl AmountDisplay {
         )
     }
 
-    pub fn usd(&mut self) -> &mut String {&mut self.1.spans[0].text}
-    pub fn btc(&mut self) -> &mut String {&mut self.2.2.spans[0].text}
+    pub fn usd(&mut self) -> &mut String {&mut self.1.text().spans[0].text}
+    pub fn btc(&mut self) -> &mut String {&mut self.2.2.text().spans[0].text}
 }
 
 #[derive(Debug, Component)]
-struct SubText(Row, Option<Image>, BasicText, #[skip] bool);
+struct SubText(Row, Option<Image>, Text, #[skip] bool);
 impl OnEvent for SubText {}
 
 impl SubText {
@@ -50,7 +50,7 @@ impl SubText {
     }
 
     fn error(&mut self) -> &mut bool {&mut self.3}
-    fn text(&mut self) -> &mut String {&mut self.2.spans[0].text}
+    fn text(&mut self) -> &mut String {&mut self.2.text().spans[0].text}
 }
 
 
@@ -217,7 +217,7 @@ impl OnEvent for AmountInputContent {
 }
 
 #[derive(Debug, Component)]
-struct Display(Row, BasicText, BasicText, BasicText);
+struct Display(Row, Text, Text, Text);
 impl OnEvent for Display {}
 
 impl Display {
@@ -234,7 +234,7 @@ impl Display {
     }
 
     pub fn value(&mut self) -> String {self.amount().text.clone()+"."+&self.zeros().text}
-    pub fn amount(&mut self) -> &mut Span {&mut self.2.spans[0]}
-    pub fn zeros(&mut self) -> &mut Span {&mut self.3.spans[0]}
-    pub fn currency(&mut self) -> &mut Span {&mut self.1.spans[0]}
+    pub fn amount(&mut self) -> &mut Span {&mut self.2.text().spans[0]}
+    pub fn zeros(&mut self) -> &mut Span {&mut self.3.text().spans[0]}
+    pub fn currency(&mut self) -> &mut Span {&mut self.1.text().spans[0]}
 }

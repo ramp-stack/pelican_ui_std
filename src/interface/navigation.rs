@@ -182,7 +182,7 @@ impl Header {
 }
 
 #[derive(Debug, Component)]
-struct HeaderContent(Column, BasicText, Option<AvatarRow>);
+struct HeaderContent(Column, Text, Option<AvatarRow>);
 impl OnEvent for HeaderContent {}
 
 impl HeaderContent {

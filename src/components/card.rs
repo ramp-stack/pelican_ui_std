@@ -48,7 +48,7 @@ impl OnEvent for Card {
 }
 
 #[derive(Debug, Component)]
-pub struct CardContent(Column, Avatar, BasicText, BasicText, Bin<Stack, Rectangle>, BasicText);
+pub struct CardContent(Column, Avatar, Text, Text, Bin<Stack, Rectangle>, Text);
 impl OnEvent for CardContent {}
 
 impl CardContent {

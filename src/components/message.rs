@@ -84,7 +84,7 @@ impl MessageContent {
 }
 
 #[derive(Debug, Component)]
-pub struct MessageData(Row, BasicText, Option<BasicText>, BasicText);
+pub struct MessageData(Row, Text, Option<Text>, Text);
 impl OnEvent for MessageData {}
 
 impl MessageData {
@@ -125,7 +125,7 @@ impl MessageBubbles {
 }
 
 #[derive(Debug, Component)]
-pub struct MessageBubble(Stack, RoundedRectangle, BasicText);
+pub struct MessageBubble(Stack, RoundedRectangle, Text);
 impl OnEvent for MessageBubble {}
 
 impl MessageBubble {
@@ -147,7 +147,7 @@ impl MessageBubble {
         let max_w = 200.0-(hp*2.0);
         let background = RoundedRectangle::new(0.0, 16.0, bg_color);
         let mut content = Text::new(ctx, message, text_style, text_size, Align::Left);
-        content.width = Some(max_w);
+        content.text().width = Some(max_w);
         let layout = Stack(
             Offset::Center, Offset::Center, 
             Size::custom(move |widths: Vec<(f32, f32)>| {

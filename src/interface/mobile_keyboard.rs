@@ -164,20 +164,20 @@ impl KeyboardRow {
     
         if let Some(spacebar) = &mut self.4 {
             if let Some(text) = spacebar.1.character().get_text().as_mut() {
-                text.spans[0].text = format_text("space");
+                text.text().spans[0].text = format_text("space");
             }
         }
     
         if let Some(newline) = &mut self.5 {
             if let Some(text) = newline.1.character().get_text().as_mut() {
-                text.spans[0].text = format_text("return");
+                text.text().spans[0].text = format_text("return");
             }
         }
 
         if let Some(keys) = &mut self.3 {
             keys.keys().iter_mut().enumerate().for_each(|(i, k)| {
                 if let Some(text) = k.1.character().get_text().as_mut() {
-                    text.spans[0].text = format_text(new[i]);
+                    text.text().spans[0].text = format_text(new[i]);
                 }
                 let key = format_text(new[i]);
                 k.3 = WinitKey::Character(SmolStr::new(key.as_str()));
@@ -349,9 +349,9 @@ impl OnEvent for Paginator {
                     _ => (dim, dim, highlight),
                 };
 
-                self.1.character().2.as_mut().unwrap().spans[0].color = styles.0;
-                self.1.character().3.as_mut().unwrap().spans[0].color = styles.1;
-                self.1.character().4.as_mut().unwrap().spans[0].color = styles.2;
+                self.1.character().2.as_mut().unwrap().text().spans[0].color = styles.0;
+                self.1.character().3.as_mut().unwrap().text().spans[0].color = styles.1;
+                self.1.character().4.as_mut().unwrap().text().spans[0].color = styles.2;
             }
 
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
@@ -383,7 +383,7 @@ impl KeyContent {
 }
 
 #[derive(Component, Debug)]
-pub struct KeyCharacter(Row, Option<Image>, Option<BasicText>, Option<BasicText>, Option<BasicText>);
+pub struct KeyCharacter(Row, Option<Image>, Option<Text>, Option<Text>, Option<Text>);
 impl OnEvent for KeyCharacter {}
 
 impl KeyCharacter {
@@ -426,7 +426,7 @@ impl KeyCharacter {
         )
     }
 
-    pub fn get_text(&mut self) -> &mut Option<BasicText> {&mut self.2}
+    pub fn get_text(&mut self) -> &mut Option<Text> {&mut self.2}
 }
 
 

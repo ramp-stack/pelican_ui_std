@@ -7,7 +7,7 @@ use crate::layout::{Offset, Padding, Row, Size};
 use crate::PelicanUI;
 
 #[derive(Debug, Component)]
-pub struct Alert(Row, Image, BasicText);
+pub struct Alert(Row, Image, Text);
 impl OnEvent for Alert {}
 
 impl Alert {
@@ -22,5 +22,5 @@ impl Alert {
         )
     }
 
-    pub fn message(&mut self) -> &mut String { &mut self.2.spans[0].text }
+    pub fn message(&mut self) -> &mut String { &mut self.2.text().spans[0].text }
 }

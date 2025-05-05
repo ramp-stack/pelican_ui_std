@@ -4,7 +4,7 @@ use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{ExpandableText, Text, TextStyle};
 use crate::components::button::IconButton;
-use crate::events::{KeyboardActiveEvent, SetActiveInput, SetActiveEvent, SetInactiveEvent};
+use crate::events::{KeyboardActiveEvent, SetActiveInput, SetActiveEvent, SetInactiveEvent, CursorMovedEvent};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
 use crate::{PelicanUI, ElementID};
 
@@ -12,7 +12,7 @@ use std::sync::mpsc::{self, Receiver};
 
 
 #[derive(Debug, Component)]
-pub struct TextInput(Column, Option<BasicText>, InputField, Option<BasicText>, Option<BasicText>);
+pub struct TextInput(Column, Option<Text>, InputField, Option<Text>, Option<Text>);
 
 impl TextInput {
     pub fn new(
@@ -85,12 +85,13 @@ impl InputField {
     }
 
     pub fn error(&mut self) -> &mut bool { &mut self.4 }
-    pub fn input(&mut self) -> &mut String {self.2.input()}
+    pub fn input(&mut self) -> &mut String { &mut self.2.text().text().spans[0].text }
 }
 
 impl OnEvent for InputField {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
+            self.2.text().cursor().as_mut().map(|mut c| c.display(self.3 == InputState::Focus));
             self.3 = match self.3 {
                 InputState::Default if self.4 => Some(InputState::Error),
                 InputState::Error if !self.4 => Some(InputState::Default),
@@ -141,18 +142,34 @@ impl OnEvent for InputField {
             }.unwrap_or(self.3);
         } else if let Some(KeyboardEvent{state: KeyboardState::Pressed, key}) = event.downcast_ref() {
             if self.3 == InputState::Focus {
-                let t = self.2.input();
-
+                // let text = self.2.text();
+                let i = self.2.text().text().cursor.expect("No cursor").index;
+                let mut t = &mut self.2.text().text().spans[0].text;
                 match key {
                     // Key::Named(NamedKey::Paste) | Key::Character(c) if c == ""  => {
                     //     let mut ctx = ClipboardContext::new().unwrap();
                     //     *self.2.input() = ctx.get_contents().unwrap();
                     // },
-                    Key::Named(NamedKey::Enter) => *t +="\n",
-                    Key::Named(NamedKey::Space) => *t +=" ",
-                    Key::Named(NamedKey::Delete | NamedKey::Backspace) if !t.is_empty() =>
-                        *t = t[0..t.len() - 1].to_string(),
-                    Key::Character(c) => *t += c, // add character
+                    Key::Named(NamedKey::Enter) => {
+                        t.insert_str(i, "\n");
+                        self.2.text().text().cursor_down(ctx.as_canvas());
+                        ctx.trigger_event(CursorMovedEvent);
+                    },
+                    Key::Named(NamedKey::Space) => {
+                        t.insert_str(i, " ");
+                        self.2.text().text().cursor_right(ctx.as_canvas());
+                        ctx.trigger_event(CursorMovedEvent);
+                    },
+                    Key::Named(NamedKey::Delete | NamedKey::Backspace) if !t.is_empty() => {
+                        *t = t[0..t.len() - 1].to_string();
+                        self.2.text().text().cursor_left(ctx.as_canvas());
+                        ctx.trigger_event(CursorMovedEvent);
+                    },
+                    Key::Character(c) => {
+                        t.insert_str(i, c);
+                        self.2.text().text().cursor_right(ctx.as_canvas());
+                        ctx.trigger_event(CursorMovedEvent);
+                    },
                     _ => {}
                 };
             }
@@ -190,7 +207,7 @@ impl InputContent {
             Bin(
                 Stack(Offset::default(), Offset::End, Size::fill(), Size::Fit, Padding(8.0, 8.0, 8.0, 8.0)),
                 EitherOr::new(
-                    ExpandableText::new(ctx, value.unwrap_or(""), TextStyle::Primary, font_size, Align::Left),
+                    ExpandableText::new_with_edit(ctx, value.unwrap_or(""), TextStyle::Primary, font_size, Align::Left),
                     ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size, Align::Left)
                 )
             ),
@@ -200,7 +217,7 @@ impl InputContent {
         )
     }
 
-    pub fn input(&mut self) -> &mut String { &mut self.1.inner().left().0.spans[0].text }
+    pub fn text(&mut self) -> &mut ExpandableText { self.1.inner().left() }
     pub fn focus(&mut self) -> &mut bool {&mut self.3}
 }
 
@@ -209,11 +226,11 @@ impl OnEvent for InputContent {
         if let Some(TickEvent) = event.downcast_ref() {
             if let Some((receiver, on_submit)) = self.4.as_mut() {
                 if receiver.try_recv().is_ok() {
-                    on_submit(ctx, &mut self.1.inner().left().0.spans[0].text)
+                    on_submit(ctx, &mut self.1.inner().left().0.text().spans[0].text)
                 }
             }
 
-            let input = !self.1.inner().left().0.spans[0].text.is_empty();
+            let input = !self.1.inner().left().0.text().spans[0].text.is_empty();
             self.1.inner().display_left(input || self.3)
         }
         true

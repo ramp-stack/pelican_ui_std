@@ -147,7 +147,7 @@ impl ListItemData {
     }
 }
 #[derive(Debug, Component)]
-struct TitleRow(Row, BasicText, Option<Image>);
+struct TitleRow(Row, Text, Option<Image>);
 impl OnEvent for TitleRow {}
 
 impl TitleRow {
@@ -162,7 +162,7 @@ impl TitleRow {
 }
 
 #[derive(Debug, Component)]
-struct LeftData(pub Column, pub TitleRow, pub Option<BasicText>, pub Option<BasicText>);
+struct LeftData(pub Column, pub TitleRow, pub Option<Text>, pub Option<Text>);
 impl OnEvent for LeftData {}
 
 impl LeftData {
@@ -190,7 +190,7 @@ impl LeftData {
 }
 
 #[derive(Debug, Component)]
-struct RightData(Column, BasicText, Option<BasicText>);
+struct RightData(Column, Text, Option<Text>);
 impl OnEvent for RightData {}
 
 impl RightData {

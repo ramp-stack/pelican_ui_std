@@ -29,7 +29,7 @@ impl DataItem {
 }
 
 #[derive(Debug, Component)]
-struct Number(Stack, Shape, BasicText);
+struct Number(Stack, Shape, Text);
 impl OnEvent for Number {}
 
 impl Number {
@@ -45,7 +45,7 @@ impl Number {
 }
 
 #[derive(Debug, Component)]
-struct DataItemContent(Column, BasicText, Option<BasicText>, Option<BasicText>, Option<Table>, Option<QuickActions>);
+struct DataItemContent(Column, Text, Option<Text>, Option<Text>, Option<Table>, Option<QuickActions>);
 impl OnEvent for DataItemContent {}
 
 impl DataItemContent {
@@ -83,7 +83,7 @@ impl Table {
 }
 
 #[derive(Debug, Component)]
-struct Tabular(Row, BasicText, BasicText);
+struct Tabular(Row, Text, Text);
 impl OnEvent for Tabular {}
 
 impl Tabular {

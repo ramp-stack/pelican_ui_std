@@ -90,7 +90,7 @@ impl std::fmt::Debug for Button {
 
 
 #[derive(Debug, Component)]
-struct ButtonContent(Row, Option<Avatar>, Option<Image>, Option<BasicText>, Option<Image>);
+struct ButtonContent(Row, Option<Avatar>, Option<Image>, Option<Text>, Option<Image>);
 impl OnEvent for ButtonContent {}
 
 impl ButtonContent {
@@ -116,7 +116,7 @@ impl ButtonContent {
 
     fn set_color(&mut self, color: Color) {
         if let Some(icon) = &mut self.2 { icon.color = Some(color); }
-        if let Some(text) = &mut self.3 { text.set_color(color); }
+        if let Some(text) = &mut self.3 { text.text().set_color(color); }
         if let Some(icon) = &mut self.4 { icon.color = Some(color); }
     }
 }

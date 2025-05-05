@@ -63,7 +63,7 @@ impl QRGuide {
 }
 
 #[derive(Debug, Component)]
-struct Message(Column, Image, BasicText);
+struct Message(Column, Image, Text);
 impl OnEvent for Message {}
 
 impl Message {
