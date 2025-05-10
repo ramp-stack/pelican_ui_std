@@ -1,7 +1,6 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 use crate::layout::{Stack, Offset, Size, Bin, Padding, Opt};
-use crate::events::CursorMovedEvent;
 use crate::elements::shapes::Rectangle;
 use crate::PelicanUI;
 
@@ -32,46 +31,60 @@ impl TextStyle {
 }
 
 #[derive(Component, Debug)]
-pub struct Text(Stack, BasicText, Option<Opt<Bin<Stack, Rectangle>>>);
+pub struct TextCursor(Stack, Opt<Rectangle>);
+impl OnEvent for TextCursor {}
+impl TextCursor {
+    pub fn new(ctx: &mut Context, style: TextStyle, size: f32) -> Self {
+        let (color, font) = style.get(ctx);
+        TextCursor(
+            Stack(Offset::Start, Offset::End, Size::Static(2.0), Size::Static(size), Padding::default()), 
+            Opt::new(Rectangle::new(color), false)
+        )
+    }
+
+    pub fn display(&mut self, display: bool) {self.1.display(display)}
+    pub fn x_offset(&mut self) -> &mut Offset {&mut self.0.0}
+    pub fn y_offset(&mut self) -> &mut Offset {&mut self.0.1}
+}
+
+#[derive(Component, Debug)]
+pub struct Text(Stack, BasicText, Option<TextCursor>);
 
 impl Text {
     pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text, size, size*1.25, font, color)], None, align, false);
+        let text = BasicText::new(vec![Span::new(text, size, size*1.25, font, color)], None, align, None);
         Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text, None)
     }
 
-    pub fn new_with_edit(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
+    pub fn new_with_cursor(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text, size, size*1.25, font, color)], None, align, true);
+        let text = BasicText::new(vec![Span::new(text, size, size*1.25, font, color)], None, align, Some(Cursor::default()));
         Text(
             Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()),
-            text,
-            Some(Opt::new(Bin(
-                Stack(Offset::Start, Offset::Start, Size::Static(2.0), Size::Static(size), Padding::default()), 
-                Rectangle::new(color)
-            ), true)),
+            text, Some(TextCursor::new(ctx, style, size)),
         )
     }
 
     pub fn text(&mut self) -> &mut BasicText {&mut self.1}
-    pub fn cursor(&mut self) -> &mut Option<Opt<Bin<Stack, Rectangle>>> {&mut self.2}
+    pub fn cursor(&mut self) -> &mut Option<TextCursor> {&mut self.2}
 }
 
 
 impl OnEvent for Text {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(event) = event.downcast_ref::<CursorMovedEvent>() {
-            if let Some(c) = &mut self.2 {
-                if let Some(cords) = self.1.cursor_position(ctx.as_canvas()) {
-                    c.inner().0.0 = Offset::Static(cords.0);
-                    c.inner().0.1 = Offset::Static(cords.1+(self.1.spans[0].font_size/2.0));
+        if let Some(cursor) = &mut self.2 {
+            if let Some(_) = event.downcast_ref::<TickEvent>() {
+                if let Some(cords) = self.1.cursor_action(ctx.as_canvas(), CursorAction::GetPosition) {
+                    // println!("Got position: {:?}", cords);
+                    *cursor.x_offset() = Offset::Static(cords.0);
+                    *cursor.y_offset() = Offset::Static(cords.1-(self.1.spans[0].line_height/1.2));
                 }
-            }
-        } else if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            if event.state == MouseState::Pressed && event.position.is_some() {
-                self.1.set_cursor(ctx.as_canvas(), event.position.unwrap().0, event.position.unwrap().1);
-                ctx.trigger_event(CursorMovedEvent);
+            } else if let Some(event) = event.downcast_ref::<MouseEvent>() {
+                if event.state == MouseState::Pressed && event.position.is_some() {
+                    self.1.set_cursor(ctx.as_canvas(), (event.position.unwrap().0, event.position.unwrap().1));
+                    self.1.cursor_action(ctx.as_canvas(), CursorAction::GetPosition);
+                }
             }
         }
         true
@@ -87,13 +100,12 @@ impl ExpandableText {
         ExpandableText(Text::new(ctx, text, style, size, align))
     }
 
-    pub fn new_with_edit(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
-        let (color, font) = style.get(ctx);
-        ExpandableText(Text::new_with_edit(ctx, text, style, size, align))
+    pub fn new_with_cursor(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
+        ExpandableText(Text::new_with_cursor(ctx, text, style, size, align))
     }
 
     pub fn text(&mut self) -> &mut BasicText {self.0.text()}
-    pub fn cursor(&mut self) -> &mut Option<Opt<Bin<Stack, Rectangle>>> {self.0.cursor()}
+    pub fn cursor(&mut self) -> &mut Option<TextCursor> {self.0.cursor()}
 }
 impl OnEvent for ExpandableText {}
 

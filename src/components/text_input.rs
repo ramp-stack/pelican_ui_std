@@ -4,7 +4,7 @@ use rust_on_rails::prelude::Text as BasicText;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{ExpandableText, Text, TextStyle};
 use crate::components::button::IconButton;
-use crate::events::{KeyboardActiveEvent, SetActiveInput, SetActiveEvent, SetInactiveEvent, CursorMovedEvent};
+use crate::events::{KeyboardActiveEvent, SetActiveInput, SetActiveEvent, SetInactiveEvent};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
 use crate::{PelicanUI, ElementID};
 
@@ -142,36 +142,28 @@ impl OnEvent for InputField {
             }.unwrap_or(self.3);
         } else if let Some(KeyboardEvent{state: KeyboardState::Pressed, key}) = event.downcast_ref() {
             if self.3 == InputState::Focus {
-                // let text = self.2.text();
-                let i = self.2.text().text().cursor.expect("No cursor").index;
-                let mut t = &mut self.2.text().text().spans[0].text;
-                match key {
-                    // Key::Named(NamedKey::Paste) | Key::Character(c) if c == ""  => {
-                    //     let mut ctx = ClipboardContext::new().unwrap();
-                    //     *self.2.input() = ctx.get_contents().unwrap();
-                    // },
-                    Key::Named(NamedKey::Enter) => {
-                        t.insert_str(i, "\n");
-                        self.2.text().text().cursor_down(ctx.as_canvas());
-                        ctx.trigger_event(CursorMovedEvent);
-                    },
-                    Key::Named(NamedKey::Space) => {
-                        t.insert_str(i, " ");
-                        self.2.text().text().cursor_right(ctx.as_canvas());
-                        ctx.trigger_event(CursorMovedEvent);
-                    },
-                    Key::Named(NamedKey::Delete | NamedKey::Backspace) if !t.is_empty() => {
-                        *t = t[0..t.len() - 1].to_string();
-                        self.2.text().text().cursor_left(ctx.as_canvas());
-                        ctx.trigger_event(CursorMovedEvent);
-                    },
-                    Key::Character(c) => {
-                        t.insert_str(i, c);
-                        self.2.text().text().cursor_right(ctx.as_canvas());
-                        ctx.trigger_event(CursorMovedEvent);
-                    },
-                    _ => {}
-                };
+                if let Some((i, _)) = self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::GetIndex) {
+                    match key {
+                        Key::Named(NamedKey::Enter) => {
+                            self.2.text().text().spans[0].text.insert_str(i as usize, "\n");
+                            self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveNewline);
+                        },
+                        Key::Named(NamedKey::Space) => {
+                            self.2.text().text().spans[0].text.insert_str(i as usize, " ");
+                            self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
+                        },
+                        Key::Named(NamedKey::Delete | NamedKey::Backspace) if (!self.2.text().text().spans[0].text.is_empty() && i as usize != 0) => {
+                            self.2.text().text().spans[0].text.remove(i as usize -1);
+                            self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveLeft);
+                        },
+                        Key::Character(c) => {
+                            println!("MOVING RIGHT {:?}", c);
+                            self.2.text().text().spans[0].text.insert_str(i as usize , c);
+                            self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
+                        },
+                        _ => {}
+                    };
+                }
             }
         }
         true
@@ -207,7 +199,7 @@ impl InputContent {
             Bin(
                 Stack(Offset::default(), Offset::End, Size::fill(), Size::Fit, Padding(8.0, 8.0, 8.0, 8.0)),
                 EitherOr::new(
-                    ExpandableText::new_with_edit(ctx, value.unwrap_or(""), TextStyle::Primary, font_size, Align::Left),
+                    ExpandableText::new_with_cursor(ctx, value.unwrap_or(""), TextStyle::Primary, font_size, Align::Left),
                     ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size, Align::Left)
                 )
             ),
