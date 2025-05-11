@@ -8,7 +8,7 @@ license = "BSD-3-Clause"
 repository = "https://github.com/ramp-stack/pelican_ui"
 readme = "README.md"
 keywords = ["ui", "ux", "ramp", "rust", "component"]
-categories = ["gui", "visualization", "rendering", "development-tools::ui"]
+categories = ["gui", "visualization", "rendering"]
 documentation = "https://docs.rs/pelican-ui"
 
 [lib]
