@@ -4,23 +4,18 @@
 
 ## ✨ Features
 
-- 🧱 Reusable and composable UI components
-- 🎨 Style-conscious design with theme support
-- ⚡️ Built for speed and smooth rendering
-- 🛠️ Seamless integration with async Rust and ECS patterns
-- 📦 No frontend JavaScript required — pure Rust!
+- Reusable and composable UI components
+- Style-conscious design with theme support
+- Built for speed and smooth rendering
+- Seamless integration with async Rust and ECS patterns
+- No frontend JavaScript required — pure Rust!
 
 ## 🚀 Getting Started
 
 Add Pelican UI to your `Cargo.toml`:
 
 [dependencies]
-pelican-ui = "0.1"
+pelican-ui = "1.0.0"
 
 ## 📚 Documentation
-Full documentation is available at docs.rs/pelican-ui
-
-## 🔧 The RAMP Stack
-Pelican UI is designed for use in the RAMP stack:
-
-Rust — AIR Storage - Multi-Target - Pelican UI 
+Full documentation is available at https://docs.rs/pelican-ui

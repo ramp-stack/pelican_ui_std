@@ -4,13 +4,12 @@ version = "0.1.0"
 authors = ["Ella Mae <ellaammae@email.com>"]
 edition = "2021"
 description = "A modern UI/UX toolkit optimized for the RAMP stack."
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/EllaCouch20/pelican_ui"
+license = "BSD-3-Clause"
+repository = "https://github.com/ramp-stack/pelican_ui"
 readme = "README.md"
 keywords = ["ui", "ux", "ramp", "rust", "component"]
 categories = ["gui", "visualization", "rendering", "development-tools::ui"]
 documentation = "https://docs.rs/pelican-ui"
-homepage = "https://github.com/EllaCouch20/pelican-ui"
 
 [lib]
 name = "pelican_ui"
