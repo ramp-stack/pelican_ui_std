@@ -1,3 +1,6 @@
+use rust_on_rails::prelude::*;
+use std::collections::HashMap;
+
 /// A collection of icons used throughout the application.
 ///
 /// This struct contains a set of icons that are loaded by the application at runtime.

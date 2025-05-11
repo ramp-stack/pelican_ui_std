@@ -1,3 +1,5 @@
+use rust_on_rails::prelude::*;
+
 /// Represents a collection of color resources used throughout the UI, including background, text, button, and status colors.
 #[derive(Copy, Clone, Default)]
 pub struct ColorResources {
@@ -221,7 +223,78 @@ impl Default for ButtonColors {
                 label: Color::from_hex("ffffff", 255),
                 outline: Color::from_hex("000000", 0),
             },
-            // Other button states initialized similarly...
+            primary_disabled: ButtonColorScheme {
+                background: Color::from_hex("443f3f", 255),
+                label: Color::from_hex("000000", 255),
+                outline: Color::from_hex("000000", 0),
+            },
+            primary_hover: ButtonColorScheme {
+                background: Color::from_hex("da282e", 255),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("000000", 0),
+            },
+            primary_selected: ButtonColorScheme {
+                background: Color::from_hex("da282e", 255),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("000000", 0),
+            },
+            primary_pressed: ButtonColorScheme {
+                background: Color::from_hex("da282e", 255),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("000000", 0),
+            },
+
+            secondary_default: ButtonColorScheme {
+                background: Color::from_hex("000000", 0),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("585250", 255),
+            },
+            secondary_disabled: ButtonColorScheme {
+                background: Color::from_hex("78716c", 255),
+                label: Color::from_hex("000000", 255),
+                outline:Color::from_hex("585250", 255),
+            },
+            secondary_hover: ButtonColorScheme {
+                background: Color::from_hex("262322", 255),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("585250", 255),
+            },
+            secondary_selected: ButtonColorScheme {
+                background: Color::from_hex("262322", 255),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("585250", 255),
+            },
+            secondary_pressed: ButtonColorScheme {
+                background: Color::from_hex("262322", 255),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("585250", 255),
+            },
+
+            ghost_default: ButtonColorScheme {
+                background: Color::from_hex("000000", 0),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("000000", 0),
+            },
+            ghost_disabled: ButtonColorScheme {
+                background: Color::from_hex("000000", 0),
+                label: Color::from_hex("78716c", 255),
+                outline: Color::from_hex("000000", 0),
+            },
+            ghost_hover: ButtonColorScheme {
+                background: Color::from_hex("262322", 255),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("000000", 0),
+            },
+            ghost_selected: ButtonColorScheme {
+                background: Color::from_hex("262322", 255),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("000000", 0),
+            },
+            ghost_pressed: ButtonColorScheme {
+                background: Color::from_hex("262322", 255),
+                label: Color::from_hex("ffffff", 255),
+                outline: Color::from_hex("000000", 0),
+            },
         }
     }
 }
