@@ -16,7 +16,7 @@ name = "pelican_ui"
 path = "src/lib.rs"
 
 [dependencies]
-rust_on_rails = {path = "../rust_on_rails"}
 qrcode = "0.14.1"
 uuid = { version = "1.16.0", features = ["v4"] }
 dyn-clone = "1.0.19"
+rust_on_rails = "4.0.1"
