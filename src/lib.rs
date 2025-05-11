@@ -1,3 +1,7 @@
+/// A modular UI system for managing minimalistic components, themes, pages, and navigation in a Rust-based application.
+///
+/// This system supports preset UI components, theme management, page navigation, and interaction with UI components,
+/// and it includes platform-specific functionality for iOS haptic feedback.
 pub mod events;
 pub mod config;
 pub mod theme;
@@ -12,8 +16,8 @@ use crate::theme::Theme;
 #[cfg(target_os = "ios")]
 extern "C" {
     fn trigger_haptic();
-    // fn get_application_support_dir() -> *const std::os::raw::c_char;
 }
+
 #[cfg(target_os = "ios")]
 fn vibrate()  {
     unsafe {
@@ -21,30 +25,62 @@ fn vibrate()  {
     }
 }
 
+/// Represents the user interface (UI) of the application, holding the theme and other UI-related functionality.
 pub struct PelicanUI {
+    /// The theme used to style the UI.
     pub theme: Theme,
 }
 
 impl PelicanUI {
+    /// Initializes the `PelicanUI` with the provided theme.
+    ///
+    /// # Arguments
+    ///
+    /// * `theme` - A `Theme` object that defines the appearance of the app's UI.
     pub fn init(&mut self, theme: Theme) {
         self.theme = theme;
     }
 }
 
 impl Plugin for PelicanUI {
-    async fn background_tasks(_ctx: &mut HeadlessContext) -> Tasks {vec![]}
+    async fn background_tasks(_ctx: &mut HeadlessContext) -> Tasks {
+        vec![]
+    }
 
     async fn new(ctx: &mut Context, _h_ctx: &mut HeadlessContext) -> (Self, Tasks) {
         ctx.include_assets(include_assets!("./resources"));
-        (PelicanUI{theme: Theme::default(ctx)}, vec![])
+        (PelicanUI { theme: Theme::default(ctx) }, vec![])
     }
 }
 
+/// A trait representing a page in the application.
+///
+/// This trait extends `Drawable` and `Debug`, which means any type that implements `AppPage` must
+/// be drawable and must support debugging output.
 pub trait AppPage: Drawable + std::fmt::Debug + 'static {}
 
+/// A trait representing the flow of the application.
+///
+/// This trait is used to navigate between pages, with the ability to get the current page and trigger page navigation.
 pub trait AppFlow: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static {
+    /// Returns the current page of the application flow.
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx` - The current context in which the page is requested.
+    ///
+    /// # Returns
+    ///
+    /// A boxed trait object implementing `AppPage`, which represents the current page.
     fn get_page(&self, ctx: &mut Context) -> Box<dyn crate::AppPage>;
 
+    /// Navigates to a new page in the application flow.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - The flow object that defines the navigation action.
+    ///
+    /// This function triggers a `NavigateEvent` that updates the current flow of the app.
     fn navigate(self, ctx: &mut Context) where Self: Sized {
         ctx.trigger_event(crate::events::NavigateEvent(Box::new(self) as Box<dyn AppFlow>));
     }
@@ -52,19 +88,36 @@ pub trait AppFlow: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static
 
 dyn_clone::clone_trait_object!(AppFlow);
 
+/// Represents a unique identifier for an element in the user interface.
+///
+/// This struct wraps a `Uuid` to ensure each UI element has a unique identifier, which is useful
+/// for tracking and referencing elements throughout the UI system.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ElementID(uuid::Uuid);
 
 impl ElementID {
+    /// Creates a new `ElementID` with a randomly generated UUID.
+    ///
+    /// # Returns
+    ///
+    /// A new `ElementID` with a random UUID.
     pub fn new() -> Self {
         ElementID(uuid::Uuid::new_v4())
     }
 
+    /// Returns the underlying UUID of the `ElementID`.
+    ///
+    /// # Returns
+    ///
+    /// A `uuid::Uuid` representing the unique identifier of the element.
     pub fn as_uuid(&self) -> uuid::Uuid {
         self.0
     }
 }
 
+/// A prelude module for easier access to the key components of the PelicanUI system.
+///
+/// This module re-exports commonly used items from the system to simplify access in other parts of the code.
 pub mod prelude {
     pub use crate::ElementID;
     pub use crate::AppFlow;
