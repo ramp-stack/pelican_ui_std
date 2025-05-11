@@ -1,6 +1,5 @@
 use rust_on_rails::prelude::*;
-use rust_on_rails::prelude::Text as BasicText;
-use crate::elements::text::{Text, ExpandableText, TextStyle};
+use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::RoundedRectangle;
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size};

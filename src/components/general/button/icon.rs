@@ -1,6 +1,4 @@
 use rust_on_rails::prelude::*;
-
-use crate::ElementID;
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::layout::{Offset, Padding, Size, Row, Stack};

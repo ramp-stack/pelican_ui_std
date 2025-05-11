@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::layout::{Stack, Offset, Size, Bin, Padding, Opt};
+use crate::layout::{Stack, Offset, Size, Padding, Opt};
 use crate::elements::shapes::Rectangle;
 use crate::PelicanUI;
 
@@ -35,7 +35,7 @@ pub struct TextCursor(Stack, Opt<Rectangle>);
 impl OnEvent for TextCursor {}
 impl TextCursor {
     pub fn new(ctx: &mut Context, style: TextStyle, size: f32) -> Self {
-        let (color, font) = style.get(ctx);
+        let (color, _) = style.get(ctx);
         TextCursor(
             Stack(Offset::Start, Offset::End, Size::Static(2.0), Size::Static(size), Padding::default()), 
             Opt::new(Rectangle::new(color), false)
@@ -96,7 +96,6 @@ pub struct ExpandableText(pub Text);
 
 impl ExpandableText {
     pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
-        let (color, font) = style.get(ctx);
         ExpandableText(Text::new(ctx, text, style, size, align))
     }
 

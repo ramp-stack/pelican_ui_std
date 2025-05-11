@@ -1,12 +1,10 @@
 use rust_on_rails::prelude::*;
-use rust_on_rails::prelude::Text as BasicText;
-// use cli_clipboard::{ClipboardContext, ClipboardProvider};
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{ExpandableText, Text, TextStyle};
 use crate::components::button::IconButton;
-use crate::events::{KeyboardActiveEvent, SetActiveInput, SetActiveEvent, SetInactiveEvent};
+use crate::events::{KeyboardActiveEvent, SetActiveInput};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
-use crate::{PelicanUI, ElementID};
+use crate::PelicanUI;
 
 use std::sync::mpsc::{self, Receiver};
 
@@ -52,7 +50,7 @@ impl TextInput {
 }
 
 impl OnEvent for TextInput {
-    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             *self.2.error() = self.4.is_some();
         }
@@ -91,7 +89,7 @@ impl InputField {
 impl OnEvent for InputField {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
-            self.2.text().cursor().as_mut().map(|mut c| c.display(self.3 == InputState::Focus));
+            self.2.text().cursor().as_mut().map(|c| c.display(self.3 == InputState::Focus));
             self.3 = match self.3 {
                 InputState::Default if self.4 => Some(InputState::Error),
                 InputState::Error if !self.4 => Some(InputState::Default),

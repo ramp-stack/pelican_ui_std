@@ -1,13 +1,11 @@
 use rust_on_rails::prelude::*;
-use rust_on_rails::prelude::Text as BasicText;
-
 use crate::ElementID;
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text, TextStyle};
-use crate::events::{RemoveContactEvent, SetActiveEvent, SetInactiveEvent};
-use crate::layout::{Column, Offset, Padding, Row, Size, Stack, Wrap};
+use crate::events::RemoveContactEvent;
+use crate::layout::{Offset, Padding, Row, Size, Stack, Wrap};
 
 use super::{ButtonSize, ButtonState, ButtonStyle};
 
@@ -67,7 +65,7 @@ impl Button {
 impl OnEvent for Button {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            if let Some(state) = self.4.handle(ctx, *event) {
+            if let Some(_) = self.4.handle(ctx, *event) {
                 self.color(ctx);
             }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {

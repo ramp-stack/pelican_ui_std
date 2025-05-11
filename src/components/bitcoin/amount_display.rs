@@ -1,11 +1,8 @@
 use rust_on_rails::prelude::*;
-use rust_on_rails::prelude::Text as BasicText;
-
 use crate::elements::images::Icon;
 use crate::elements::text::{Text, TextStyle};
-use crate::events::{SetActiveEvent, SetInactiveEvent};
 use crate::layout::{Column, Offset, Padding, Row, Size, Stack};
-use crate::{ElementID, PelicanUI};
+use crate::PelicanUI;
 
 #[derive(Debug, Component)]
 pub struct AmountDisplay(Column, Text, SubText);
@@ -50,7 +47,7 @@ impl SubText {
     }
 
     fn error(&mut self) -> &mut bool {&mut self.3}
-    fn text(&mut self) -> &mut String {&mut self.2.text().spans[0].text}
+    fn _text(&mut self) -> &mut String {&mut self.2.text().spans[0].text}
 }
 
 

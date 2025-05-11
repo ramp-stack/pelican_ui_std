@@ -1,5 +1,4 @@
 use rust_on_rails::prelude::*;
-use rust_on_rails::prelude::Text as BasicText;
 use rust_on_rails::prelude::Key as WinitKey;
 use crate::elements::shapes::{Rectangle, RoundedRectangle};
 use crate::elements::images::Icon;
@@ -98,7 +97,7 @@ impl KeyboardContent {
 }
 
 impl OnEvent for KeyboardContent {
-    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             match self.6.try_recv() {
                 Ok(0) => {println!("CAPSLOCK"); self.update();},

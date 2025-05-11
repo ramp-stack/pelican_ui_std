@@ -1,11 +1,10 @@
 use rust_on_rails::prelude::*;
-use rust_on_rails::prelude::Text as BasicText;
 use crate::events::NavigatorSelect;
 use crate::elements::images::Brand;
 use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::Rectangle;
 use crate::components::button::{Button, IconButton, ButtonState};
-use crate::components::avatar::{AvatarIconStyle, AvatarContent, AvatarRow};
+use crate::components::avatar::{AvatarContent, AvatarRow};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::{PelicanUI, ElementID};
 
@@ -28,7 +27,7 @@ impl MobileNavigator {
                 ctx.trigger_event(NavigatorSelect(id));
                 (c)(ctx);
             });
-            NavigationButton::new(ctx, id, None, Some(ib))
+            NavigationButton::new(id, None, Some(ib))
         }).collect();
 
         let ib = IconButton::tab_nav(ctx, "profile", false, move |ctx: &mut Context| {
@@ -36,7 +35,7 @@ impl MobileNavigator {
             (profile.2)(ctx);
         });
 
-        tabs.push(NavigationButton::new(ctx, profile_id, None, Some(ib)));
+        tabs.push(NavigationButton::new(profile_id, None, Some(ib)));
 
         MobileNavigator(Row(48.0, Offset::Center, Size::Fit, Padding(0.0, 8.0, 0.0, 8.0)), tabs)
     }
@@ -72,13 +71,13 @@ impl DesktopNavigator {
         let (wordmark, color) = (theme.brand.wordmark.clone(), theme.colors.shades.transparent);
         let profile_id = ElementID::new();
 
-        let mut tabs: Vec<NavigationButton> = navigation.1.into_iter().enumerate().map(|(y, (i, n, mut c))| {
+        let tabs: Vec<NavigationButton> = navigation.1.into_iter().enumerate().map(|(y, (i, n, mut c))| {
             let id = ElementID::new();
             let nb = Button::navigation(ctx, i, n, y == navigation.0, move |ctx: &mut Context| {
                 ctx.trigger_event(NavigatorSelect(id));
                 (c)(ctx);
             });
-            NavigationButton::new(ctx, id, Some(nb), None)
+            NavigationButton::new(id, Some(nb), None)
         }).collect();
 
         let pb = Button::photo(ctx, profile.0, profile.1, false, move |ctx: &mut Context| {
@@ -94,7 +93,7 @@ impl DesktopNavigator {
                 Stack(Offset::Center, Offset::Center, Size::Fill(100.0, 200.0), Size::Fill(100.0, f32::MAX), Padding::default()), 
                 Rectangle::new(color)
             ),
-            NavigationButton::new(ctx, profile_id, Some(pb), None)
+            NavigationButton::new(profile_id, Some(pb), None)
         )
     }
 }
@@ -131,7 +130,7 @@ pub struct NavigationButton(Stack, Option<Button>, Option<IconButton>, #[skip] E
 impl OnEvent for NavigationButton {}
 
 impl NavigationButton {
-    pub fn new(ctx: &mut Context, id: ElementID, button: Option<Button>, icon_button: Option<IconButton>) -> Self {
+    pub fn new(id: ElementID, button: Option<Button>, icon_button: Option<IconButton>) -> Self {
         NavigationButton(Stack::default(), button, icon_button, id)
     }
 

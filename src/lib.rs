@@ -7,7 +7,6 @@ pub mod components;
 pub mod interface;
 
 use rust_on_rails::prelude::*;
-use downcast_rs::{DowncastSync, impl_downcast};
 use crate::theme::Theme;
 
 #[cfg(target_os = "ios")]
@@ -35,7 +34,7 @@ impl PelicanUI {
 impl Plugin for PelicanUI {
     async fn background_tasks(_ctx: &mut HeadlessContext) -> Tasks {vec![]}
 
-    async fn new(ctx: &mut Context, h_ctx: &mut HeadlessContext) -> (Self, Tasks) {
+    async fn new(ctx: &mut Context, _h_ctx: &mut HeadlessContext) -> (Self, Tasks) {
         ctx.include_assets(include_assets!("./resources"));
         (PelicanUI{theme: Theme::default(ctx)}, vec![])
     }
@@ -50,6 +49,7 @@ pub trait AppFlow: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static
         ctx.trigger_event(crate::events::NavigateEvent(Box::new(self) as Box<dyn AppFlow>));
     }
 }
+
 dyn_clone::clone_trait_object!(AppFlow);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -64,10 +64,6 @@ impl ElementID {
         self.0
     }
 }
-// pub trait Application: std::fmt::Debug + Copy + Clone + 'static {
-//     type ApplicationPage: ApplicationPages + Copy + Clone + std::fmt::Debug + 'static;
-// }
-
 
 pub mod prelude {
     pub use crate::ElementID;
@@ -78,28 +74,6 @@ pub mod prelude {
     pub use crate::layout::*;
     pub use crate::components::*;
     pub use crate::elements::*;
-    //pub use crate::elements::images::Icon;
-    // pub use crate::elements::text::{Text, TextStyle};
     pub use crate::theme::Theme;
     pub use crate::PelicanUI;
 }
-
-pub mod custom {
-	// pub use crate::theme::colors::{
-	//     ColorResources,
-	//     BackgroundColor,
-	//     OutlineColor,
-	//     StatusColor,
-	//     TextColor,
-	//     BrandColor,
-	//     ShadesColor
-	// };
-
-	// pub use crate::theme::fonts::{
-	//     FontResources,
-	//     Fonts,
-	//     FontSize,
-	// };
-}
-
-

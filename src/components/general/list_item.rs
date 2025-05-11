@@ -1,12 +1,11 @@
 use rust_on_rails::prelude::*;
-use rust_on_rails::prelude::Text as BasicText;
 use crate::events::{ListItemSelect, RemoveContactEvent, AddContactEvent};
 use crate::elements::images::Icon;
 use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::Rectangle;
 use crate::components::button::{ButtonState, QuickDeselectButton};
 use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
-use crate::layout::{Column, Stack, Row, Wrap, Padding, Offset, Size, VerticalScrollable};
+use crate::layout::{Column, Stack, Row, Wrap, Padding, Offset, Size};
 use crate::{PelicanUI, ElementID};
 
 
@@ -318,13 +317,13 @@ impl ListItemSelector {
 }
 
 #[derive(Debug, Component)]
-pub struct QuickDeselect(Column, Option<QuickDeselectContent>, VerticalScrollable);
+pub struct QuickDeselect(Column, Option<QuickDeselectContent>, ListItemGroup);
 
 impl QuickDeselect {
-    pub fn new(list_items: Vec<Box<dyn Drawable>>) -> Self {
+    pub fn new(list_items: Vec<ListItem>) -> Self {
         QuickDeselect(
             Column::new(24.0, Offset::Start, Size::Fit, Padding::default()), 
-            None, VerticalScrollable::new(list_items)
+            None, ListItemGroup::new(list_items)
         )
     }
 }
@@ -349,6 +348,17 @@ impl OnEvent for QuickDeselect {
             }
         }
         true
+    }
+}
+
+
+#[derive(Debug, Component)]
+pub struct ListItemGroup(Column, Vec<ListItem>);
+impl OnEvent for ListItemGroup {}
+
+impl ListItemGroup {
+    pub fn new(list_items: Vec<ListItem>) -> Self {
+        ListItemGroup(Column::center(0.0), list_items)
     }
 }
 

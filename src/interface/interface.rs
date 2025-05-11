@@ -4,7 +4,7 @@ use crate::events::{KeyboardActiveEvent, NavigateEvent};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size, Opt};
 use crate::components::avatar::AvatarContent;
 use crate::PelicanUI;
-use crate::{AppFlow, AppPage};
+use crate::AppPage;
 use std::fmt::Debug;
 
 use super::mobile_keyboard::MobileKeyboard;
@@ -127,7 +127,7 @@ pub struct Content (Stack, ContentChildren);
 impl Content {
     pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(375.0), 375.0));
-        let height = Size::custom(move |heights: Vec<(f32, f32)>|(0.0, f32::MAX));
+        let height = Size::custom(move |_: Vec<(f32, f32)>|(0.0, f32::MAX));
         Content(
             Stack(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0)),
             ContentChildren::new(content),
@@ -138,9 +138,9 @@ impl Content {
 }
 
 impl OnEvent for Content {
-    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            if let MouseEvent{state: MouseState::Scroll(x, y), ..} = event {
+            if let MouseEvent{state: MouseState::Scroll(_, y), ..} = event {
                 *self.1.0.scroll() += y;
                 *self.1.0.scroll() = self.1.0.scroll().clamp(0.0, 100.); // 100 = content height
             }

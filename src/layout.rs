@@ -216,7 +216,7 @@ impl Layout for Column {
         let mut offset = 0.0;
         children.into_iter().zip(heights).map(|(i, height)| {
             let size = i.get((col_size.0, height));
-            let y_offset = (offset - self.4);
+            let y_offset = offset - self.4;
             let off = self.3.adjust_offset((self.1.get(col_size.0, size.0), y_offset));
             offset += size.1+self.0;
             Area{offset: off, size}
@@ -303,31 +303,6 @@ impl Layout for Wrap {
             items.push(*child);
             area
         }).collect()
-    }
-}
-
-
-#[derive(Debug, Component)]
-pub struct VerticalScrollable(Column, Vec<Box<dyn Drawable>>);
-
-impl VerticalScrollable {
-    pub fn new(items: Vec<Box<dyn Drawable>>) -> Self {
-        VerticalScrollable(Column::center(0.0), items)
-    }
-}
-
-impl OnEvent for VerticalScrollable {
-    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            // if let Some(state) = self.4.handle(ctx, *event) {
-            //     self.color(ctx);
-            // }
-            if let MouseEvent{state: MouseState::Scroll(x, y), ..} = event {
-                println!("MouseWheel Event: pos {:?}", (x, y));
-                println!("Column offset: {:?}", self.0.1);
-            }
-        }
-        false
     }
 }
 
