@@ -1,9 +1,9 @@
-#![doc(html_logo_url = "https://raw.githubusercontent.com/ramp-stack/pelican_ui/logo.png")]
+#![doc(html_logo_url = "https://raw.githubusercontent.com/ramp-stack/pelican_ui/main/logo.png")]
 
-/// A UI system for managing minimalistic components, themes, pages, and navigation in a Rust-based application.
-///
-/// This system supports preset UI components, theme management, page navigation, and interaction with UI components,
-/// and it includes platform-specific functionality for iOS haptic feedback.
+//! A UI system for managing minimalistic components, themes, pages, and navigation in a Rust-based application.
+//!
+//! This system supports preset UI components, theme management, page navigation, and interaction with UI components,
+//! and it includes platform-specific functionality for iOS haptic feedback.
 
 /// Modular for Pelican UI specific events
 pub mod events;
@@ -35,7 +35,7 @@ fn vibrate()  {
     }
 }
 
-/// Represents the user interface (UI) of the application, holding the theme and other UI-related functionality.
+/// Plugin structure holding the theme.
 pub struct PelicanUI {
     /// The theme used to style the UI.
     pub theme: Theme,
@@ -46,7 +46,7 @@ impl PelicanUI {
     ///
     /// # Arguments
     ///
-    /// * `theme` - A `Theme` object that defines the appearance of the app's UI.
+    /// * `theme` - A `Theme` structure that defines the appearance of the app's UI. (Theme::default())
     pub fn init(&mut self, theme: Theme) {
         self.theme = theme;
     }
@@ -77,7 +77,7 @@ pub trait AppFlow: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static
     ///
     /// # Arguments
     ///
-    /// * `ctx` - The current context in which the page is requested.
+    /// * `ctx` -  The current context, used for accessing themes and UI elements.
     ///
     /// # Returns
     ///
@@ -126,8 +126,6 @@ impl ElementID {
 }
 
 /// A prelude module for easier access to the key components of the PelicanUI system.
-///
-/// This module re-exports commonly used items from the system to simplify access in other parts of the code.
 pub mod prelude {
     pub use crate::ElementID;
     pub use crate::AppFlow;

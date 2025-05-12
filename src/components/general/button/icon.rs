@@ -5,8 +5,7 @@ use crate::layout::{Offset, Padding, Size, Row, Stack};
 
 use super::{ButtonSize, ButtonState, ButtonStyle};
 
-/// The `IconButton` is a type of button that contains an icon instead of a label. It can have different styles, sizes, and states.
-/// It can be used to represent actions like "play", "pause", or any action that requires an icon.
+/// The `IconButton` is a type of button that contains a singular icon instead of a label.
 #[derive(Component)]
 pub struct IconButton(Stack, OutlinedRectangle, Image, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>);
 
@@ -15,10 +14,10 @@ impl IconButton {
     ///
     /// # Parameters
     /// - `ctx`: The current context, used for accessing themes and UI elements.
-    /// - `icon`: A string representing the icon (e.g., a file name or path to an image).
-    /// - `size`: The size of the button (either large or medium).
+    /// - `icon`: A string representing the icon's name.
+    /// - `size`: The size of the button.
     /// - `style`: The style of the button. secondary or ghost. (primary is not supported).
-    /// - `state`: The initial state of the button (e.g., default, hover, pressed).
+    /// - `state`: The initial state of the button.
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
     /// # Returns
@@ -89,6 +88,7 @@ impl OnEvent for IconButton {
     }
 }
 
+/// A row of secondary style `IconButton`s, spaced `24.0` apart.
 #[derive(Debug, Component)]
 pub struct IconButtonRow(Row, Vec<IconButton>);
 impl OnEvent for IconButtonRow {}
@@ -219,7 +219,16 @@ impl IconButton {
         )
     }
 
-    // IconButton Preset for Mobile Navigator
+    /// Creates a new `IconButton` preset for the app's mobile navigator.
+    ///
+    /// # Parameters
+    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `icon`: The name of the icon to display.
+    /// - `selected`: Indicates whether the icon is initially selected.
+    /// - `on_click`: A closure that will be executed when the button is clicked.
+    ///
+    /// # Returns
+    /// - A new `IconButton` with a ghost style, medium size.
     pub fn tab_nav(
         ctx: &mut Context, 
         icon: &'static str, 

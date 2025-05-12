@@ -15,12 +15,11 @@ pub enum ButtonWidth {
     /// The button expands to fill the available space.
     Expand,
     
-    /// The button's width adjusts to fit its content.
+    /// The button's width hugs its content.
     Hug,
 }
 
-/// A clickable button component with customizable content, size, and styles. It supports various states
-/// (e.g., default, hover, pressed) and handles click events to trigger actions.
+/// A clickable button component with customizable content, size, and styles.
 #[derive(Component)]
 pub struct Button(
     Stack, 
@@ -40,15 +39,15 @@ impl Button {
     /// - `icon_l`: An optional icon to display on the left side of the button.
     /// - `label`: An optional label for the button's text.
     /// - `icon_r`: An optional icon to display on the right side of the button.
-    /// - `size`: Defines the size of the button, such as its height and padding.
-    /// - `width`: Determines how the button's width behaves (e.g., hug content or expand).
-    /// - `style`: Defines the button's overall style (colors, appearance).
-    /// - `state`: Specifies the initial state of the button (e.g., default, hover).
-    /// - `offset`: Specifies the button's position relative to its parent.
-    /// - `on_click`: A closure to define the action to perform when the button is clicked.
+    /// - `size`: Defines the size of the button.
+    /// - `width`: Defines the width of the button.
+    /// - `style`: Defines the style of the button.
+    /// - `state`: Specifies the initial state of the button.
+    /// - `offset`: Specifies the button's content's offset. (usually `Offset::Center`)
+    /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
     /// # Returns:
-    /// A `Button` instance, which is ready to be used within the UI.
+    /// A UI ready `Button` instance.
     ///
     /// # Example:
     /// ```
@@ -62,8 +61,8 @@ impl Button {
     ///     ButtonWidth::Hug,
     ///     ButtonStyle::Primary,
     ///     ButtonState::Default,
-    ///     Offset::Start,
-    ///     |ctx: &mut Context| { println!("Button clicked!") }
+    ///     Offset::Center,
+    ///     |ctx: &mut Context| println!("Button clicked!"),
     /// );
     /// ```
     pub fn new(
@@ -180,7 +179,7 @@ impl Button {
     /// # Parameters
     /// - `ctx`: The current context, used for accessing themes and UI elements.
     /// - `label`: The text displayed on the button.
-    /// - `on_click`: A closure that defines the action when the button is clicked.
+    /// - `on_click`:  A closure that will be executed when the button is clicked.
     ///
     /// # Returns
     /// A `Button` with the `Primary` style and default state.
@@ -211,7 +210,7 @@ impl Button {
     /// - `icon_l`: An optional icon to display on the left side of the button.
     /// - `label`: The text displayed on the button.
     /// - `icon_r`: An optional icon to display on the right side of the button.
-    /// - `on_click`: A closure that defines the action when the button is clicked.
+    /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
     /// # Returns
     /// A `Button` with the `Secondary` style and default state.
@@ -242,7 +241,7 @@ impl Button {
     /// # Parameters
     /// - `ctx`: The current context, used for accessing themes and UI elements.
     /// - `label`: The text displayed on the button.
-    /// - `on_click`: A closure that defines the action when the button is clicked.
+    /// - `on_click` A closure that will be executed when the button is clicked.
     ///
     /// # Returns
     /// A `Button` with the `Ghost` style and default state.
@@ -301,7 +300,7 @@ impl Button {
     /// - `ctx`: The current context, used for accessing themes and UI elements.
     /// - `label`: The text displayed on the button.
     /// - `icon`: An optional icon displayed on the button.
-    /// - `on_click`: A closure that defines the action when the button is clicked.
+    /// - `on_click` A closure that will be executed when the button is clicked.
     ///
     /// # Returns
     /// A `Button` with the `Ghost` style and default state.
@@ -333,7 +332,7 @@ impl Button {
     /// - `icon`: The icon to display on the button.
     /// - `label`: The text displayed on the button.
     /// - `selected`: A flag that determines if the button should be in the selected state.
-    /// - `on_click`: A closure that defines the action when the button is clicked.
+    /// - `on_click` A closure that will be executed when the button is clicked.
     ///
     /// # Returns
     /// A `Button` with the `Ghost` style and either the `Selected` or `Default` state.
@@ -366,7 +365,7 @@ impl Button {
     /// - `label`: The text displayed on the button.
     /// - `photo`: The photo or avatar content for the button.
     /// - `selected`: A flag that determines if the button should be in the pressed state.
-    /// - `on_click`: A closure that defines the action when the button is clicked.
+    /// - `on_click` A closure that will be executed when the button is clicked.
     ///
     /// # Returns
     /// A `Button` with the `Ghost` style and either the `Pressed` or `Default` state.
@@ -397,7 +396,7 @@ impl Button {
     /// # Parameters
     /// - `ctx`: The current context, used for accessing themes and UI elements.
     /// - `label`: The text displayed on the button.
-    /// - `on_click`: A closure that defines the action when the button is clicked.
+    /// - `on_click` A closure that will be executed when the button is clicked.
     ///
     /// # Returns
     /// A `Button` with the `Secondary` style and default state.

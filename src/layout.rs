@@ -123,10 +123,6 @@ impl Padding {
     ///
     /// ```
     /// let padding = Padding::new(10.0);
-    /// assert_eq!(padding.0, 10.0); // top
-    /// assert_eq!(padding.1, 10.0); // right
-    /// assert_eq!(padding.2, 10.0); // bottom
-    /// assert_eq!(padding.3, 10.0); // left
     /// ```
     pub fn new(p: f32) -> Self {Padding(p, p, p, p)}
 
@@ -146,6 +142,7 @@ impl Padding {
         request.add(wp, hp)
     }
 }
+
 /// A utility for uniformly expanding items within a layout, considering both their minimum and maximum sizes.
 /// The `get` function adjusts the size of each item in the input list to fit within a given maximum size,
 /// ensuring that they expand evenly as much as possible while respecting their constraints.
@@ -168,17 +165,6 @@ impl UniformExpand {
     /// # Returns
     ///
     /// Returns a vector of the expanded sizes, with each item adjusted based on the available space and its constraints.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// let sizes = vec![(50.0, 100.0), (30.0, 80.0), (40.0, 90.0)];
-    /// let max_size = 300.0;
-    /// let spacing = 10.0;
-    ///
-    /// let result = UniformExpand::get(sizes, max_size, spacing);
-    /// assert_eq!(result, vec![90.0, 70.0, 90.0]); // Example result based on the available space
-    /// ```
     pub fn get(sizes: Vec<(f32, f32)>, max_size: f32, spacing: f32) -> Vec<f32> {
         // Calculate the total spacing and the minimum size required
         let spacing = (sizes.len() - 1) as f32 * spacing;

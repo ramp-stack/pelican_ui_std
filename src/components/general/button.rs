@@ -11,7 +11,7 @@ pub use icon::{IconButton, IconButtonRow};
 /// Represents the style of a button.
 ///
 /// The `ButtonStyle` enum defines different styles for buttons in the UI. Each style is
-/// meant to be used in specific scenarios (e.g., primary button, secondary button, or ghost button).
+/// meant to be used in specific scenarios.
 #[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]
 pub enum ButtonStyle {
     /// A standard button style that is most often used for main actions.

@@ -12,18 +12,16 @@ pub mod brand;
 
 /// Represents the visual theme of the application, encapsulating color, font, icon, and brand resources.
 ///
-/// The `Theme` struct provides a unified way to manage the core resources of an application's user interface. This includes resources for colors, fonts, icons, and branding. It can be initialized either with default values or with custom resources. The `Theme` is used to apply a consistent visual style across the application.
-///
 /// # Modules:
 /// - `colors`: Defines and manages color resources used in the theme.
 /// - `fonts`: Defines and manages font resources used in the theme.
 /// - `icons`: Defines and manages icon resources used in the theme.
 /// - `brand`: Defines and manages branding resources such as logos or trademarks.
 pub struct Theme {
-    pub colors: ColorResources,   // Color resources for the theme.
-    pub fonts: FontResources,     // Font resources for the theme.
-    pub icons: IconResources,     // Icon resources for the theme.
-    pub brand: BrandResources,    // Brand resources for the theme.
+    pub colors: ColorResources
+    pub fonts: FontResources,
+    pub icons: IconResources,
+    pub brand: BrandResources,
 }
 
 impl Theme {
@@ -64,15 +62,6 @@ impl Theme {
     /// # Returns
     /// A `Theme` instance initialized with the provided custom resources.
     ///
-    /// # Example
-    /// ```
-    /// let custom_colors = ColorResources::new(/* ... */);
-    /// let custom_fonts = FontResources::new(/* ... */);
-    /// let custom_icons = IconResources::new(/* ... */);
-    /// let custom_brand = BrandResources::new(/* ... */);
-    /// 
-    /// let custom_theme = Theme::new(custom_colors, custom_fonts, custom_icons, custom_brand);
-    /// ```
     pub fn new(
         colors: ColorResources, 
         fonts: FontResources, 

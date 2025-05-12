@@ -15,7 +15,7 @@
 Add Pelican UI to your `Cargo.toml`:
 
 [dependencies]
-pelican-ui = "1.0.1"
+pelican-ui = "1.0.3"
 
 ## 📚 Documentation
 Full documentation is available at https://docs.rs/pelican-ui
