@@ -18,7 +18,7 @@ pub mod brand;
 /// - `icons`: Defines and manages icon resources used in the theme.
 /// - `brand`: Defines and manages branding resources such as logos or trademarks.
 pub struct Theme {
-    pub colors: ColorResources
+    pub colors: ColorResources,
     pub fonts: FontResources,
     pub icons: IconResources,
     pub brand: BrandResources,
