@@ -5,27 +5,54 @@ use crate::components::avatar::{Avatar, AvatarContent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size};
 use crate::PelicanUI;
 
+/// Represents the style or source of a message in the UI.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MessageType {
+    /// A message sent by the current user (you).
     You,
+    /// A message received from a direct contact.
     Contact,
+    /// A message in a group chat.
     Group,
+    /// A message in a public room.
     Rooms,
 }
 
+/// Metadata for a user.
 #[derive(Debug, Clone)]
 pub struct Profile {
+    /// The display name of the user.
     pub name: &'static str,
+    /// The decentralized identity (did) of the user.
     pub nym: &'static str,
+    /// A short description written by the user.
     pub about: &'static str,
+    /// Avatar image or content representing the user.
     pub avatar: AvatarContent,
 }
 
+/// A UI component representing a chat message, including avatar and content.
 #[derive(Debug, Component)]
 pub struct Message(Row, Option<Avatar>, MessageContent);
+
 impl OnEvent for Message {}
 
 impl Message {
+    /// Constructs a new [`Message`] component with appropriate layout based on style.
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx` - The UI context.
+    /// * `style` - The [`MessageType`] indicating sender type and alignment.
+    /// * `messages` - A list of message strings to display as bubbles.
+    /// * `sender` - The [`Profile`] of the message sender.
+    /// * `time` - A timestamp string to display with the message.
+    ///
+    /// # Behavior
+    ///
+    /// - `MessageType::You`: Right-aligned, no avatar.
+    /// - `MessageType::Rooms`: Left-aligned, avatar shown.
+    /// - Other types: Right-aligned, avatar shown.
     pub fn new(
         ctx: &mut Context,
         style: MessageType,
@@ -48,11 +75,11 @@ impl Message {
 }
 
 #[derive(Debug, Component)]
-pub struct MessageContent(Column, Option<MessageData>, MessageBubbles, Option<MessageData>);
+struct MessageContent(Column, Option<MessageData>, MessageBubbles, Option<MessageData>);
 impl OnEvent for MessageContent {}
 
 impl MessageContent {
-    pub fn new(
+    fn new(
         ctx: &mut Context,
         style: MessageType,
         messages: Vec<&'static str>,
@@ -83,11 +110,11 @@ impl MessageContent {
 }
 
 #[derive(Debug, Component)]
-pub struct MessageData(Row, Text, Option<Text>, Text);
+struct MessageData(Row, Text, Option<Text>, Text);
 impl OnEvent for MessageData {}
 
 impl MessageData {
-    pub fn new(
+    fn new(
         ctx: &mut Context,
         style: MessageType,
         name: &'static str,
@@ -109,11 +136,11 @@ impl MessageData {
 
 
 #[derive(Debug, Component)]
-pub struct MessageBubbles(Column, Vec<MessageBubble>);
+struct MessageBubbles(Column, Vec<MessageBubble>);
 impl OnEvent for MessageBubbles {}
 
 impl MessageBubbles {
-    pub fn new(
+    fn new(
         ctx: &mut Context,
         messages: Vec<&'static str>,
         style: MessageType,
@@ -124,11 +151,11 @@ impl MessageBubbles {
 }
 
 #[derive(Debug, Component)]
-pub struct MessageBubble(Stack, RoundedRectangle, Text);
+struct MessageBubble(Stack, RoundedRectangle, Text);
 impl OnEvent for MessageBubble {}
 
 impl MessageBubble {
-    pub fn new(
+    fn new(
         ctx: &mut Context,
         message: &'static str,
         style: MessageType,

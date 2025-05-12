@@ -1,13 +1,23 @@
-/// A modular UI system for managing minimalistic components, themes, pages, and navigation in a Rust-based application.
+#![doc(html_logo_url = "https://raw.githubusercontent.com/ramp-stack/pelican_ui/logo.png")]
+
+/// A UI system for managing minimalistic components, themes, pages, and navigation in a Rust-based application.
 ///
 /// This system supports preset UI components, theme management, page navigation, and interaction with UI components,
 /// and it includes platform-specific functionality for iOS haptic feedback.
+
+/// Modular for Pelican UI specific events
 pub mod events;
+/// Modular for config
 pub mod config;
+/// Modular for UI theme (fonts, icons, colors, etc.)
 pub mod theme;
+/// Modular for UI layouts (rows, columns, stacks, etc.)
 pub mod layout;
+/// Modular for UI primitive elements (text, images, shapes, etc.)
 pub mod elements;
+/// Modular for UI components
 pub mod components;
+/// Modular for interface
 pub mod interface;
 
 use rust_on_rails::prelude::*;
@@ -53,13 +63,13 @@ impl Plugin for PelicanUI {
     }
 }
 
-/// A trait representing a page in the application.
+/// A trait representing a page in an application.
 ///
 /// This trait extends `Drawable` and `Debug`, which means any type that implements `AppPage` must
 /// be drawable and must support debugging output.
 pub trait AppPage: Drawable + std::fmt::Debug + 'static {}
 
-/// A trait representing the flow of the application.
+/// A trait representing a flow in an application.
 ///
 /// This trait is used to navigate between pages, with the ability to get the current page and trigger page navigation.
 pub trait AppFlow: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static {

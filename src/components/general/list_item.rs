@@ -8,11 +8,32 @@ use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
 use crate::layout::{Column, Stack, Row, Wrap, Padding, Offset, Size};
 use crate::{PelicanUI, ElementID};
 
-
+/// A List Item with various customizable components, such as a title, subtitle, description, 
+/// and other UI elements like a radio button or a circle icon. The item can be interacted with, triggering 
+/// a callback when clicked.
 #[derive(Component)]
 pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] Option<ElementID>);
 
 impl ListItem {
+    /// Creates a new `ListItem` with the specified attributes, including text content, a callback for 
+    /// interactions, and an optional element ID.
+    ///
+    /// # Parameters
+    /// - `ctx`: The context of the UI environment.
+    /// - `caret`: Whether to show a caret icon.
+    /// - `title`: The title displayed on the list item.
+    /// - `flair`: Optional flair text and associated color for the list item.
+    /// - `subtitle`: Optional subtitle text for additional context.
+    /// - `description`: Optional description displayed on the list item.
+    /// - `right_title`: Optional title to be displayed on the right side of the item.
+    /// - `right_subtitle`: Optional subtitle on the right side.
+    /// - `radio_button`: Optional boolean indicating whether the item has a radio button.
+    /// - `circle_icon`: Optional avatar content to be shown as a circle icon.
+    /// - `element_id`: Optional unique identifier for the item.
+    /// - `on_click`: A callback function that gets triggered when the item is clicked.
+    ///
+    /// # Returns
+    /// A new instance of `ListItem` configured with the provided parameters.
     pub fn new(
         ctx: &mut Context,
         caret: bool,
@@ -70,16 +91,16 @@ impl OnEvent for ListItem {
 
 impl std::fmt::Debug for ListItem {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "ListItem(...)")
+        write!(f, "ListItem")
     }
 }
 
 #[derive(Debug, Component)]
-pub struct ListItemContent(Row, Option<RadioButton>, Option<Avatar>, ListItemData, Option<Image>);
+struct ListItemContent(Row, Option<RadioButton>, Option<Avatar>, ListItemData, Option<Image>);
 impl OnEvent for ListItemContent {}
 
 impl ListItemContent {
-    pub fn new(
+    fn new(
         ctx: &mut Context,
         caret: bool,
         title: &'static str,
@@ -107,29 +128,29 @@ struct RadioButton(Row, Image);
 impl OnEvent for RadioButton {}
 
 impl RadioButton {
-    pub fn new(ctx: &mut Context, is_enabled: bool) -> Self {
+    fn new(ctx: &mut Context, is_enabled: bool) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.text.heading;
         let icon = if is_enabled { "radio_filled" } else { "radio"};
         RadioButton(Row::center(0.0), Icon::new(ctx, icon, color, 32.0))
     }
 
-    pub fn select(&mut self, ctx: &mut Context) {
+    fn select(&mut self, ctx: &mut Context) {
         let color = ctx.get::<PelicanUI>().theme.colors.text.heading;
         self.1 =  Icon::new(ctx, "radio_filled", color, 32.0);
     }
 
-    pub fn deselect(&mut self, ctx: &mut Context) {
+    fn deselect(&mut self, ctx: &mut Context) {
         let color = ctx.get::<PelicanUI>().theme.colors.text.heading;
         self.1 =  Icon::new(ctx, "radio", color, 32.0);
     }
 }
 
 #[derive(Debug, Component)]
-struct ListItemData(pub Row, pub LeftData, pub Option<RightData>);
+struct ListItemData(Row, LeftData, Option<RightData>);
 impl OnEvent for ListItemData {}
 
 impl ListItemData {
-    pub fn new(
+    fn new(
         ctx: &mut Context,
         title: &'static str,
         flair: Option<(&'static str, Color)>,
@@ -150,7 +171,7 @@ struct TitleRow(Row, Text, Option<Image>);
 impl OnEvent for TitleRow {}
 
 impl TitleRow {
-    pub fn new(ctx: &mut Context, title: &'static str, flair: Option<(&'static str, Color)>) -> Self {
+    fn new(ctx: &mut Context, title: &'static str, flair: Option<(&'static str, Color)>) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
         TitleRow(
             Row(8.0, Offset::Start, Size::Fit, Padding::default()),
@@ -161,7 +182,7 @@ impl TitleRow {
 }
 
 #[derive(Debug, Component)]
-struct LeftData(pub Column, pub TitleRow, pub Option<Text>, pub Option<Text>);
+struct LeftData(Column, TitleRow, Option<Text>, Option<Text>);
 impl OnEvent for LeftData {}
 
 impl LeftData {
@@ -204,6 +225,7 @@ impl RightData {
 }
 
 impl ListItem {
+    /// Creates a list item for a group text message member.
     pub fn contact(
         ctx: &mut Context,
         data: AvatarContent,
@@ -214,6 +236,8 @@ impl ListItem {
         ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), None, on_click)
     }
 
+    /// Creates a list item for a text message recipient selector.
+    /// This method also triggers the `AddContactEvent` when clicked.
     pub fn recipient(
         ctx: &mut Context,
         data: AvatarContent,
@@ -226,6 +250,8 @@ impl ListItem {
         )
     }
 
+    /// Creates a list item for a direct message.
+    /// Displays the most recent message along with the avatar and user details.
     pub fn direct_message(
         ctx: &mut Context,
         data: AvatarContent,
@@ -236,6 +262,8 @@ impl ListItem {
         ListItem::new(ctx, true, name, None, Some(recent), None, None, None, None, Some(data), None, on_click)
     }
 
+    /// Creates a list item for a group message.
+    /// Displays the names of the group members as the description.
     pub fn group_message(
         ctx: &mut Context,
         names: Vec<&'static str>,
@@ -246,6 +274,8 @@ impl ListItem {
         ListItem::new(ctx, true, "Group Message", None, None, Some(description), None, None, None, Some(avatar), None, on_click)
     }
 
+    /// Creates a list item for a public room.
+    /// Displays room details, including member count and description.
     pub fn room(
         ctx: &mut Context,
         data: AvatarContent,
@@ -257,6 +287,8 @@ impl ListItem {
         ListItem::new(ctx, true, name, None, Some(members), Some(description), None, None, None, Some(data), None, on_click)
     }
 
+    /// Creates a list item for a completed Bitcoin transaction.
+    /// Displays whether Bitcoin was received or sent, along with the transaction's USD value and date.
     pub fn bitcoin(
         ctx: &mut Context,
         is_received: bool,
@@ -269,6 +301,8 @@ impl ListItem {
         ListItem::new(ctx, true, title, None, Some(date), None, Some(usd), Some("Details"), None, None, None, on_click)
     }
 
+    /// Creates a list item for a Bitcoin transaction still in the process of sending.
+    /// Displays USD and BTC values, along with a warning flair to indicate the sending status.
     pub fn bitcoin_sending(
         ctx: &mut Context,
         usd: f32,
@@ -278,11 +312,13 @@ impl ListItem {
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.status.warning;
         let flair = ("warning", color);
-        let usd =  Box::leak(format!("${:.2}", usd).into_boxed_str());
-        let btc =  Box::leak(format!("${:.8} BTC", btc).into_boxed_str());
+        let usd = Box::leak(format!("${:.2}", usd).into_boxed_str());
+        let btc = Box::leak(format!("${:.8} BTC", btc).into_boxed_str());
         ListItem::new(ctx, true, "Sending Bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, None, on_click)
     }
 
+    /// Creates a list item for a radio selection.
+    /// Displays a title, subtitle, and description, and supports a selected state.
     pub fn selection(
         ctx: &mut Context,
         selected: bool,
@@ -294,20 +330,50 @@ impl ListItem {
         ListItem::new(ctx, false, title, None, Some(subtitle), Some(description), None, None, Some(selected), None, Some(ElementID::new()), on_click)
     }
 }
-
+/// A component representing a radio-style list item selector with multiple options.
 #[derive(Debug, Component)]
-pub struct ListItemSelector(Column, ListItem, ListItem, Option<ListItem>, Option<ListItem>);
+pub struct ListItemSelector(
+    Column,       // The layout column for organizing the items vertically.
+    ListItem,     // The first list item (selected).
+    ListItem,     // The second list item (unselected).
+    Option<ListItem>,  // The third list item (optional, unselected).
+    Option<ListItem>,  // The fourth list item (optional, unselected).
+);
+
 impl OnEvent for ListItemSelector {}
 
 impl ListItemSelector {
+    /// Creates a new `ListItemSelector` with four selectable list items, where the first item is selected by default.
+    ///
+    /// # Parameters:
+    /// - `ctx`: A mutable reference to the `Context` for handling events.
+    /// - `first`: A tuple containing the title, subtitle, and description for the first list item (selected).
+    /// - `second`: A tuple containing the title, subtitle, and description for the second list item (unselected).
+    /// - `third`: An optional tuple containing the title, subtitle, and description for the third list item (unselected).
+    /// - `fourth`: An optional tuple containing the title, subtitle, and description for the fourth list item (unselected).
+    ///
+    /// # Returns:
+    /// A new `ListItemSelector` component, containing the provided list items in a vertical column.
+    ///
+    /// # Example:
+    /// ```
+    /// let selector = ListItemSelector::new(
+    ///     ctx,
+    ///     ("Option 1", "Description 1", "This is the first option"),
+    ///     ("Option 2", "Description 2", "This is the second option"),
+    ///     Some(("Option 3", "Description 3", "This is the third option")),
+    ///     Some(("Option 4", "Description 4", "This is the fourth option"))
+    /// );
+    /// ```
     pub fn new(
         ctx: &mut Context, 
-        first: (&'static str, &'static str, &'static str), //title,subtitle,description
+        first: (&'static str, &'static str, &'static str), // title, subtitle, description
         second: (&'static str, &'static str, &'static str), 
         third: Option<(&'static str, &'static str, &'static str)>, 
         fourth: Option<(&'static str, &'static str, &'static str)>
     ) -> Self {
-        ListItemSelector(Column::center(0.0), 
+        ListItemSelector(
+            Column::center(0.0), 
             ListItem::selection(ctx, true, first.0, first.1, first.2, |_: &mut Context| ()),
             ListItem::selection(ctx, false, second.0, second.1, second.2, |_: &mut Context| ()),
             third.map(|third| ListItem::selection(ctx, false, third.0, third.1, third.2, |_: &mut Context| ())),
@@ -316,14 +382,31 @@ impl ListItemSelector {
     }
 }
 
+/// A component for quickly deselecting items (contacts) in a list.
 #[derive(Debug, Component)]
 pub struct QuickDeselect(Column, Option<QuickDeselectContent>, ListItemGroup);
 
 impl QuickDeselect {
+    /// Creates a new `QuickDeselect` component with a group of selectable list items.
+    ///
+    /// # Parameters:
+    /// - `list_items`: A vector of `ListItem` components that represent the contacts or items in the selector.
+    ///
+    /// # Returns:
+    /// A new `QuickDeselect` component containing the provided list items, organized in a vertical column.
+    ///
+    /// # Example:
+    /// ```
+    /// let deselect = QuickDeselect::new(vec![
+    ///     ListItem::contact(ctx, avatar_data, "John Doe", "john_doe_nym", on_click_handler),
+    ///     ListItem::contact(ctx, avatar_data, "Jane Doe", "jane_doe_nym", on_click_handler),
+    /// ]);
+    /// ```
     pub fn new(list_items: Vec<ListItem>) -> Self {
         QuickDeselect(
             Column::new(24.0, Offset::Start, Size::Fit, Padding::default()), 
-            None, ListItemGroup::new(list_items)
+            None, 
+            ListItemGroup::new(list_items)
         )
     }
 }
@@ -351,6 +434,18 @@ impl OnEvent for QuickDeselect {
     }
 }
 
+#[derive(Debug, Component)]
+struct QuickDeselectContent(Wrap, Vec<QuickDeselectButton>);
+impl OnEvent for QuickDeselectContent {}
+
+impl QuickDeselectContent {
+    fn new(first: QuickDeselectButton) -> Self {
+        QuickDeselectContent(
+            Wrap(8.0, 8.0, Offset::Start, Offset::Center, Padding::default()), 
+            vec![first],
+        )
+    }
+}
 
 #[derive(Debug, Component)]
 pub struct ListItemGroup(Column, Vec<ListItem>);
@@ -359,18 +454,5 @@ impl OnEvent for ListItemGroup {}
 impl ListItemGroup {
     pub fn new(list_items: Vec<ListItem>) -> Self {
         ListItemGroup(Column::center(0.0), list_items)
-    }
-}
-
-#[derive(Debug, Component)]
-pub struct QuickDeselectContent(Wrap, Vec<QuickDeselectButton>);
-impl OnEvent for QuickDeselectContent {}
-
-impl QuickDeselectContent {
-    pub fn new(first: QuickDeselectButton) -> Self {
-        QuickDeselectContent(
-            Wrap(8.0, 8.0, Offset::Start, Offset::Center, Padding::default()), 
-            vec![first],
-        )
     }
 }

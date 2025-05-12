@@ -7,12 +7,23 @@ use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
 use crate::PelicanUI;
 
 use std::sync::mpsc::{self, Receiver};
-
-
+/// A labeled text input with optional help or error messages and an optional icon button.
 #[derive(Debug, Component)]
 pub struct TextInput(Column, Option<Text>, InputField, Option<Text>, Option<Text>);
 
 impl TextInput {
+    /// Creates a new [`TextInput`] component.
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx` - The UI context.
+    /// * `value` - An optional initial value for the input field.
+    /// * `label` - An optional label displayed above the input field.
+    /// * `placeholder` - Placeholder text displayed inside the input field.
+    /// * `help_text` - Optional help text shown below the input.
+    /// * `icon_button` - An optional icon button with label and callback function.
+    ///
+    /// If `help_text` is provided, it is shown by default. Use [`set_error`] to override it with an error.
     pub fn new(
         ctx: &mut Context,
         value: Option<&'static str>,
@@ -29,27 +40,38 @@ impl TextInput {
             InputField::new(ctx, value, placeholder, icon_button),
             help_text.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left)),
             None
-            // SubText::new(ctx, help_text)
         )
     }
 
+    /// Sets an error message to be displayed below the input field,
+    /// replacing any existing help text.
     pub fn set_error(&mut self, ctx: &mut Context, error: &'static str) {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
         self.4 = Some(Text::new(ctx, error, TextStyle::Error, font_size, Align::Left));
         self.3 = None;
     }
 
+    /// Sets help text to be displayed below the input field,
+    /// removing any currently displayed error message.
     pub fn set_help(&mut self, ctx: &mut Context, help: &'static str) {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
         self.3 = Some(Text::new(ctx, help, TextStyle::Secondary, font_size, Align::Left));
         self.4 = None;
     }
 
-    pub fn get_error(&mut self) -> &mut bool {self.2.error()}
-    pub fn get_value(&mut self) -> &mut String {self.2.input()}
+    /// Returns a mutable reference to the input field's error flag.
+    pub fn get_error(&mut self) -> &mut bool {
+        self.2.error()
+    }
+
+    /// Returns a mutable reference to the input field's string value.
+    pub fn get_value(&mut self) -> &mut String {
+        self.2.input()
+    }
 }
 
 impl OnEvent for TextInput {
+    /// Updates the error state during the UI's tick event.
     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
             *self.2.error() = self.4.is_some();
@@ -57,6 +79,7 @@ impl OnEvent for TextInput {
         true
     }
 }
+
 
 #[derive(Debug, Component)]
 struct InputField(Stack, OutlinedRectangle, InputContent, #[skip] InputState, #[skip] bool);
@@ -177,7 +200,7 @@ struct InputContent(
 );
 
 impl InputContent {
-    pub fn new(
+    fn new(
         ctx: &mut Context,
         value: Option<&'static str>,
         placeholder: &'static str,
@@ -207,8 +230,8 @@ impl InputContent {
         )
     }
 
-    pub fn text(&mut self) -> &mut ExpandableText { self.1.inner().left() }
-    pub fn focus(&mut self) -> &mut bool {&mut self.3}
+    fn text(&mut self) -> &mut ExpandableText { self.1.inner().left() }
+    fn focus(&mut self) -> &mut bool {&mut self.3}
 }
 
 impl OnEvent for InputContent {

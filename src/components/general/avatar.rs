@@ -4,6 +4,57 @@ use crate::elements::shapes::{Outline, Circle};
 use crate::layout::{Stack, Offset, Size, Row, Padding};
 use crate::PelicanUI;
 
+/// A UI component that represents a user avatar, which can be either an icon or an image.
+///
+/// The `Avatar` struct displays a user's avatar with support for both images and icons. 
+/// It can optionally include an outline and a flair icon (such as an 'edit' or 'block' icon). 
+/// The avatar can be customized with different sizes and styles.
+///
+/// The avatar is constructed from either an image or an icon, and it automatically handles 
+/// the layout and appearance based on the provided configuration, including size and flair.
+///
+/// # Example
+/// ```rust
+/// let avatar = Avatar::new(ctx, AvatarContent::Icon("profile", AvatarIconStyle::Secondary), 
+///     Some(("edit", AvatarIconStyle::Secondary)), true, 48.0);
+/// ```
+#[derive(Debug, Component)]
+pub struct Avatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>, Option<Flair>);
+impl OnEvent for Avatar {}
+
+impl Avatar {
+    /// Creates a new `Avatar` component.
+    ///
+    /// This function allows you to create an avatar using either an image or an icon. You can 
+    /// customize the appearance with a flair, outline, and size.
+    ///
+    /// # Parameters:
+    /// - **`ctx`**: The current context, used for accessing themes and UI elements.
+    /// - **`content`**: The content of the avatar, which can either be an image or an icon.
+    /// - **`flair`**: An optional tuple containing the name and style of the flair to be added to the avatar.
+    /// - **`outline`**: A boolean flag to indicate whether the avatar should have a circular outline.
+    /// - **`size`**: The size of the avatar.
+    ///
+    /// # Returns:
+    /// A newly created `Avatar` component.
+    pub fn new(ctx: &mut Context, content: AvatarContent, flair: Option<(&'static str, AvatarIconStyle)>, outline: bool, size: f32) -> Self {
+        let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
+
+        let (circle_icon, image) = match content {
+            AvatarContent::Image(image) => (None, Some(Image{shape: ShapeType::Ellipse(0.0, (size, size)), image, color: None})),
+            AvatarContent::Icon(name, style) => (Some(AvatarIcon::new(ctx, name, style, size)), None)
+        };
+
+        Avatar(
+            Stack(Offset::End, Offset::End, Size::Fit, Size::Fit, Padding::default()),
+            circle_icon,
+            image,
+            outline.then(|| Outline::circle(size, black)),
+            flair.map(|(name, style)| Flair::new(ctx, name, style, size / 3.0))
+        )
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum AvatarContent {
     Icon(&'static str, AvatarIconStyle),
@@ -34,28 +85,6 @@ impl AvatarIconStyle {
     }
 }
 
-#[derive(Debug, Component)]
-pub struct Avatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>, Option<Flair>);
-impl OnEvent for Avatar {}
-
-impl Avatar {
-    pub fn new(ctx: &mut Context, content: AvatarContent, flair: Option<(&'static str, AvatarIconStyle)>, outline: bool, size: f32) -> Self {
-        let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
-
-        let (circle_icon, image) = match content {
-            AvatarContent::Image(image) => (None, Some(Image{shape: ShapeType::Ellipse(0.0, (size, size)), image, color: None})),
-            AvatarContent::Icon(name, style) => (Some(AvatarIcon::new(ctx, name, style, size)), None)
-        };
-
-        Avatar(
-            Stack(Offset::End, Offset::End, Size::Fit, Size::Fit, Padding::default()),
-            circle_icon,
-            image,
-            outline.then(|| Outline::circle(size, black)),
-            flair.map(|(name, style)| Flair::new(ctx, name, style, size / 3.0))
-        )
-    }
-}
 
 #[derive(Debug, Component)]
 struct AvatarIcon(Stack, Shape, Image);

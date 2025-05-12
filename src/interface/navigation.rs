@@ -54,8 +54,6 @@ impl OnEvent for MobileNavigator {
     }
 }
 
-
-
 #[derive(Debug, Component)]
 pub struct DesktopNavigator(Column, Image, ButtonColumn, Bin<Stack, Rectangle>, NavigationButton);
 
@@ -114,19 +112,19 @@ impl OnEvent for DesktopNavigator {
 }
 
 #[derive(Debug, Component)]
-pub struct ButtonColumn(Column, Vec<NavigationButton>);
+struct ButtonColumn(Column, Vec<NavigationButton>);
 impl OnEvent for ButtonColumn {}
 
 impl ButtonColumn {
-    pub fn new(buttons: Vec<NavigationButton>) -> Self {
+    fn new(buttons: Vec<NavigationButton>) -> Self {
         ButtonColumn(Column::center(8.0), buttons)
     }
 
-    pub fn buttons(&mut self) -> &mut Vec<NavigationButton> {&mut self.1}
+    fn buttons(&mut self) -> &mut Vec<NavigationButton> {&mut self.1}
 }
 
 #[derive(Debug, Component)]
-pub struct NavigationButton(Stack, Option<Button>, Option<IconButton>, #[skip] ElementID);
+struct NavigationButton(Stack, Option<Button>, Option<IconButton>, #[skip] ElementID);
 impl OnEvent for NavigationButton {}
 
 impl NavigationButton {
@@ -230,7 +228,6 @@ impl HeaderIcon {
     }
 }
 
-
 #[derive(Debug, Component)]
 pub struct Bumper (Stack, BumperContent);
 impl OnEvent for Bumper {}
@@ -259,11 +256,11 @@ impl Bumper {
 }
 
 #[derive(Debug, Component)]
-pub struct BumperContent (Row, Vec<Box<dyn Drawable>>);
+struct BumperContent (Row, Vec<Box<dyn Drawable>>);
 impl OnEvent for BumperContent {}
 
 impl BumperContent {
-    pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
+    fn new(content: Vec<Box<dyn Drawable>>) -> Self {
         BumperContent(Row::center(16.0), content)
     }
 }

@@ -4,18 +4,27 @@ use crate::layout::{Stack, Offset, Size, Padding, Opt};
 use crate::elements::shapes::Rectangle;
 use crate::PelicanUI;
 
+/// Enumeration of text styles used in the UI.
 #[derive(Clone, Copy, Debug)]
 pub enum TextStyle {
+    /// Represents the heading or title text style. Used for prominent titles or section headers.
     Heading,
+    /// Represents the primary body text style. Typically used for main content text.
     Primary,
+    /// Represents the secondary text style. Used for secondary or less prominent content.
     Secondary,
+    /// Represents the error text style. Often used to indicate error messages or alerts.
     Error,
+    /// Represents the white text style. Used when white-colored text is needed.
     White,
+    /// Represents the keyboard text style. Used for the keyboard key/label text.
     Keyboard,
+    /// Represents a label text style with a custom color. The `Color` parameter allows customization of the text color.
     Label(Color),
 }
 
 impl TextStyle {
+    /// Retrieves the color and font associated with the `TextStyle`.
     pub fn get(&self, ctx: &mut Context) -> (Color, resources::Font) {
         let theme = &ctx.get::<PelicanUI>().theme;
         match self {
@@ -30,10 +39,14 @@ impl TextStyle {
     }
 }
 
+/// Component representing a text cursor.
 #[derive(Component, Debug)]
 pub struct TextCursor(Stack, Opt<Rectangle>);
+
 impl OnEvent for TextCursor {}
+
 impl TextCursor {
+    /// Creates a new `TextCursor` with the specified style and size.
     pub fn new(ctx: &mut Context, style: TextStyle, size: f32) -> Self {
         let (color, _) = style.get(ctx);
         TextCursor(
@@ -42,21 +55,29 @@ impl TextCursor {
         )
     }
 
-    pub fn display(&mut self, display: bool) {self.1.display(display)}
-    pub fn x_offset(&mut self) -> &mut Offset {&mut self.0.0}
-    pub fn y_offset(&mut self) -> &mut Offset {&mut self.0.1}
+    /// Displays or hides the cursor.
+    pub fn display(&mut self, display: bool) { self.1.display(display) }
+
+    /// Returns the X offset of the cursor.
+    pub fn x_offset(&mut self) -> &mut Offset { &mut self.0.0 }
+
+    /// Returns the Y offset of the cursor.
+    pub fn y_offset(&mut self) -> &mut Offset { &mut self.0.1 }
 }
 
+/// Component representing a text element, with or without a cursor.
 #[derive(Component, Debug)]
 pub struct Text(Stack, BasicText, Option<TextCursor>);
 
 impl Text {
+    /// Creates a new `Text` component with the given text, style, size, and alignment.
     pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
         let text = BasicText::new(vec![Span::new(text, size, size*1.25, font, color)], None, align, None);
         Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text, None)
     }
 
+    /// Creates a new `Text` component with a cursor, along with the given text, style, size, and alignment.
     pub fn new_with_cursor(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
         let text = BasicText::new(vec![Span::new(text, size, size*1.25, font, color)], None, align, Some(Cursor::default()));
@@ -66,17 +87,19 @@ impl Text {
         )
     }
 
-    pub fn text(&mut self) -> &mut BasicText {&mut self.1}
-    pub fn cursor(&mut self) -> &mut Option<TextCursor> {&mut self.2}
+    /// Returns a mutable reference to the `BasicText` of the `Text` component.
+    pub fn text(&mut self) -> &mut BasicText { &mut self.1 }
+
+    /// Returns a mutable reference to the `TextCursor` (if any) of the `Text` component.
+    pub fn cursor(&mut self) -> &mut Option<TextCursor> { &mut self.2 }
 }
 
-
 impl OnEvent for Text {
+    /// Handles events, such as cursor movements or mouse clicks, for the `Text` component.
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(cursor) = &mut self.2 {
             if let Some(_) = event.downcast_ref::<TickEvent>() {
                 if let Some(cords) = self.1.cursor_action(ctx.as_canvas(), CursorAction::GetPosition) {
-                    // println!("Got position: {:?}", cords);
                     *cursor.x_offset() = Offset::Static(cords.0);
                     *cursor.y_offset() = Offset::Static(cords.1-(self.1.spans[0].line_height/1.2));
                 }
@@ -91,30 +114,39 @@ impl OnEvent for Text {
     }
 }
 
+/// Component representing a text element that can expand based on its content.
 #[derive(Debug)]
 pub struct ExpandableText(pub Text);
 
 impl ExpandableText {
+    /// Creates a new `ExpandableText` component with the given text, style, size, and alignment.
     pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
         ExpandableText(Text::new(ctx, text, style, size, align))
     }
 
+    /// Creates a new `ExpandableText` component with a cursor, along with the given text, style, size, and alignment.
     pub fn new_with_cursor(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
         ExpandableText(Text::new_with_cursor(ctx, text, style, size, align))
     }
 
-    pub fn text(&mut self) -> &mut BasicText {self.0.text()}
-    pub fn cursor(&mut self) -> &mut Option<TextCursor> {self.0.cursor()}
+    /// Returns a mutable reference to the `BasicText` of the `ExpandableText` component.
+    pub fn text(&mut self) -> &mut BasicText { self.0.text() }
+
+    /// Returns a mutable reference to the `TextCursor` (if any) of the `ExpandableText` component.
+    pub fn cursor(&mut self) -> &mut Option<TextCursor> { self.0.cursor() }
 }
+
 impl OnEvent for ExpandableText {}
 
 impl Component for ExpandableText {
-    fn children_mut(&mut self) -> Vec<&mut dyn Drawable> {vec![&mut self.0]}
-    fn children(&self) -> Vec<&dyn Drawable> {vec![&self.0]}
+    fn children_mut(&mut self) -> Vec<&mut dyn Drawable> { vec![&mut self.0] }
+    fn children(&self) -> Vec<&dyn Drawable> { vec![&self.0] }
+
     fn request_size(&self, ctx: &mut Context, _children: Vec<SizeRequest>) -> SizeRequest {
         let max_height = self.0.1.size(ctx).1;
         SizeRequest::new(0.0, 0.0, f32::MAX, max_height)
     }
+
     fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
         self.0.text().width = Some(size.0);
         vec![Area{offset: (0.0, 0.0), size}]

@@ -6,9 +6,36 @@ use crate::components::button::ButtonState;
 use crate::layout::{Column, Stack, Bin, Padding, Offset, Size};
 use crate::PelicanUI;
 
+/// Represents a `Card` component, often used for marketing or promoting content.
+/// 
+/// A `Card` is a UI element commonly used to display information with visual hierarchy. It typically
+/// includes elements like an avatar, title, subtitle, description, and a button to trigger actions
+/// like clicks for more information. The card is styled with a background and an outline, and has
+/// an on-click callback for interaction.
 #[derive(Debug, Component)]
 pub struct Card(Stack, OutlinedRectangle, CardContent, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
 impl Card {
+    /// Creates a new `Card` component.
+    ///
+    /// This method constructs a new card with an avatar, title, subtitle, description, and an
+    /// `on_click` callback. The card is styled with a background color and an outline, and is laid out
+    /// using a stack arrangement. This card can be used to promote or market content in a UI.
+    ///
+    /// # Parameters:
+    /// - **`ctx`**: The current context, used to access the theme and colors.
+    /// - **`avatar`**: The avatar content to display in the card (can be an image or icon).
+    /// - **`title`**: The main title for the card (usually displayed prominently).
+    /// - **`subtitle`**: A secondary title or tagline that provides more context.
+    /// - **`description`**: A longer description or information about the content being promoted.
+    /// - **`on_click`**: A function that will be executed when the card is clicked.
+    ///
+    /// # Returns:
+    /// - **`Card`**: The constructed `Card` component.
+    ///
+    /// # Example:
+    /// ```rust
+    /// let card = Card::new(ctx, AvatarContent::Image(image), "My Title", "Subtitle", "This is a description", on_click_fn);
+    /// ```
     pub fn new(
         ctx: &mut Context,
         avatar: AvatarContent, 
@@ -47,7 +74,7 @@ impl OnEvent for Card {
 }
 
 #[derive(Debug, Component)]
-pub struct CardContent(Column, Avatar, Text, Text, Bin<Stack, Rectangle>, Text);
+struct CardContent(Column, Avatar, Text, Text, Bin<Stack, Rectangle>, Text);
 impl OnEvent for CardContent {}
 
 impl CardContent {

@@ -5,11 +5,40 @@ use crate::components::button::Button;
 use crate::layout::{Column, Row, Stack, Padding, Offset, Size};
 use crate::PelicanUI;
 
+/// Represents a `DataItem` component, which displays a row of data with an optional number,
+/// label, text, secondary text, a table, and quick actions. This is useful for displaying a
+/// structured list of information in a UI, such as settings, items, or metadata.
 #[derive(Debug, Component)]
 pub struct DataItem(Row, Option<Number>, DataItemContent);
 impl OnEvent for DataItem {}
 
 impl DataItem {
+    /// Creates a new `DataItem` component.
+    ///
+    /// This method constructs a new `DataItem` with a number, label, optional text, secondary text,
+    /// a table of key-value pairs, and quick actions that can be performed on the item (buttons).
+    /// The layout is handled in a row format, with the number displayed on the left and the content to
+    /// the right.
+    ///
+    /// # Parameters:
+    /// - **`ctx`**: The current context, used to access the theme and other resources.
+    /// - **`number`**: An optional static string representing a number associated with the item (e.g., a count or value).
+    /// - **`label`**: The main label that represents the data item (e.g., the name of the item).
+    /// - **`text`**: An optional string representing additional text to display alongside the label.
+    /// - **`secondary`**: An optional string for secondary text to display under the label or text.
+    /// - **`table`**: An optional vector of tuples, each containing a pair of static strings, which can represent a table of key-value pairs.
+    /// - **`quick_actions`**: An optional vector of `Button` components representing actions that can be performed on the data item (e.g., buttons for editing, deleting, etc.).
+    ///
+    /// # Returns:
+    /// - **`DataItem`**: The constructed `DataItem` component, ready for display.
+    ///
+    /// # Example:
+    /// ```rust
+    /// let quick_actions = vec![Button::new(ctx, "Edit"), Button::new(ctx, "Delete")];
+    /// let table = vec![("Key1", "Value1"), ("Key2", "Value2")];
+    /// let data_item = DataItem::new(ctx, Some("123"), "Item Label", Some("Some additional text"), 
+    ///                               Some("Secondary Text"), Some(table), Some(quick_actions));
+    /// ```
     pub fn new(
         ctx: &mut Context,
         number: Option<&'static str>,

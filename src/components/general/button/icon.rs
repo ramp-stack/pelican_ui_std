@@ -5,17 +5,24 @@ use crate::layout::{Offset, Padding, Size, Row, Stack};
 
 use super::{ButtonSize, ButtonState, ButtonStyle};
 
+/// The `IconButton` is a type of button that contains an icon instead of a label. It can have different styles, sizes, and states.
+/// It can be used to represent actions like "play", "pause", or any action that requires an icon.
 #[derive(Component)]
-pub struct IconButton(
-        Stack, 
-        OutlinedRectangle, 
-        Image,
-        #[skip] ButtonStyle,
-        #[skip] ButtonState,
-        #[skip] pub Box<dyn FnMut(&mut Context)>,
-);
+pub struct IconButton(Stack, OutlinedRectangle, Image, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>);
 
 impl IconButton {
+    /// Creates a new `IconButton` with specified parameters.
+    ///
+    /// # Parameters
+    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `icon`: A string representing the icon (e.g., a file name or path to an image).
+    /// - `size`: The size of the button (either large or medium).
+    /// - `style`: The style of the button. secondary or ghost. (primary is not supported).
+    /// - `state`: The initial state of the button (e.g., default, hover, pressed).
+    /// - `on_click`: A closure that will be executed when the button is clicked.
+    ///
+    /// # Returns
+    /// A new `IconButton` instance configured with the given parameters.
     pub fn new(
         ctx: &mut Context,
         icon: &'static str,
@@ -43,6 +50,14 @@ impl IconButton {
         )
     }
 
+    /// Updates the colors of the `IconButton` based on the button's state.
+    ///
+    /// # Parameters
+    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `state`: The state that will determine the button's colors.
+    ///
+    /// # Description
+    /// This method updates the background, outline, and label colors of the button depending on its current state.
     pub fn color(&mut self, ctx: &mut Context, state: ButtonState) {
         let colors = state.color(ctx, self.3);
         *self.1.background() = colors.background;
@@ -50,6 +65,10 @@ impl IconButton {
         self.2.color = Some(colors.label);
     }
 
+    /// Returns a mutable reference to the `ButtonState` of the button.
+    ///
+    /// # Returns
+    /// - A mutable reference to the button's current state.
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
@@ -82,6 +101,15 @@ impl IconButtonRow {
 }
 
 impl IconButton {
+    /// Creates a new `IconButton` preset with a secondary style.
+    ///
+    /// # Parameters
+    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `icon`: The icon for the button, represented as a string (e.g., a file name or path).
+    /// - `on_click`: A closure that will be executed when the button is clicked.
+    ///
+    /// # Returns
+    /// - A new `IconButton` with a secondary style, large size, and default state.
     pub fn secondary(
         ctx: &mut Context, 
         icon: &'static str, 
@@ -97,7 +125,15 @@ impl IconButton {
         )
     }
 
-    // IconButton Preset for Input Fields
+    /// Creates a new `IconButton` preset for input fields.
+    ///
+    /// # Parameters
+    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `icon`: The icon for the button, represented as a string (e.g., a file name or path).
+    /// - `on_click`: A closure that will be executed when the button is clicked.
+    ///
+    /// # Returns
+    /// - A new `IconButton` with a secondary style, medium size, and default state.
     pub fn input(
         ctx: &mut Context, 
         icon: &'static str, 
@@ -113,7 +149,15 @@ impl IconButton {
         )
     }
 
-    // IconButton Preset for Mobile Keyboard
+    /// Creates a new `IconButton` preset for use in a mobile keyboard.
+    ///
+    /// # Parameters
+    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `icon`: The icon for the button, represented as a string (e.g., a file name or path).
+    /// - `on_click`: A closure that will be executed when the button is clicked.
+    ///
+    /// # Returns
+    /// - A new `IconButton` with a ghost style, medium size, and default state.
     pub fn keyboard(
         ctx: &mut Context, 
         icon: &'static str,
@@ -129,7 +173,15 @@ impl IconButton {
         )
     }
     
-    // IconButton Preset for Header Navigation
+    /// Creates a new `IconButton` preset for header navigation.
+    ///
+    /// # Parameters
+    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `icon`: The icon for the button, represented as a string (e.g., a file name or path).
+    /// - `on_click`: A closure that will be executed when the button is clicked.
+    ///
+    /// # Returns
+    /// - A new `IconButton` with a ghost style, medium size, and default state.
     pub fn navigation(
         ctx: &mut Context, 
         icon: &'static str, 
@@ -145,7 +197,14 @@ impl IconButton {
         )
     }
 
-    // IconButton Preset for Closing Page
+    /// Creates a new `IconButton` preset for closing a page.
+    ///
+    /// # Parameters
+    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `on_click`: A closure that will be executed when the button is clicked.
+    ///
+    /// # Returns
+    /// - A new `IconButton` with a ghost style, medium size, and default state. The icon is set to "close".
     pub fn close(
         ctx: &mut Context, 
         on_click: impl FnMut(&mut Context) + 'static

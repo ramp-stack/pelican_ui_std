@@ -10,6 +10,8 @@ use crate::PelicanUI;
 
 use std::sync::mpsc::{self, Receiver, Sender};
 
+/// The `MobileKeyboard` component is used to represent the on-screen keyboard in a mobile
+/// interface, containing various keys and other input elements.
 #[derive(Component, Debug)]
 pub struct MobileKeyboard(Stack, Rectangle, KeyboardContent);
 impl OnEvent for MobileKeyboard {}
@@ -30,11 +32,11 @@ impl MobileKeyboard {
 }
 
 #[derive(Component, Debug)]
-pub struct KeyboardHeader(Column, KeyboardIcons, Bin<Stack, Rectangle>);
+struct KeyboardHeader(Column, KeyboardIcons, Bin<Stack, Rectangle>);
 impl OnEvent for KeyboardHeader {}
 
 impl KeyboardHeader {
-    pub fn new(ctx: &mut Context) -> Self {
+    fn new(ctx: &mut Context) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
         KeyboardHeader(
             Column::new(0.0, Offset::Start, Size::Fit, Padding::default()),
@@ -48,11 +50,11 @@ impl KeyboardHeader {
 }
 
 #[derive(Component, Debug)]
-pub struct KeyboardIcons(Row, IconButton, IconButton, IconButton, IconButton, Bin<Stack, Rectangle>, IconButton );
+struct KeyboardIcons(Row, IconButton, IconButton, IconButton, IconButton, Bin<Stack, Rectangle>, IconButton );
 impl OnEvent for KeyboardIcons {}
 
 impl KeyboardIcons {
-    pub fn new(ctx: &mut Context) -> Self {
+    fn new(ctx: &mut Context) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.shades.transparent;
         KeyboardIcons(
             Row(16.0, Offset::Start, Size::Fit, Padding(12.0, 6.0, 12.0, 6.0)), 
@@ -70,10 +72,10 @@ impl KeyboardIcons {
 }
 
 #[derive(Component, Debug)]
-pub struct KeyboardContent(Column, KeyboardHeader, KeyboardRow, KeyboardRow, KeyboardRow, KeyboardRow, #[skip] Receiver<u8>);
+struct KeyboardContent(Column, KeyboardHeader, KeyboardRow, KeyboardRow, KeyboardRow, KeyboardRow, #[skip] Receiver<u8>);
 
 impl KeyboardContent {
-    pub fn new(ctx: &mut Context) -> Self {
+    fn new(ctx: &mut Context) -> Self {
         let (sender, receiver) = mpsc::channel();
         KeyboardContent(
             Column::new(0.0, Offset::Center, Size::Fit, Padding(8.0, 8.0, 8.0, 8.0)),
@@ -86,7 +88,7 @@ impl KeyboardContent {
         )
     }
 
-    pub fn update(&mut self) {
+    fn update(&mut self) {
         let caps = *self.4.capslock().as_mut().unwrap().status();
         let page = *self.5.paginator().as_mut().unwrap().status();
         self.2.update(top_keys(page), caps);
@@ -111,20 +113,20 @@ impl OnEvent for KeyboardContent {
 }
 
 #[derive(Component, Debug)]
-pub struct KeyRow(Row, Vec<Key>);
+struct KeyRow(Row, Vec<Key>);
 impl OnEvent for KeyRow {}
 
 impl KeyRow {
-    pub fn new(ctx: &mut Context, keys: Vec<&'static str>) -> Self {
+    fn new(ctx: &mut Context, keys: Vec<&'static str>) -> Self {
         let keys = keys.iter().map(|k| Key::character(ctx, k)).collect();
         KeyRow(Row::center(0.0), keys)
     }
 
-    pub fn keys(&mut self) -> &mut Vec<Key> {&mut self.1}
+    fn keys(&mut self) -> &mut Vec<Key> {&mut self.1}
 }
 
 #[derive(Component, Debug)]
-pub struct KeyboardRow(Row, Option<Capslock>, Option<Paginator>, Option<KeyRow>, Option<Key>, Option<Key>);
+struct KeyboardRow(Row, Option<Capslock>, Option<Paginator>, Option<KeyRow>, Option<Key>, Option<Key>);
 // Capslock, Paginator, Character Row, Spacebar, Return
 impl OnEvent for KeyboardRow {}
 
@@ -189,34 +191,34 @@ impl KeyboardRow {
 }
 
 #[derive(Component, Debug)]
-pub struct Key(Stack, KeyContent, #[skip] ButtonState, #[skip] WinitKey);
+struct Key(Stack, KeyContent, #[skip] ButtonState, #[skip] WinitKey);
 
 impl Key {
-    pub fn character(ctx: &mut Context, c: &'static str) -> Self {
+    fn character(ctx: &mut Context, c: &'static str) -> Self {
         let character = KeyCharacter::char(ctx, c);
         let content = KeyContent::new(ctx, 33.0, Offset::End, character);
         Key(Stack::default(), content, ButtonState::Default, WinitKey::Character(SmolStr::new_static(c)))
     }
 
-    pub fn spacebar(ctx: &mut Context) -> Self {
+    fn spacebar(ctx: &mut Context) -> Self {
         let character = KeyCharacter::text(ctx, "space");
         let content = KeyContent::new(ctx, f32::MAX, Offset::Center, character);
         Key(Stack::default(), content, ButtonState::Default, WinitKey::Named(NamedKey::Space))
     }
 
-    pub fn backspace(ctx: &mut Context) -> Self {
+    fn backspace(ctx: &mut Context) -> Self {
         let character = KeyCharacter::icon(ctx, "backspace");
         let content = KeyContent::new(ctx, 42.0, Offset::Center, character);
         Key(Stack::default(), content, ButtonState::Default, WinitKey::Named(NamedKey::Backspace))
     }
 
-    pub fn newline(ctx: &mut Context) -> Self {
+    fn newline(ctx: &mut Context) -> Self {
         let character = KeyCharacter::text(ctx, "return");
         let content = KeyContent::new(ctx, 92.0, Offset::Center, character);
         Key(Stack::default(), content, ButtonState::Default, WinitKey::Named(NamedKey::Enter))
     }
 
-    pub fn content(&mut self) -> &mut KeyContent {&mut self.1}
+    fn content(&mut self) -> &mut KeyContent {&mut self.1}
 }
 
 impl OnEvent for Key {
@@ -248,10 +250,8 @@ impl OnEvent for Key {
     }
 }
 
-
-
 #[derive(Component)]
-pub struct Capslock(Stack, KeyContent, #[skip] ButtonState, #[skip] bool, #[skip] Sender<u8>);
+struct Capslock(Stack, KeyContent, #[skip] ButtonState, #[skip] bool, #[skip] Sender<u8>);
 
 impl Capslock {
     fn new(ctx: &mut Context, sender: Sender<u8>) -> Self {
@@ -259,8 +259,8 @@ impl Capslock {
         let content = KeyContent::new(ctx, 42.0, Offset::Center, character);
         Capslock(Stack::default(), content, ButtonState::Default, false, sender)
     }
-    pub fn content(&mut self) -> &mut KeyContent {&mut self.1}
-    pub fn status(&mut self) -> &mut bool {&mut self.3}
+    fn content(&mut self) -> &mut KeyContent {&mut self.1}
+    fn status(&mut self) -> &mut bool {&mut self.3}
 }
 
 impl std::fmt::Debug for Capslock {
@@ -303,7 +303,7 @@ impl OnEvent for Capslock {
 }
 
 #[derive(Component)]
-pub struct Paginator(Stack, KeyContent, #[skip] ButtonState, #[skip] u32, #[skip] Sender<u8>);
+struct Paginator(Stack, KeyContent, #[skip] ButtonState, #[skip] u32, #[skip] Sender<u8>);
 
 impl Paginator {
     fn new(ctx: &mut Context, sender: Sender<u8>) -> Self {
@@ -312,8 +312,8 @@ impl Paginator {
         Paginator(Stack::default(), content, ButtonState::Default, 0, sender)
     }
 
-    pub fn content(&mut self) -> &mut KeyContent {&mut self.1}
-    pub fn status(&mut self) -> &mut u32 {&mut self.3}
+    fn content(&mut self) -> &mut KeyContent {&mut self.1}
+    fn status(&mut self) -> &mut u32 {&mut self.3}
 }
 
 impl std::fmt::Debug for Paginator {
@@ -365,11 +365,11 @@ impl OnEvent for Paginator {
 }
 
 #[derive(Component, Debug)]
-pub struct KeyContent(Stack, RoundedRectangle, KeyCharacter);
+struct KeyContent(Stack, RoundedRectangle, KeyCharacter);
 impl OnEvent for KeyContent {}
 
 impl KeyContent {
-    pub fn new(ctx: &mut Context, size: f32, offset: Offset, content: KeyCharacter) -> Self {
+    fn new(ctx: &mut Context, size: f32, offset: Offset, content: KeyCharacter) -> Self {
         KeyContent(
             Stack(Offset::Center, offset, Size::Fill(20.0, size), Size::Static(48.0), Padding(3.0, 6.0, 3.0, 6.0)),
             RoundedRectangle::new(0.0, 4.0, ctx.get::<PelicanUI>().theme.colors.shades.lighten),
@@ -377,16 +377,16 @@ impl KeyContent {
         )
     }
 
-    pub fn background(&mut self) -> &mut Color {&mut self.1.shape().color}
-    pub fn character(&mut self) -> &mut KeyCharacter {&mut self.2}
+    fn background(&mut self) -> &mut Color {&mut self.1.shape().color}
+    fn character(&mut self) -> &mut KeyCharacter {&mut self.2}
 }
 
 #[derive(Component, Debug)]
-pub struct KeyCharacter(Row, Option<Image>, Option<Text>, Option<Text>, Option<Text>);
+struct KeyCharacter(Row, Option<Image>, Option<Text>, Option<Text>, Option<Text>);
 impl OnEvent for KeyCharacter {}
 
 impl KeyCharacter {
-    pub fn char(ctx: &mut Context, key: &'static str) -> Self {
+    fn char(ctx: &mut Context, key: &'static str) -> Self {
         let size = ctx.get::<PelicanUI>().theme.fonts.size.xl;
         KeyCharacter(
             Row(0.0, Offset::Center, Size::Fit, Padding(0.0, 0.0, 0.0, 10.0)),
@@ -396,17 +396,17 @@ impl KeyCharacter {
         )
     }
 
-    pub fn text(ctx: &mut Context, key: &'static str) -> Self {
+    fn text(ctx: &mut Context, key: &'static str) -> Self {
         let size = ctx.get::<PelicanUI>().theme.fonts.size.md;
         KeyCharacter(Row::center(0.0), None, Some(Text::new(ctx, key, TextStyle::Keyboard, size, Align::Left)), None, None)
     }
 
-    pub fn icon(ctx: &mut Context, i: &'static str) -> Self {
+    fn icon(ctx: &mut Context, i: &'static str) -> Self {
         let c = ctx.get::<PelicanUI>().theme.colors.text.heading;
         KeyCharacter(Row::center(0.0), Some(Icon::new(ctx, i, c, 36.0)), None, None, None)
     }
 
-    pub fn paginator(ctx: &mut Context, page: u32) -> Self {
+    fn paginator(ctx: &mut Context, page: u32) -> Self {
         let size = ctx.get::<PelicanUI>().theme.fonts.size.h2;
         let (highlight, dim) = (TextStyle::White, TextStyle::Secondary);
 
@@ -425,11 +425,10 @@ impl KeyCharacter {
         )
     }
 
-    pub fn get_text(&mut self) -> &mut Option<Text> {&mut self.2}
+    fn get_text(&mut self) -> &mut Option<Text> {&mut self.2}
 }
 
-
-pub fn handle_state(_ctx: &mut Context, state: ButtonState, event: MouseEvent) -> ButtonState {
+fn handle_state(_ctx: &mut Context, state: ButtonState, event: MouseEvent) -> ButtonState {
     match state {
         ButtonState::Default if event.position.is_some() => {
             match event.state {
@@ -448,9 +447,6 @@ pub fn handle_state(_ctx: &mut Context, state: ButtonState, event: MouseEvent) -
         _ => None
     }.unwrap_or(state)
 }
-
-
-
 
 fn top_keys(page: u32) -> Vec<&'static str> {
     match page {
