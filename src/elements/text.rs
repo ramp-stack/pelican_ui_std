@@ -31,7 +31,7 @@ impl TextStyle {
             TextStyle::Heading => (theme.colors.text.heading, theme.fonts.fonts.heading.clone()),
             TextStyle::Primary => (theme.colors.text.primary, theme.fonts.fonts.text.clone()),
             TextStyle::Secondary => (theme.colors.text.secondary, theme.fonts.fonts.text.clone()),
-            TextStyle::Error => (theme.colors.text.danger, theme.fonts.fonts.text.clone()),
+            TextStyle::Error => (theme.colors.status.danger, theme.fonts.fonts.text.clone()),
             TextStyle::White => (theme.colors.text.heading, theme.fonts.fonts.text.clone()),
             TextStyle::Keyboard => (theme.colors.text.heading, theme.fonts.fonts.keyboard.clone()),
             TextStyle::Label(color) => (*color, theme.fonts.fonts.label.clone()),

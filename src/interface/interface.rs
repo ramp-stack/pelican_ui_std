@@ -11,7 +11,7 @@ use super::mobile_keyboard::MobileKeyboard;
 use super::navigation::{MobileNavigator, DesktopNavigator, Header, Bumper};
 
 #[derive(Debug, Component)]
-pub struct Interface (Stack, Option<MobileInterface>, Option<DesktopInterface>);
+pub struct Interface (Stack, Rectangle, Option<MobileInterface>, Option<DesktopInterface>);
 impl OnEvent for Interface {}
 
 impl Interface {
@@ -52,11 +52,12 @@ impl Interface {
         navigation: Option<(usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>)>,
         profile: Option<(&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)>,
     ) -> Self {
+        let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
         let (mobile, desktop) = match crate::config::IS_MOBILE {
             true => (Some(MobileInterface::new(ctx, start_page, navigation, profile)), None),
             false => (None, Some(DesktopInterface::new(ctx, start_page, navigation, profile)))
         };
-        Interface(Stack::default(), mobile, desktop)
+        Interface(Stack::default(), Rectangle::new(color), mobile, desktop)
     }
 }
 

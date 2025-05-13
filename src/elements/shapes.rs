@@ -77,9 +77,6 @@ impl Component for RoundedRectangle {
 pub struct Rectangle(Shape);
 
 impl Rectangle {
-    /// Returns a mutable reference to the shape of the `Rectangle`.
-    pub fn shape(&mut self) -> &mut Shape { &mut self.0 }
-
     /// Creates a new `Rectangle` with a specified color.
     ///
     /// # Parameters:
@@ -90,6 +87,9 @@ impl Rectangle {
     pub fn new(color: Color) -> Self {
         Rectangle(Shape { shape: ShapeType::Rectangle(0.0, (0.0, 0.0)), color })
     }
+
+    /// Returns a mutable reference to the shape of the `Rectangle`.
+    pub fn shape(&mut self) -> &mut Shape { &mut self.0 }
 }
 
 impl OnEvent for Rectangle {}

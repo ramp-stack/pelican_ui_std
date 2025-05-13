@@ -42,13 +42,12 @@ pub struct PelicanUI {
 }
 
 impl PelicanUI {
-    /// Initializes the `PelicanUI` with the provided theme.
+    /// Updates `PelicanUI` with the provided theme.
     ///
     /// # Arguments
     ///
     /// * `theme` - A `Theme` structure that defines the appearance of the app's UI. (Theme::default())
-    pub fn init(&mut self, theme: Theme) {
-        println!("Updating theme:");
+    pub fn update_theme(&mut self, theme: Theme) {
         self.theme = theme;
     }
 }

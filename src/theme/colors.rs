@@ -133,7 +133,7 @@ impl Default for OutlineColor {
     }
 }
 
-/// Defines the colors used for different text elements in the UI, such as headings, primary text, and error messages.
+/// Defines the colors used for different text elements in the UI.
 #[derive(Copy, Clone, Debug)]
 pub struct TextColor {
     /// Color used for headings in the UI.
@@ -142,8 +142,6 @@ pub struct TextColor {
     pub primary: Color,
     /// Color used for secondary text content.
     pub secondary: Color,
-    /// Color used for danger or error text.
-    pub danger: Color,
 }
 
 impl Default for TextColor {
@@ -152,7 +150,6 @@ impl Default for TextColor {
             heading: Color::from_hex("ffffff", 255),
             primary: Color::from_hex("e2e1df", 255),
             secondary: Color::from_hex("a7a29d", 255),
-            danger: Color::from_hex("ff330a", 255),
         }
     }
 }

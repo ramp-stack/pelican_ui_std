@@ -324,10 +324,10 @@ impl ListItem {
         selected: bool,
         title: &'static str,
         subtitle: &'static str,
-        description: &'static str,
+        description: Option<&'static str>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
-        ListItem::new(ctx, false, title, None, Some(subtitle), Some(description), None, None, Some(selected), None, Some(ElementID::new()), on_click)
+        ListItem::new(ctx, false, title, None, Some(subtitle), description, None, None, Some(selected), None, Some(ElementID::new()), on_click)
     }
 }
 /// A component representing a radio-style list item selector with multiple options.
@@ -347,10 +347,10 @@ impl ListItemSelector {
     ///
     /// # Parameters:
     /// - `ctx`: A mutable reference to the `Context` for handling events.
-    /// - `first`: A tuple containing the title, subtitle, and description for the first list item (selected).
-    /// - `second`: A tuple containing the title, subtitle, and description for the second list item (unselected).
-    /// - `third`: An optional tuple containing the title, subtitle, and description for the third list item (unselected).
-    /// - `fourth`: An optional tuple containing the title, subtitle, and description for the fourth list item (unselected).
+    /// - `first`: A tuple containing the title, subtitle, and an optional description for the first list item (selected).
+    /// - `second`: A tuple containing the title, subtitle, and an optional description for the second list item (unselected).
+    /// - `third`: An optional tuple containing the title, subtitle, and an optional description for the third list item (unselected).
+    /// - `fourth`: An optional tuple containing the title, subtitle, and an optional description for the fourth list item (unselected).
     ///
     /// # Returns:
     /// A new `ListItemSelector` component, containing the provided list items in a vertical column.
@@ -359,18 +359,18 @@ impl ListItemSelector {
     /// ```
     /// let selector = ListItemSelector::new(
     ///     ctx,
-    ///     ("Option 1", "Description 1", "This is the first option"),
-    ///     ("Option 2", "Description 2", "This is the second option"),
-    ///     Some(("Option 3", "Description 3", "This is the third option")),
-    ///     Some(("Option 4", "Description 4", "This is the fourth option"))
+    ///     ("Option 1", "Description 1", Some("This is the first option")),
+    ///     ("Option 2", "Description 2", Some("This is the second option")),
+    ///     Some(("Option 3", "Description 3", Some("This is the third option"))),
+    ///     Some(("Option 4", "Description 4", Some("This is the fourth option")))
     /// );
     /// ```
     pub fn new(
         ctx: &mut Context, 
-        first: (&'static str, &'static str, &'static str), // title, subtitle, description
-        second: (&'static str, &'static str, &'static str), 
-        third: Option<(&'static str, &'static str, &'static str)>, 
-        fourth: Option<(&'static str, &'static str, &'static str)>
+        first: (&'static str, &'static str, Option<&'static str>), // title, subtitle, description
+        second: (&'static str, &'static str, Option<&'static str>), 
+        third: Option<(&'static str, &'static str, Option<&'static str>)>, 
+        fourth: Option<(&'static str, &'static str, Option<&'static str>)>
     ) -> Self {
         ListItemSelector(
             Column::center(0.0), 
