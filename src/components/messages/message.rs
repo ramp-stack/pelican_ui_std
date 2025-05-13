@@ -68,7 +68,7 @@ impl Message {
 
         Message (
             Row(8.0, offset, Size::Fit, Padding::default()),
-            avatar.then(|| Avatar::new(ctx, sender.avatar.clone(), None, false, 24.0)),
+            avatar.then(|| Avatar::new(ctx, sender.avatar.clone(), None, false, 24.0, None)),
             MessageContent::new(ctx, style, messages, sender, time)
         )
     }

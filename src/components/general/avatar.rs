@@ -18,9 +18,8 @@ use crate::PelicanUI;
 /// let avatar = Avatar::new(ctx, AvatarContent::Icon("profile", AvatarIconStyle::Secondary), 
 ///     Some(("edit", AvatarIconStyle::Secondary)), true, 48.0);
 /// ```
-#[derive(Debug, Component)]
-pub struct Avatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>, Option<Flair>);
-impl OnEvent for Avatar {}
+#[derive(Component)]
+pub struct Avatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>, Option<Flair>, #[skip] pub Option<Box<dyn FnMut(&mut Context)>>);
 
 impl Avatar {
     /// Creates a new `Avatar` component.
@@ -34,10 +33,18 @@ impl Avatar {
     /// - **`flair`**: An optional tuple containing the name and style of the flair to be added to the avatar.
     /// - **`outline`**: A boolean flag to indicate whether the avatar should have a circular outline.
     /// - **`size`**: The size of the avatar.
+    /// - **`on_click`**: Closure to execute on click.
     ///
     /// # Returns:
     /// A newly created `Avatar` component.
-    pub fn new(ctx: &mut Context, content: AvatarContent, flair: Option<(&'static str, AvatarIconStyle)>, outline: bool, size: f32) -> Self {
+    pub fn new(
+        ctx: &mut Context, 
+        content: AvatarContent, 
+        flair: Option<(&'static str, AvatarIconStyle)>, 
+        outline: bool, 
+        size: f32,
+        on_click: Option<Box<dyn FnMut(&mut Context)>>
+    ) -> Self {
         let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
 
         let (circle_icon, image) = match content {
@@ -50,8 +57,33 @@ impl Avatar {
             circle_icon,
             image,
             outline.then(|| Outline::circle(size, black)),
-            flair.map(|(name, style)| Flair::new(ctx, name, style, size / 3.0))
+            flair.map(|(name, style)| Flair::new(ctx, name, style, size / 3.0, black)),
+            on_click
         )
+    }
+
+    pub fn flair(&mut self) -> &mut Option<Flair> {&mut self.4}
+    pub fn outline(&mut self) -> &mut Option<Shape> {&mut self.3}
+}
+
+impl OnEvent for Avatar {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(event) = event.downcast_ref::<MouseEvent>() {
+            if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
+                if let Some(on_click) = &mut self.5 {
+                    #[cfg(target_os = "ios")]
+                    crate::vibrate();
+                    (on_click)(ctx)
+                }
+            }
+        }
+        false
+    }
+}
+
+impl std::fmt::Debug for Avatar {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Avatar...")
     }
 }
 
@@ -78,20 +110,20 @@ impl AvatarIconStyle {
             AvatarIconStyle::Primary => (colors.text.heading, colors.background.primary),
             AvatarIconStyle::Secondary => (colors.background.secondary, colors.text.secondary),
             AvatarIconStyle::Brand => (colors.brand.primary, colors.brand.secondary),
-            AvatarIconStyle::Success => (colors.status.success, colors.text.heading),
-            AvatarIconStyle::Warning => (colors.status.warning, colors.text.heading),
-            AvatarIconStyle::Danger => (colors.status.danger, colors.text.heading),
+            AvatarIconStyle::Success => (colors.status.success, colors.shades.white),
+            AvatarIconStyle::Warning => (colors.status.warning, colors.shades.white),
+            AvatarIconStyle::Danger => (colors.status.danger, colors.shades.white),
         }
     }
 }
 
 
 #[derive(Debug, Component)]
-struct AvatarIcon(Stack, Shape, Image);
+pub struct AvatarIcon(Stack, Shape, Image);
 impl OnEvent for AvatarIcon {}
 
 impl AvatarIcon {
-    fn new(ctx: &mut Context, name: &'static str, style: AvatarIconStyle, size: f32) -> Self {
+    pub fn new(ctx: &mut Context, name: &'static str, style: AvatarIconStyle, size: f32) -> Self {
         let icon_size = size * 0.75;
         let (background, icon_color) = style.get(ctx);
         AvatarIcon(
@@ -100,21 +132,24 @@ impl AvatarIcon {
             Icon::new(ctx, name, icon_color, icon_size)
         )
     }
+
+    pub fn icon(&mut self) -> &mut Image { &mut self.2 }
 }
 
 #[derive(Debug, Component)]
-struct Flair(Stack, AvatarIcon, Shape);
+pub struct Flair(Stack, AvatarIcon, Shape);
 impl OnEvent for Flair {}
 
 impl Flair {
-    fn new(ctx: &mut Context, name: &'static str, style: AvatarIconStyle, size: f32) -> Self {
-        let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
+    pub fn new(ctx: &mut Context, name: &'static str, style: AvatarIconStyle, size: f32, color: Color) -> Self {
         Flair(
             Stack::center(),
             AvatarIcon::new(ctx, name, style, size),
-            Outline::circle(size, black)
+            Outline::circle(size, color)
         )
     }
+
+    pub fn icon(&mut self) -> &mut Image {self.1.icon()}
 }
 
 #[derive(Debug, Component)]
@@ -125,7 +160,7 @@ impl AvatarRow {
     pub fn new(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {
         AvatarRow(
             Row::center(0.0), 
-            avatars.into_iter().map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0)).collect()
+            avatars.into_iter().map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0, None)).collect()
         )
     }
 }

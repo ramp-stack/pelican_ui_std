@@ -473,7 +473,7 @@ impl Layout for Stack {
 pub struct Wrap(pub f32, pub f32, pub Offset, pub Offset, pub Padding);
 
 impl Wrap {
-    /// Creates a wrap layout where both axes are centered with specified spacing.
+    /// Creates a wrap layout.
     ///
     /// This method creates a wrap layout with the following behaviors:
     /// - Horizontal spacing between items is specified by `w_spacing`.
@@ -487,7 +487,7 @@ impl Wrap {
     ///
     /// # Returns
     /// A `Wrap` layout with specified spacing and centered alignment.
-    pub fn center(w_spacing: f32, h_spacing: f32) -> Self {
+    pub fn new(w_spacing: f32, h_spacing: f32) -> Self {
         Wrap(w_spacing, h_spacing, Offset::Center, Offset::Center, Padding::default())
     }
 }

@@ -89,7 +89,7 @@ impl CardContent {
         let (font_size, color) = (theme.fonts.size, theme.colors.outline.secondary);
         CardContent(
             Column::new(8.0, Offset::Center, Size::Fit, Padding(16.0, 16.0, 16.0, 16.0)),
-            Avatar::new(ctx, avatar, None, false, 64.0),
+            Avatar::new(ctx, avatar, None, false, 64.0, None),
             Text::new(ctx, title, TextStyle::Heading, font_size.h3, Align::Left),
             Text::new(ctx, subtitle, TextStyle::Primary, font_size.xs, Align::Left),
             Bin (
