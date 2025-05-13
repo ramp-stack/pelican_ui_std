@@ -1,9 +1,9 @@
 use rust_on_rails::prelude::Context;
 
-use colors::ColorResources;
-use fonts::FontResources;
-use icons::IconResources;
-use brand::BrandResources;
+pub use colors::*;
+pub use fonts::*;
+pub use icons::*;
+pub use brand::*;
 
 pub mod colors;
 pub mod fonts;

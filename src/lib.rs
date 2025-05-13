@@ -48,6 +48,7 @@ impl PelicanUI {
     ///
     /// * `theme` - A `Theme` structure that defines the appearance of the app's UI. (Theme::default())
     pub fn init(&mut self, theme: Theme) {
+        println!("Updating theme:");
         self.theme = theme;
     }
 }
@@ -135,6 +136,6 @@ pub mod prelude {
     pub use crate::layout::*;
     pub use crate::components::*;
     pub use crate::elements::*;
-    pub use crate::theme::Theme;
+    pub use crate::theme::*;
     pub use crate::PelicanUI;
 }

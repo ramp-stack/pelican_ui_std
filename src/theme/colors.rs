@@ -1,7 +1,7 @@
 use rust_on_rails::prelude::*;
 
 /// Represents a collection of color resources used throughout the UI, including background, text, button, and status colors.
-#[derive(Copy, Clone, Default)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct ColorResources {
     /// Defines the background colors of the UI.
     pub background: BackgroundColor,
@@ -47,7 +47,7 @@ impl ColorResources {
 }
 
 /// Defines various shades of colors, including black, white, lighten/darken variants, and transparency.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct ShadesColor {
     /// Pure black color.
     pub black: Color,
@@ -80,7 +80,7 @@ impl Default for ShadesColor {
 }
 
 /// Defines the background colors used throughout the UI, including primary and secondary backgrounds.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct BackgroundColor {
     /// Primary background color for the UI.
     pub primary: Color,
@@ -98,7 +98,7 @@ impl Default for BackgroundColor {
 }
 
 /// Defines the brand colors, including primary and secondary colors used for branding elements.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct BrandColor {
     /// Primary color for branding.
     pub primary: Color,
@@ -116,7 +116,7 @@ impl Default for BrandColor {
 }
 
 /// Defines the outline colors for various UI elements, such as borders or separators.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct OutlineColor {
     /// Primary outline color.
     pub primary: Color,
@@ -134,7 +134,7 @@ impl Default for OutlineColor {
 }
 
 /// Defines the colors used for different text elements in the UI, such as headings, primary text, and error messages.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct TextColor {
     /// Color used for headings in the UI.
     pub heading: Color,
@@ -158,7 +158,7 @@ impl Default for TextColor {
 }
 
 /// Defines status colors representing success, warning, and danger states in the UI.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct StatusColor {
     /// Color used for success status indicators.
     pub success: Color,
@@ -179,7 +179,7 @@ impl Default for StatusColor {
 }
 
 /// Defines the colors for buttons in various states, including default, disabled, hover, pressed, etc.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct ButtonColors {
     /// Button color scheme for the primary default state.
     pub primary_default: ButtonColorScheme,
@@ -300,7 +300,7 @@ impl Default for ButtonColors {
 }
 
 /// Defines a color scheme for a button, including background, label, and outline colors.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct ButtonColorScheme {
     /// The background color of the button.
     pub background: Color,
