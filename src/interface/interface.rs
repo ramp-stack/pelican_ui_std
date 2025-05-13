@@ -49,8 +49,8 @@ impl Interface {
     pub fn new(
         ctx: &mut Context, 
         start_page: impl AppPage, 
-        navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>),
-        profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
+        navigation: Option<(usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>)>,
+        profile: Option<(&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)>,
     ) -> Self {
         let (mobile, desktop) = match crate::config::IS_MOBILE {
             true => (Some(MobileInterface::new(ctx, start_page, navigation, profile)), None),
@@ -61,23 +61,23 @@ impl Interface {
 }
 
 #[derive(Debug, Component)]
-struct MobileInterface (Column, Box<dyn AppPage>, Opt<MobileNavigator>, Option<MobileKeyboard>);
+struct MobileInterface (Column, Box<dyn AppPage>, Option<Opt<MobileNavigator>>, Option<MobileKeyboard>);
 
 impl MobileInterface {
     fn new(
         ctx: &mut Context, 
         start_page: impl AppPage,
-        navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>),
-        profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
+        navigation: Option<(usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>)>,
+        profile: Option<(&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)>,
     ) -> Self {
-        let navigator = MobileNavigator::new(ctx, navigation, profile);
+        let navigator = navigation.zip(profile).map(|(nav, p)| Opt::new(MobileNavigator::new(ctx, nav, p), false));
         #[cfg(target_os = "ios")] // move to rust_on_rails layer
         let insets = safe_area_insets();
         #[cfg(not(target_os = "ios"))]
         let insets = (0., 0., 0., 0.);
         MobileInterface(
             Column::new(0.0, Offset::Center, Size::Fit, Padding(0.0, insets.0, 0.0, insets.1)), 
-            Box::new(start_page), Opt::new(navigator, false), None,
+            Box::new(start_page), navigator, None,
         )
     }
 }
@@ -99,19 +99,21 @@ impl OnEvent for MobileInterface {
 }
 
 #[derive(Debug, Component)]
-struct DesktopInterface (Row, DesktopNavigator, Bin<Stack, Rectangle>, Box<dyn AppPage>);
+struct DesktopInterface (Row, Option<DesktopNavigator>, Bin<Stack, Rectangle>, Box<dyn AppPage>);
 
 impl DesktopInterface {
     fn new(
         ctx: &mut Context, 
         start_page: impl AppPage, 
-        navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>),
-        profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>),
+        navigation: Option<(usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>)>,
+        profile: Option<(&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)>,
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
+        let navigator = navigation.zip(profile).map(|(nav, p)| DesktopNavigator::new(ctx, nav, p));
+
         DesktopInterface(
             Row(0.0, Offset::Start, Size::Fit, Padding::default()),
-            DesktopNavigator::new(ctx, navigation, profile), 
+            navigator,
             Bin (
                 Stack(Offset::default(), Offset::default(), Size::Static(1.0),  Size::Fit, Padding::default()), 
                 Rectangle::new(color)
