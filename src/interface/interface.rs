@@ -3,7 +3,7 @@ use crate::elements::shapes::{Rectangle};
 use crate::events::{KeyboardActiveEvent, NavigateEvent};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size, Opt};
 use crate::components::avatar::AvatarContent;
-use crate::PelicanUI;
+use crate::{PelicanUI, Callback};
 use crate::AppPage;
 use std::fmt::Debug;
 
@@ -48,14 +48,15 @@ impl Interface {
     /// ```
     pub fn new(
         ctx: &mut Context, 
-        start_page: impl AppPage, 
-        navigation: Option<(usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>)>,
-        profile: Option<(&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)>,
+        start_page: impl AppPage,
+        start_index: Option<usize>, 
+        navigation: Option<Vec<(&'static str, &'static str, Box<Callback>)>>,
+        profile: Option<(&'static str, AvatarContent, Box<Callback>)>,
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
         let (mobile, desktop) = match crate::config::IS_MOBILE {
-            true => (Some(MobileInterface::new(ctx, start_page, navigation, profile)), None),
-            false => (None, Some(DesktopInterface::new(ctx, start_page, navigation, profile)))
+            true => (Some(MobileInterface::new(ctx, start_page, start_index, navigation, profile)), None),
+            false => (None, Some(DesktopInterface::new(ctx, start_page, start_index, navigation, profile)))
         };
         Interface(Stack::default(), Rectangle::new(color), mobile, desktop)
     }
@@ -68,10 +69,11 @@ impl MobileInterface {
     fn new(
         ctx: &mut Context, 
         start_page: impl AppPage,
-        navigation: Option<(usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>)>,
-        profile: Option<(&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)>,
+        start_index: Option<usize>,
+        navigation: Option<Vec<(&'static str, &'static str, Box<Callback>)>>,
+        profile: Option<(&'static str, AvatarContent, Box<Callback>)>,
     ) -> Self {
-        let navigator = navigation.zip(profile).map(|(nav, p)| Opt::new(MobileNavigator::new(ctx, nav, p), false));
+        let navigator = navigation.zip(profile).zip(start_index).map(|((nav, p), i)| Opt::new(MobileNavigator::new(ctx, i, nav, p), false));
         #[cfg(target_os = "ios")] // move to rust_on_rails layer
         let insets = safe_area_insets();
         #[cfg(not(target_os = "ios"))]
@@ -106,11 +108,12 @@ impl DesktopInterface {
     fn new(
         ctx: &mut Context, 
         start_page: impl AppPage, 
-        navigation: Option<(usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>)>,
-        profile: Option<(&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)>,
+        start_index: Option<usize>,
+        navigation: Option<Vec<(&'static str, &'static str, Box<Callback>)>>,
+        profile: Option<(&'static str, AvatarContent, Box<Callback>)>,
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
-        let navigator = navigation.zip(profile).map(|(nav, p)| DesktopNavigator::new(ctx, nav, p));
+        let navigator = navigation.zip(profile).zip(start_index).map(|((nav, p), i)| DesktopNavigator::new(ctx, i, nav, p));
 
         DesktopInterface(
             Row(0.0, Offset::Start, Size::Fit, Padding::default()),
@@ -194,12 +197,12 @@ impl Content {
     /// # Returns:
     /// - **`Content`**: A new `Content` component that contains the stack layout and the provided items.
     ///
-    pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
+    pub fn new(offset: Offset, does_scroll: bool, content: Vec<Box<dyn Drawable>>) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(375.0), 375.0));
         let height = Size::custom(move |_: Vec<(f32, f32)>|(0.0, f32::MAX));
         Content(
             Stack(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0)),
-            ContentChildren::new(content), true // scrollable boolean
+            ContentChildren::new(content), does_scroll // scrollable boolean
         )
     }
     
@@ -211,15 +214,14 @@ impl Content {
     /// # Returns:
     /// - **`&mut Vec<Box<dyn Drawable>>`**: A mutable reference to the vector of drawable items.
     pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.1.1}
+    pub fn can_scroll(&mut self) -> &mut bool {&mut self.2}
 }
 
 impl OnEvent for Content {
     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            if let MouseEvent{state: MouseState::Scroll(_, y), ..} = event {
-                *self.1.0.scroll() += y;
-                *self.1.0.scroll() = self.1.0.scroll().clamp(0.0, 100.); // 100 = content height
-            }
+        if let Some(MouseEvent{state: MouseState::Scroll(_, y), ..}) = event.downcast_ref::<MouseEvent>() {
+            *self.1.0.scroll() += y;
+            *self.1.0.scroll() = self.1.0.scroll().clamp(0.0, 100.); // 100 = content height
         }
         true
     }

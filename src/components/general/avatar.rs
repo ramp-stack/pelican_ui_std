@@ -3,6 +3,7 @@ use crate::elements::images::Icon;
 use crate::elements::shapes::{Outline, Circle};
 use crate::layout::{Stack, Offset, Size, Row, Padding};
 use crate::PelicanUI;
+use crate::Callback;
 
 /// A UI component that represents a user avatar, which can be either an icon or an image.
 ///
@@ -19,7 +20,7 @@ use crate::PelicanUI;
 ///     Some(("edit", AvatarIconStyle::Secondary)), true, 48.0);
 /// ```
 #[derive(Component)]
-pub struct Avatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>, Option<Flair>, #[skip] pub Option<Box<dyn FnMut(&mut Context)>>);
+pub struct Avatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>, Option<Flair>, #[skip] pub Option<Callback>);
 
 impl Avatar {
     /// Creates a new `Avatar` component.
@@ -43,7 +44,7 @@ impl Avatar {
         flair: Option<(&'static str, AvatarIconStyle)>, 
         outline: bool, 
         size: f32,
-        on_click: Option<Box<dyn FnMut(&mut Context)>>
+        on_click: Option<Callback>
     ) -> Self {
         let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
 
@@ -68,13 +69,11 @@ impl Avatar {
 
 impl OnEvent for Avatar {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
-                if let Some(on_click) = &mut self.5 {
-                    #[cfg(target_os = "ios")]
-                    crate::vibrate();
-                    (on_click)(ctx)
-                }
+        if let Some(MouseEvent{state: MouseState::Pressed, position: Some(_)}) = event.downcast_ref::<MouseEvent>() {
+            if let Some(on_click) = &mut self.5 {
+                #[cfg(target_os = "ios")]
+                crate::vibrate();
+                (on_click)(ctx)
             }
         }
         false

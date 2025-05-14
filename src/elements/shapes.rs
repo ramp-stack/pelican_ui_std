@@ -136,6 +136,7 @@ impl Circle {
     ///
     /// # Returns:
     /// A `Shape` representing the circle.
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(s: f32, color: Color) -> Shape {
         Shape { shape: ShapeType::Ellipse(0.0, (s, s)), color }
     }

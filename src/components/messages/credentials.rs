@@ -1,6 +1,5 @@
 use rust_on_rails::prelude::*;
 use crate::prelude::ListItem;
-use crate::PelicanUI;
 
 pub enum Credential {
     NotABot,

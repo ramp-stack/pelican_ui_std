@@ -1,3 +1,4 @@
+#[allow(clippy::module_inception)]
 pub mod interface;
 pub use interface::*;
 pub mod navigation;

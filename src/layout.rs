@@ -133,7 +133,7 @@ impl Padding {
     }
 
     fn adjust_offset(&self, offset: (f32, f32)) -> (f32, f32) {
-        (offset.0+self.0 as f32, offset.1+self.1 as f32)
+        (offset.0+self.0, offset.1+self.1)
     }
 
     fn adjust_request(&self, request: SizeRequest) -> SizeRequest {
@@ -272,7 +272,7 @@ impl Layout for Row {
         let mut offset = 0.0;
         children.into_iter().zip(widths).map(|(i, width)| {
             let size = i.get((width, row_size.1));
-            let off = self.3.adjust_offset((offset as f32, self.1.get(row_size.1, size.1)));
+            let off = self.3.adjust_offset((offset, self.1.get(row_size.1, size.1)));
             offset += size.0+self.0;
             Area{offset: off, size}
         }).collect()

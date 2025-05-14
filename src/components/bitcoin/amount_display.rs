@@ -159,9 +159,8 @@ impl OnEvent for AmountInputContent {
             // Format dollar portion with commas every 3 chars
             let formatted_dollars: String = dollars
                 .chars().rev().enumerate()
-                .map(|(i, ch)| if i > 0 && i % 3 == 0 { vec![',', ch] } else { vec![ch] })
-                .flatten().collect::<Vec<_>>().into_iter()
-                .rev().collect();
+                .flat_map(|(i, ch)| if i > 0 && i % 3 == 0 { vec![',', ch] } else { vec![ch] })
+                .collect::<Vec<_>>().into_iter().rev().collect();
 
             // Combine formatted dollars and cents into final string
             let t_formatted = format!("{}{}", formatted_dollars, cents.unwrap_or(""));

@@ -6,7 +6,7 @@ use crate::elements::shapes::Rectangle;
 use crate::components::button::{Button, IconButton, ButtonState};
 use crate::components::avatar::{AvatarContent, AvatarRow};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
-use crate::{PelicanUI, ElementID};
+use crate::{PelicanUI, ElementID, Callback};
 
 #[derive(Debug, Component)]
 pub struct MobileNavigator(Row, Vec<NavigationButton>);
@@ -14,15 +14,16 @@ pub struct MobileNavigator(Row, Vec<NavigationButton>);
 impl MobileNavigator {
     pub fn new(
         ctx: &mut Context,
-        navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>), 
-        mut profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)
+        start_index: usize,
+        navigation: Vec<(&'static str, &'static str, Box<Callback>)>,
+        mut profile: (&'static str, AvatarContent, Box<Callback>)
     ) -> Self {
-        if navigation.1.is_empty() {panic!("MobileNavigator: Parameter 1 was empty. Navigator has no data.")}
+        if navigation.is_empty() {panic!("MobileNavigator: Parameter 1 was empty. Navigator has no data.")}
         let profile_id = ElementID::new();
 
-        let mut tabs: Vec<NavigationButton> = navigation.1.into_iter().enumerate().map(|(y, (i, _, mut c))| {
+        let mut tabs: Vec<NavigationButton> = navigation.into_iter().enumerate().map(|(y, (i, _, mut c))| {
             let id = ElementID::new();
-            let ib = IconButton::tab_nav(ctx, i, y == navigation.0, move |ctx: &mut Context| {
+            let ib = IconButton::tab_nav(ctx, i, y == start_index, move |ctx: &mut Context| {
                 println!("triggered");
                 ctx.trigger_event(NavigatorSelect(id));
                 (c)(ctx);
@@ -60,18 +61,19 @@ pub struct DesktopNavigator(Column, Image, ButtonColumn, Bin<Stack, Rectangle>, 
 impl DesktopNavigator {
     pub fn new(
         ctx: &mut Context, 
-        navigation: (usize, Vec<(&'static str, &'static str, Box<dyn FnMut(&mut Context)>)>), 
-        mut profile: (&'static str, AvatarContent, Box<dyn FnMut(&mut Context)>)
+        start_index: usize,
+        navigation: Vec<(&'static str, &'static str, Box<Callback>)>,
+        mut profile: (&'static str, AvatarContent, Box<Callback>)
     ) -> Self {
-        if navigation.1.is_empty() {panic!("DesktopNavigator: Parameter 1 was empty. Navigator has no data.")}
+        if navigation.is_empty() {panic!("DesktopNavigator: Parameter 1 was empty. Navigator has no data.")}
 
         let theme = &ctx.get::<PelicanUI>().theme;
         let (wordmark, color) = (theme.brand.wordmark.clone(), theme.colors.shades.transparent);
         let profile_id = ElementID::new();
 
-        let tabs: Vec<NavigationButton> = navigation.1.into_iter().enumerate().map(|(y, (i, n, mut c))| {
+        let tabs: Vec<NavigationButton> = navigation.into_iter().enumerate().map(|(y, (i, n, mut c))| {
             let id = ElementID::new();
-            let nb = Button::navigation(ctx, i, n, y == navigation.0, move |ctx: &mut Context| {
+            let nb = Button::navigation(ctx, i, n, y == start_index, move |ctx: &mut Context| {
                 ctx.trigger_event(NavigatorSelect(id));
                 (c)(ctx);
             });
@@ -100,8 +102,7 @@ impl OnEvent for DesktopNavigator {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigatorSelect(id)) = event.downcast_ref::<NavigatorSelect>() {
             println!("Navigator selected");
-            let mut buttons: Vec<&mut NavigationButton> = self.2.buttons().iter_mut().map(|btn| btn).collect();
-            buttons.push(&mut self.4);
+            let mut buttons: Vec<&mut NavigationButton> = self.2.buttons().iter_mut().collect();                buttons.push(&mut self.4);
             buttons.iter_mut().for_each(|button| {
                 *button.1.as_mut().unwrap().status() = if button.id() == *id {ButtonState::Selected} else {ButtonState::Default};
                 button.1.as_mut().unwrap().color(ctx);

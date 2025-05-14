@@ -65,6 +65,7 @@ impl Button {
     ///     |ctx: &mut Context| println!("Button clicked!"),
     /// );
     /// ```
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         ctx: &mut Context,
         avatar: Option<AvatarContent>,
@@ -120,9 +121,10 @@ impl Button {
 impl OnEvent for Button {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            if let Some(_) = self.4.handle(ctx, *event) {
+            if self.4.handle(ctx, *event).is_some() {
                 self.color(ctx);
             }
+
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.5)(ctx),
@@ -140,12 +142,12 @@ impl std::fmt::Debug for Button {
     }
 }
 
-
 #[derive(Debug, Component)]
 struct ButtonContent(Row, Option<Avatar>, Option<Image>, Option<Text>, Option<Image>);
 impl OnEvent for ButtonContent {}
 
 impl ButtonContent {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         ctx: &mut Context,
         avatar: Option<AvatarContent>,

@@ -217,8 +217,6 @@ impl Key {
         let content = KeyContent::new(ctx, 92.0, Offset::Center, character);
         Key(Stack::default(), content, ButtonState::Default, WinitKey::Named(NamedKey::Enter))
     }
-
-    fn content(&mut self) -> &mut KeyContent {&mut self.1}
 }
 
 impl OnEvent for Key {
@@ -259,7 +257,7 @@ impl Capslock {
         let content = KeyContent::new(ctx, 42.0, Offset::Center, character);
         Capslock(Stack::default(), content, ButtonState::Default, false, sender)
     }
-    fn content(&mut self) -> &mut KeyContent {&mut self.1}
+
     fn status(&mut self) -> &mut bool {&mut self.3}
 }
 
@@ -312,7 +310,6 @@ impl Paginator {
         Paginator(Stack::default(), content, ButtonState::Default, 0, sender)
     }
 
-    fn content(&mut self) -> &mut KeyContent {&mut self.1}
     fn status(&mut self) -> &mut u32 {&mut self.3}
 }
 

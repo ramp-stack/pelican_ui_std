@@ -20,6 +20,7 @@ impl Icon {
     ///
     /// # Returns:
     /// A new `Image` component with the specified icon, color, and size.
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(ctx: &mut Context, name: &'static str, color: Color, size: f32) -> Image {
         let icon = ctx.get::<PelicanUI>().theme.icons.get(name);
         Image{shape: ShapeType::Rectangle(0.0, (size, size)), image: icon, color: Some(color)}
@@ -38,6 +39,7 @@ impl Icon {
 pub struct Brand;
 impl OnEvent for Brand {}
 impl Brand {
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(image: resources::Image, size: (f32, f32)) -> Image {
         Image{shape: ShapeType::Rectangle(0.0, (size.0, size.1)), image, color: None}
     }

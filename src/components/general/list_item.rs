@@ -34,6 +34,7 @@ impl ListItem {
     ///
     /// # Returns
     /// A new instance of `ListItem` configured with the provided parameters.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         ctx: &mut Context,
         caret: bool,
@@ -68,7 +69,10 @@ impl OnEvent for ListItem {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
-                self.2.1.as_mut().map(|radio| {radio.select(ctx); ctx.trigger_event(ListItemSelect(self.5.expect("Selectable List Items Require ElementIDs")));});
+                if let Some(radio) = self.2.1.as_mut() {
+                    radio.select(ctx);
+                    ctx.trigger_event(ListItemSelect(self.5.expect("Selectable List Items Require ElementIDs")));
+                }
                 match self.3 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
                         #[cfg(target_os = "ios")]
@@ -78,10 +82,12 @@ impl OnEvent for ListItem {
                     _ => {}
                 }
             }
-        }  if let Some(ListItemSelect(id)) = event.downcast_ref::<ListItemSelect>() {
+        } else if let Some(ListItemSelect(id)) = event.downcast_ref::<ListItemSelect>() {
             if let Some(self_id) = &self.5 {
                 if *id != *self_id {
-                    self.2.1.as_mut().map(|radio| radio.deselect(ctx));
+                    if let Some(radio) = self.2.1.as_mut() {
+                        radio.deselect(ctx);
+                    }
                 }
             }
         }
@@ -100,6 +106,7 @@ struct ListItemContent(Row, Option<RadioButton>, Option<Avatar>, ListItemData, O
 impl OnEvent for ListItemContent {}
 
 impl ListItemContent {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         ctx: &mut Context,
         caret: bool,
@@ -340,7 +347,7 @@ impl ListItem {
     ) -> Self {
         let white = ctx.get::<PelicanUI>().theme.colors.shades.white;
         let icon = AvatarContent::Icon("credential", AvatarIconStyle::Custom(color, white));
-        ListItem::new(ctx, false, title, None, Some(subtitle), None, None, None, None, Some(icon), None, move |ctx: &mut Context| {})
+        ListItem::new(ctx, false, title, None, Some(subtitle), None, None, None, None, Some(icon), None, move |_ctx: &mut Context| {})
     }
 }
 /// A component representing a radio-style list item selector with multiple options.

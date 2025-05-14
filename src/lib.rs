@@ -1,4 +1,5 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/ramp-stack/pelican_ui/main/logo.png")]
+// #![deny(missing_docs)]
 
 //! A UI system for managing minimalistic components, themes, pages, and navigation in a Rust-based application.
 //!
@@ -22,6 +23,8 @@ pub mod interface;
 
 use rust_on_rails::prelude::*;
 use crate::theme::Theme;
+
+pub type Callback = Box<dyn FnMut(&mut Context)>;
 
 #[cfg(target_os = "ios")]
 extern "C" {
@@ -123,6 +126,12 @@ impl ElementID {
     /// A `uuid::Uuid` representing the unique identifier of the element.
     pub fn as_uuid(&self) -> uuid::Uuid {
         self.0
+    }
+}
+
+impl Default for ElementID {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -95,7 +95,7 @@ impl DataItemContent {
             text.map(|t| ExpandableText::new(ctx, t, TextStyle::Primary, font_size.md, Align::Left)),
             secondary.map(|t|Text::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left)),
             table.map(|tabulars| Table::new(ctx, tabulars)),
-            quick_actions.map(|actions| QuickActions::new(actions)),
+            quick_actions.map(QuickActions::new)
         )
     }
 }

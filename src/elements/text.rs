@@ -98,7 +98,7 @@ impl OnEvent for Text {
     /// Handles events, such as cursor movements or mouse clicks, for the `Text` component.
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(cursor) = &mut self.2 {
-            if let Some(_) = event.downcast_ref::<TickEvent>() {
+            if event.downcast_ref::<TickEvent>().is_some() {
                 if let Some(cords) = self.1.cursor_action(ctx.as_canvas(), CursorAction::GetPosition) {
                     *cursor.x_offset() = Offset::Static(cords.0);
                     *cursor.y_offset() = Offset::Static(cords.1-(self.1.spans[0].line_height/1.2));

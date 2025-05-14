@@ -1,8 +1,8 @@
 use rust_on_rails::prelude::*;
+use crate::Callback;
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::layout::{Offset, Padding, Size, Row, Stack};
-
 use super::{ButtonSize, ButtonState, ButtonStyle};
 
 /// The `IconButton` is a type of button that contains a singular icon instead of a label.
@@ -94,7 +94,7 @@ pub struct IconButtonRow(Row, Vec<IconButton>);
 impl OnEvent for IconButtonRow {}
 
 impl IconButtonRow {
-    pub fn new(ctx: &mut Context, buttons: Vec<(&'static str, Box<dyn FnMut(&mut Context)>)>) -> Self {
+    pub fn new(ctx: &mut Context, buttons: Vec<(&'static str, Box<Callback>)>) -> Self {
         let buttons = buttons.into_iter().map(|(i, on_click)| IconButton::secondary(ctx, i, on_click)).collect();
         IconButtonRow(Row::center(24.0), buttons)
     }

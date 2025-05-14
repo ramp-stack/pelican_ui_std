@@ -2,6 +2,7 @@ use rust_on_rails::prelude::*;
 use crate::theme::colors::ButtonColorScheme;
 use crate::PelicanUI;
 
+#[allow(clippy::module_inception)]
 mod button;
 pub use button::{Button, ButtonWidth, QuickActions, QuickDeselectButton};
 
