@@ -5,23 +5,23 @@ use crate::elements::shapes::OutlinedRectangle;
 use crate::layout::{Offset, Padding, Size, Row, Stack};
 use super::{ButtonSize, ButtonState, ButtonStyle};
 
-/// The `IconButton` is a type of button that contains a singular icon instead of a label.
+/// The [`IconButton`] is a type of button that contains a singular icon instead of a label.
 #[derive(Component)]
 pub struct IconButton(Stack, OutlinedRectangle, Image, #[skip] ButtonStyle, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>);
 
 impl IconButton {
-    /// Creates a new `IconButton` with specified parameters.
+    /// Creates a new [`IconButton`] with specified parameters.
     ///
     /// # Parameters
     /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `icon`: A string representing the icon's name.
+    /// - `icon`: A string representing the [`Icon`]'s name.
     /// - `size`: The size of the button.
     /// - `style`: The style of the button. secondary or ghost. (primary is not supported).
     /// - `state`: The initial state of the button.
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// A new `IconButton` instance configured with the given parameters.
+    /// A new [`IconButton`] instance configured with the given parameters.
     pub fn new(
         ctx: &mut Context,
         icon: &'static str,
@@ -50,13 +50,6 @@ impl IconButton {
     }
 
     /// Updates the colors of the `IconButton` based on the button's state.
-    ///
-    /// # Parameters
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `state`: The state that will determine the button's colors.
-    ///
-    /// # Description
-    /// This method updates the background, outline, and label colors of the button depending on its current state.
     pub fn color(&mut self, ctx: &mut Context, state: ButtonState) {
         let colors = state.color(ctx, self.3);
         *self.1.background() = colors.background;
@@ -64,10 +57,7 @@ impl IconButton {
         self.2.color = Some(colors.label);
     }
 
-    /// Returns a mutable reference to the `ButtonState` of the button.
-    ///
-    /// # Returns
-    /// - A mutable reference to the button's current state.
+    /// Returns a mutable reference to the [`ButtonState`] of the button.
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
@@ -154,7 +144,7 @@ impl IconButton {
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// - A new `IconButton` with a secondary style, medium size, and default state.
+    /// - A new [`IconButton`] with style [`ButtonStyle::Secondary`], size [`ButtonSize::Medium`], and state [`ButtonState::Default`].
     pub fn input(
         ctx: &mut Context, 
         icon: &'static str, 
@@ -178,7 +168,7 @@ impl IconButton {
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// - A new `IconButton` with a ghost style, medium size, and default state.
+    /// - A new [`IconButton`] with style [`ButtonStyle::Ghost`], size [`ButtonSize::Medium`], and state [`ButtonState::Default`].
     pub fn keyboard(
         ctx: &mut Context, 
         icon: &'static str,
@@ -194,7 +184,7 @@ impl IconButton {
         )
     }
     
-    /// Creates a new `IconButton` preset for header navigation.
+    /// Creates a new [`IconButton`] preset for header navigation.
     ///
     /// # Parameters
     /// - `ctx`: The [`Context`] for accessing the app's theme.
@@ -202,7 +192,7 @@ impl IconButton {
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// - A new `IconButton` with a ghost style, medium size, and default state.
+    /// - A new [`IconButton`] with style [`ButtonStyle::Ghost`], size [`ButtonStyle::Medium`], and state [`ButtonState::Default`].
     pub fn navigation(
         ctx: &mut Context, 
         icon: &'static str, 
@@ -218,14 +208,14 @@ impl IconButton {
         )
     }
 
-    /// Creates a new `IconButton` preset for closing a page.
+    /// Creates a new [`IconButton`] preset for closing a page.
     ///
     /// # Parameters
     /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// - A new `IconButton` with a ghost style, medium size, and default state. The icon is set to "close".
+    /// - A new [`IconButton`] with style [`ButtonStyle::Ghost`], size [`ButtonSize::Medium`], and state [`ButtonState::Default`]. The icon is set to "close".
     pub fn close(
         ctx: &mut Context, 
         on_click: impl FnMut(&mut Context) + 'static
@@ -240,7 +230,7 @@ impl IconButton {
         )
     }
 
-    /// Creates a new `IconButton` preset for the app's mobile navigator.
+    /// Creates a new [`IconButton`] preset for the app's mobile navigator.
     ///
     /// # Parameters
     /// - `ctx`: The [`Context`] for accessing the app's theme.
@@ -249,7 +239,7 @@ impl IconButton {
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// - A new `IconButton` with a ghost style, medium size.
+    /// - A new [`IconButton`] with style [`ButtonStyle::Ghost`], size [`ButtonSize::Medium`].
     pub fn tab_nav(
         ctx: &mut Context, 
         icon: &'static str, 

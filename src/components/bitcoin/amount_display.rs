@@ -6,7 +6,7 @@ use crate::PelicanUI;
 
 /// A component displaying an amount in both USD and BTC formats.
 ///
-/// The `AmountDisplay` component is used to show financial information, such as
+/// The [`AmountDisplay`] component is used to show financial information, such as
 /// a currency amount in both USD and Bitcoin (BTC). It consists of a column layout
 /// containing a main text for the USD amount and a subtext for the BTC equivalent.
 #[derive(Debug, Component)]
@@ -41,19 +41,9 @@ impl AmountDisplay {
     }
 
     /// Returns a mutable reference to the USD text in the [`AmountDisplay`].
-    ///
-    /// This method allows modifying the USD amount.
-    ///
-    /// # Returns
-    /// A mutable reference to the USD amount text.
     pub fn usd(&mut self) -> &mut String { &mut self.1.text().spans[0].text }
 
     /// Returns a mutable reference to the BTC text in the [`AmountDisplay`].
-    ///
-    /// This method allows modifying the BTC amount.
-    ///
-    /// # Returns
-    /// A mutable reference to the BTC amount text.
     pub fn btc(&mut self) -> &mut String { &mut self.2.2.text().spans[0].text }
 }
 
@@ -85,7 +75,7 @@ impl SubText {
     fn _text(&mut self) -> &mut String {&mut self.2.text().spans[0].text}
 }
 
-/// A component for inputting an amount in both USD and BTC.
+/// A component for inputting an amount in USD and viewing BTC equivalent.
 #[derive(Debug, Component)]
 pub struct AmountInput(Stack, AmountInputContent);
 impl OnEvent for AmountInput {}
@@ -105,53 +95,16 @@ impl AmountInput {
     }
 
     /// Returns the USD input value as a string.
-    ///
-    /// # Example
-    /// ```
-    /// let usd_value = amount_input.usd();
-    /// ```
     pub fn usd(&mut self) -> String { self.1.1.value() }
-
     /// Returns a mutable reference to the BTC input value.
-    ///
-    /// # Example
-    /// ```
-    /// let btc_value = amount_input.btc();
-    /// *btc_value = 0.1; // Set BTC value
-    /// ```
     pub fn btc(&mut self) -> &mut f32 { &mut self.1.5 }
-
     /// Returns a mutable reference to the error flag.
-    ///
-    /// # Example
-    /// ```
-    /// let error_flag = amount_input.error();
-    /// *error_flag = true; // Set error flag
-    /// ```
     pub fn error(&mut self) -> &mut bool { self.1.2.error() }
-
     /// Sets the minimum value for the amount input.
-    ///
-    /// # Example
-    /// ```
-    /// amount_input.set_min(0.01);
-    /// ```
     pub fn set_min(&mut self, a: f32) { self.1.3.0 = a; }
-
     /// Sets the maximum value for the amount input.
-    ///
-    /// # Example
-    /// ```
-    /// amount_input.set_max(1000.0);
-    /// ```
     pub fn set_max(&mut self, a: f32) { self.1.3.1 = a; }
-
     /// Sets the price value for the amount input.
-    ///
-    /// # Example
-    /// ```
-    /// amount_input.set_price(50000.0);
-    /// ```
     pub fn set_price(&mut self, a: f32) { self.1.4 = a; }
 }
 

@@ -4,20 +4,20 @@ use crate::elements::text::{Text, TextStyle};
 use crate::layout::{Offset, Padding, Row, Size};
 use crate::PelicanUI;
 
-/// A UI component that displays a warning message along with a warning icon.
+/// A component that displays a warning message along with a warning icon.
 #[derive(Debug, Component)]
 pub struct Alert(Row, Image, Text);
 impl OnEvent for Alert {}
 
 impl Alert {
-    /// Creates a new `Alert` with a warning message.
+    /// Creates a new [`Alert`] with a warning message.
     ///
     /// # Parameters
     /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `message`: The warning message to display.
     ///
     /// # Returns
-    /// - A new `Alert` component with a warning icon and a message.
+    /// - A new [`Alert`] component with a warning icon and a message.
     pub fn new(ctx: &mut Context, message: &'static str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (color, font_size) = (theme.colors.status.warning, theme.fonts.size.md);
@@ -30,8 +30,5 @@ impl Alert {
     }
 
     /// Retrieves and allows modifying the message of the alert.
-    ///
-    /// # Returns
-    /// - A mutable reference to the message text stored in the `Alert`.
     pub fn message(&mut self) -> &mut String { &mut self.2.text().spans[0].text }
 }

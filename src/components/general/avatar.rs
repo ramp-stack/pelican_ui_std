@@ -29,7 +29,7 @@ impl Avatar {
     /// customize the appearance with a flair, outline, and size.
     ///
     /// # Parameters:
-    /// - **`ctx`**: The current context, used for accessing themes and UI elements.
+    /// - **`ctx`**: The [`Context`] for accessing the app's theme.
     /// - **`content`**: The content of the avatar, which can either be an image or an icon.
     /// - **`flair`**: An optional tuple containing the name and style of the flair to be added to the avatar.
     /// - **`outline`**: A boolean flag to indicate whether the avatar should have a circular outline.

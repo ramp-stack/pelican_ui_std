@@ -17,7 +17,7 @@ impl DataItem {
     /// a table of key-value pairs, and quick actions that can be performed (buttons).
     ///
     /// # Parameters:
-    /// - **`ctx`**: The current context, used to access the theme and other resources.
+    /// - **`ctx`**: The [`Context`] for accessing the app's theme.
     /// - **`number`**: An optional static string representing a number associated with the item (e.g., a count or value).
     /// - **`label`**: The main label that represents the data item (e.g., the name of the item).
     /// - **`text`**: An optional string representing additional text to display alongside the label.

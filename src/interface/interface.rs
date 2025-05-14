@@ -25,7 +25,7 @@ impl Interface {
     /// either a `MobileInterface` or a `DesktopInterface` to manage the layout and navigation of the application.
     ///
     /// # Parameters:
-    /// - **`ctx`**: A mutable reference to the context, used to retrieve resources like themes, configurations, and other application state.
+    /// - **`ctx`**: The [`Context`] for accessing the app's theme.
     /// - **`start_page`**: The starting page of the application, which should implement the `AppPage` trait. This will be the page shown when the app starts.
     /// - **`navigation`**: A tuple containing:
     ///   - An index `usize` representing the selected page for navigation.

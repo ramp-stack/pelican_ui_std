@@ -100,7 +100,7 @@ impl ButtonState {
     /// (e.g., default, pressed, disabled) and style (primary, secondary, or ghost).
     ///
     /// # Parameters:
-    /// - **`ctx`**: The current context, used to access the theme's colors.
+    /// - **`ctx`**: The [`Context`] for accessing the app's theme.
     /// - **`style`**: The style of the button (Primary, Secondary, or Ghost).
     ///
     /// # Returns:

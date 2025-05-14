@@ -35,19 +35,19 @@ impl Button {
     ///
     /// # Parameters:
     /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `avatar`: An optional avatar image to display inside the button.
-    /// - `icon_l`: An optional icon to display on the left side of the button.
-    /// - `label`: An optional label for the button's text.
-    /// - `icon_r`: An optional icon to display on the right side of the button.
+    /// - `avatar`: An optional [`Avatar`] to display inside the button.
+    /// - `icon_l`: An optional [`Icon`] to display on the left side of the button.
+    /// - `label`: An optional [`Text`] label.
+    /// - `icon_r`: An optional [`Icon`] to display on the right side of the button.
     /// - `size`: Defines the size of the button.
     /// - `width`: Defines the width of the button.
     /// - `style`: Defines the style of the button.
     /// - `state`: Specifies the initial state of the button.
-    /// - `offset`: Specifies the button's content's offset. (usually `Offset::Center`)
+    /// - `offset`: Specifies the button's content's offset. (usually [`Offset::Center`])
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
     /// # Returns:
-    /// A UI ready `Button` instance.
+    /// A UI ready [`Button`] instance.
     ///
     /// # Example:
     /// ```
@@ -99,11 +99,6 @@ impl Button {
     }
 
     /// Updates the color of the button based on its current state and style.
-    ///
-    /// # Parameters:
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    ///
-    /// This function updates the button's background, outline, and label colors.
     pub fn color(&mut self, ctx: &mut Context) {
         let colors = self.4.color(ctx, self.3);
         self.2.set_color(colors.label);
@@ -112,9 +107,6 @@ impl Button {
     }
 
     /// Returns a mutable reference to the current state of the button.
-    ///
-    /// # Returns:
-    /// - A mutable reference to `ButtonState`, which can be used to modify the button's state.
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
@@ -184,7 +176,7 @@ impl Button {
     /// - `on_click`:  A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// A `Button` with the `Primary` style and default state.
+    /// A [`Button`] with style [`ButtonStyle::Primary`] and state [`ButtonState::Default`].
     pub fn primary (
         ctx: &mut Context,
         label: &'static str,
@@ -209,13 +201,13 @@ impl Button {
     ///
     /// # Parameters
     /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `icon_l`: An optional icon to display on the left side of the button.
+    /// - `icon_l`: An optional [`Icon`] to display on the left side of the button.
     /// - `label`: The text displayed on the button.
-    /// - `icon_r`: An optional icon to display on the right side of the button.
+    /// - `icon_r`: An optional [`Icon`] to display on the right side of the button.
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// A `Button` with the `Secondary` style and default state.
+    /// A [`Button`] with style [`ButtonStyle::Secondary`] and state [`ButtonState::Default`].
     pub fn secondary(
         ctx: &mut Context,
         icon_l: Option<&'static str>,
@@ -246,7 +238,7 @@ impl Button {
     /// - `on_click` A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// A `Button` with the `Ghost` style and default state.
+    /// A [`Button`] with style [`ButtonStyle::Ghost`] and state [`ButtonState::Default`].
     pub fn ghost(
         ctx: &mut Context,
         label: &'static str,
@@ -275,7 +267,7 @@ impl Button {
     /// - `on_click`: A closure that defines the action when the button is clicked (this will not be triggered as the button is disabled).
     ///
     /// # Returns
-    /// A `Button` with the `Primary` style and `Disabled` state.
+    /// A [`Button`] with style [`ButtonStyle::Primary`] and state [`ButtonState::Disabled`].
     pub fn disabled(
         ctx: &mut Context,
         label: &'static str,
@@ -305,7 +297,7 @@ impl Button {
     /// - `on_click` A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// A `Button` with the `Ghost` style and default state.
+    /// A [`Button`] with style [`ButtonStyle::Ghost`], state [`ButtonState::Default`], and size [`ButtonSize::Large`].
     pub fn keypad(
         ctx: &mut Context,
         label: Option<&'static str>,
@@ -337,7 +329,7 @@ impl Button {
     /// - `on_click` A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// A `Button` with the `Ghost` style and either the `Selected` or `Default` state.
+    /// A [`Button`] with style [`ButtonStyle::Ghost`] and either state [`ButtonState::Selected`] or [`ButtonState::Default`].
     pub fn navigation(
         ctx: &mut Context,
         icon: &'static str,
@@ -370,7 +362,7 @@ impl Button {
     /// - `on_click` A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// A `Button` with the `Ghost` style and either the `Pressed` or `Default` state.
+    /// A [`Button`] with style [`ButtonStyle::Ghost`] and either state [`ButtonState::Selected`] or [`ButtonState::Default`].
     pub fn photo(
         ctx: &mut Context,
         label: &'static str,
@@ -387,7 +379,7 @@ impl Button {
             ButtonSize::Large,
             ButtonWidth::Expand,
             ButtonStyle::Ghost,
-            if selected {ButtonState::Pressed} else {ButtonState::Default},
+            if selected {ButtonState::Selected} else {ButtonState::Default},
             Offset::Start,
             on_click,
         )
@@ -401,7 +393,7 @@ impl Button {
     /// - `on_click` A closure that will be executed when the button is clicked.
     ///
     /// # Returns
-    /// A `Button` with the `Secondary` style and default state.
+    /// A [`Button`] with style [`ButtonStyle::Secondary`] and state [`ButtonState::Default`].
     pub fn close(
         ctx: &mut Context,
         label: &'static str,
@@ -425,7 +417,7 @@ impl Button {
 
 /// A component that represents a set of quick action buttons displayed in a wrap layout.
 ///
-/// The `QuickActions` component is used to display multiple buttons in a flexible wrap layout, where the buttons
+/// The [`QuickActions`] component is used to display multiple buttons in a flexible wrap layout, where the buttons
 /// can be customized and interact with various events. The component is designed to allow easy addition and removal
 /// of buttons. Each button is displayed with a default margin between them for easy organization.
 ///
@@ -444,35 +436,12 @@ impl OnEvent for QuickActions {}
 
 impl QuickActions {
     /// Creates a new `QuickActions` component with a list of action buttons.
-    ///
-    /// This function initializes the `QuickActions` component by arranging the provided buttons in a wrap layout,
-    /// where the buttons are displayed with a spacing of 8.0 units. The buttons are typically secondary in style.
-    ///
-    /// # Parameters
-    /// - `buttons`: A vector of `Button` components that will be displayed in the wrap layout.
-    ///
-    /// # Returns
-    /// A new `QuickActions` component containing the provided buttons arranged in a wrap layout.
     pub fn new(buttons: Vec<Button>) -> Self {
         QuickActions(Wrap(8.0, 8.0, Offset::Start, Offset::Center, Padding::default()), buttons)
     }
 }
 
 /// A component that represents a button for deselecting or removing a contact.
-///
-/// The [`QuickDeselectButton`] is a specialized button that triggers an event to remove a contact when clicked.
-/// It is displayed in a stack layout, and includes a "close" label. The component also
-/// stores an `ElementID` to identify the contact being removed.
-///
-/// # Fields
-/// - `Stack`: A layout component that arranges the button in a stack layout.
-/// - `Button`: The button component that triggers the removal action.
-/// - `ElementID`: A hidden field that stores the ID of the contact being removed.
-///
-/// # Example
-/// ```rust
-/// let quick_deselect = QuickDeselectButton::new(ctx, "Remove Contact", id);
-/// ```
 #[derive(Debug, Component)]
 pub struct QuickDeselectButton(Stack, Button, #[skip] ElementID);
 
@@ -480,28 +449,11 @@ impl OnEvent for QuickDeselectButton {}
 
 impl QuickDeselectButton {
     /// Creates a new [`QuickDeselectButton`] component with a remove contact action.
-    ///
-    /// This function initializes the [`QuickDeselectButton`] by creating a button that triggers the [`RemoveContactEvent`]
-    /// when clicked. The button is displayed with the "close" label and is linked to a specific contact identified
-    /// by the provided [`ElementID`].
-    ///
-    /// # Parameters
-    /// - `ctx`: A mutable reference to the [`Context`], used to trigger events and manage resources.
-    /// - `name`: The name or label displayed on the button (e.g., "Remove Contact").
-    /// - `id`: The [`ElementID`] associated with the contact to be removed.
-    ///
-    /// # Returns
-    /// A new [`QuickDeselectButton`] component that allows deselecting or removing a contact.
     pub fn new(ctx: &mut Context, name: &'static str, id: ElementID) -> Self {
         let button = Button::secondary(ctx, None, name, Some("close"), move |ctx: &mut Context| ctx.trigger_event(RemoveContactEvent(id)));
         QuickDeselectButton(Stack::default(), button, id)
     }
 
     /// Returns the [`ElementID`] of the contact associated with the button.
-    ///
-    /// This method allows retrieval of the ID of the contact that will be removed when the button is clicked.
-    ///
-    /// # Returns
-    /// The [`ElementID`] of the contact to be removed.
     pub fn id(&self) -> ElementID {self.2}
 }

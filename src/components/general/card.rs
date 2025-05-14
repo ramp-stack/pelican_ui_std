@@ -22,7 +22,7 @@ impl Card {
     /// using a stack arrangement. This card can be used to promote or market content in a UI.
     ///
     /// # Parameters:
-    /// - **`ctx`**: The current context, used to access the theme and colors.
+    /// - **`ctx`**: The [`Context`] for accessing the app's theme.
     /// - **`avatar`**: The avatar content to display in the card (can be an image or icon).
     /// - **`title`**: The main title for the card (usually displayed prominently).
     /// - **`subtitle`**: A secondary title or tagline that provides more context.
