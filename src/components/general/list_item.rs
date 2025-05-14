@@ -1,7 +1,7 @@
 use rust_on_rails::prelude::*;
 use crate::events::{ListItemSelect, RemoveContactEvent, AddContactEvent};
 use crate::elements::images::Icon;
-use crate::elements::text::{Text, TextStyle};
+use crate::elements::text::{Text, ExpandableText, TextStyle};
 use crate::elements::shapes::Rectangle;
 use crate::components::button::{ButtonState, QuickDeselectButton};
 use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
@@ -182,7 +182,7 @@ impl TitleRow {
 }
 
 #[derive(Debug, Component)]
-struct LeftData(Column, TitleRow, Option<Text>, Option<Text>);
+struct LeftData(Column, TitleRow, Option<ExpandableText>, Option<Text>);
 impl OnEvent for LeftData {}
 
 impl LeftData {
@@ -197,7 +197,7 @@ impl LeftData {
         LeftData (
             Column::new(4.0, Offset::Start, Size::custom(|widths: Vec<(f32, f32)>| (widths[0].0, f32::MAX)), Padding::default()),
             TitleRow::new(ctx, title, flair),
-            subtitle.map(|text| Text::new(ctx, text, TextStyle::Secondary, font_size, Align::Left)),
+            subtitle.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, Align::Left)),
             description.map(|text| {
                 text.len()
                     .checked_sub(70 + 1)
@@ -328,6 +328,19 @@ impl ListItem {
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         ListItem::new(ctx, false, title, None, Some(subtitle), description, None, None, Some(selected), None, Some(ElementID::new()), on_click)
+    }
+
+    /// Creates a list item for a radio selection.
+    /// Work in progress...
+    pub fn credential(
+        ctx: &mut Context,
+        title: &'static str,
+        subtitle: &'static str,
+        color: Color
+    ) -> Self {
+        let white = ctx.get::<PelicanUI>().theme.colors.shades.white;
+        let icon = AvatarContent::Icon("credential", AvatarIconStyle::Custom(color, white));
+        ListItem::new(ctx, false, title, None, Some(subtitle), None, None, None, None, Some(icon), None, move |ctx: &mut Context| {})
     }
 }
 /// A component representing a radio-style list item selector with multiple options.

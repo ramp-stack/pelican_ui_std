@@ -97,10 +97,7 @@ impl InputField {
 
         InputField(Stack(
             Offset::Start, Offset::Start, Size::fill(),
-            Size::custom(|heights: Vec<(f32, f32)>| (
-                if heights[1].0 > 48.0 {heights[1].0} else {48.0},
-                if heights[1].1 > 48.0 {heights[1].1} else {48.0}
-            )),
+            Size::custom(|heights: Vec<(f32, f32)>| (heights[1].0.max(48.0), heights[1].1.max(48.0))),
             Padding::default()
         ), background, content, InputState::Default, false)
     }

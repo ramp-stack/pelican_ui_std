@@ -1,5 +1,5 @@
 use rust_on_rails::prelude::*;
-use crate::elements::text::{Text, TextStyle};
+use crate::elements::text::{Text, ExpandableText, TextStyle};
 use crate::elements::shapes::Circle;
 use crate::components::button::Button;
 use crate::layout::{Column, Row, Stack, Padding, Offset, Size};
@@ -76,7 +76,7 @@ impl Number {
 }
 
 #[derive(Debug, Component)]
-struct DataItemContent(Column, Text, Option<Text>, Option<Text>, Option<Table>, Option<QuickActions>);
+struct DataItemContent(Column, Text, Option<ExpandableText>, Option<Text>, Option<Table>, Option<QuickActions>);
 impl OnEvent for DataItemContent {}
 
 impl DataItemContent {
@@ -92,7 +92,7 @@ impl DataItemContent {
         DataItemContent(
             Column::new(16.0, Offset::Start, Size::fill(), Padding::default()),
             Text::new(ctx, label, TextStyle::Heading, font_size.h5, Align::Left),
-            text.map(|t| Text::new(ctx, t, TextStyle::Primary, font_size.md, Align::Left)),
+            text.map(|t| ExpandableText::new(ctx, t, TextStyle::Primary, font_size.md, Align::Left)),
             secondary.map(|t|Text::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left)),
             table.map(|tabulars| Table::new(ctx, tabulars)),
             quick_actions.map(|actions| QuickActions::new(actions)),

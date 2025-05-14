@@ -98,6 +98,7 @@ pub trait AppFlow: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static
 
 dyn_clone::clone_trait_object!(AppFlow);
 
+
 /// Represents a unique identifier for an element in the user interface.
 ///
 /// This struct wraps a `Uuid` to ensure each UI element has a unique identifier, which is useful

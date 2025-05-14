@@ -100,7 +100,8 @@ pub enum AvatarIconStyle {
     Brand,
     Success,
     Warning,
-    Danger
+    Danger,
+    Custom(Color, Color)
 }
 
 impl AvatarIconStyle {
@@ -113,6 +114,7 @@ impl AvatarIconStyle {
             AvatarIconStyle::Success => (colors.status.success, colors.shades.white),
             AvatarIconStyle::Warning => (colors.status.warning, colors.shades.white),
             AvatarIconStyle::Danger => (colors.status.danger, colors.shades.white),
+            AvatarIconStyle::Custom(background, icon) => (*background, *icon)
         }
     }
 }

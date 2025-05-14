@@ -182,7 +182,7 @@ impl Page {
 /// The `Content` component is used to display and manage the content area of a page,
 /// with the ability to dynamically modify the list of drawable items.
 #[derive(Debug, Component)]
-pub struct Content (Stack, ContentChildren);
+pub struct Content (Stack, ContentChildren, #[skip] bool);
 
 impl Content {
     /// Creates a new `Content` component with the specified layout and child items.
@@ -199,7 +199,7 @@ impl Content {
         let height = Size::custom(move |_: Vec<(f32, f32)>|(0.0, f32::MAX));
         Content(
             Stack(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0)),
-            ContentChildren::new(content),
+            ContentChildren::new(content), true // scrollable boolean
         )
     }
     

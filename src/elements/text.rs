@@ -1,7 +1,7 @@
 use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
-use crate::layout::{Stack, Offset, Size, Padding, Opt};
-use crate::elements::shapes::Rectangle;
+use crate::layout::{Stack, Offset, Size, Padding, Opt, Row};
+use crate::elements::shapes::{Rectangle, Circle};
 use crate::PelicanUI;
 
 /// Enumeration of text styles used in the UI.
@@ -143,8 +143,8 @@ impl Component for ExpandableText {
     fn children(&self) -> Vec<&dyn Drawable> { vec![&self.0] }
 
     fn request_size(&self, ctx: &mut Context, _children: Vec<SizeRequest>) -> SizeRequest {
-        let max_height = self.0.1.size(ctx).1;
-        SizeRequest::new(0.0, 0.0, f32::MAX, max_height)
+        let height = self.0.1.size(ctx).1;
+        SizeRequest::new(0.0, height, f32::MAX, height)
     }
 
     fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
@@ -152,3 +152,20 @@ impl Component for ExpandableText {
         vec![Area{offset: (0.0, 0.0), size}]
     }
 }
+
+#[derive(Debug, Component)]
+pub struct BulletedText(Row, Shape, ExpandableText);
+impl OnEvent for BulletedText {}
+impl BulletedText {
+    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
+        let (color, _) = style.get(ctx);
+        BulletedText(
+            Row(size*0.75, Offset::Center, Size::Fit, Padding::default()),
+            Circle::new(size*0.5, color),
+            ExpandableText::new(ctx, text, style, size, align)
+        )
+    }
+
+    pub fn text(&mut self) -> &mut BasicText { self.2.text() }
+}
+

@@ -229,30 +229,32 @@ impl HeaderIcon {
 }
 
 #[derive(Debug, Component)]
-pub struct Bumper (Stack, BumperContent);
+pub struct Bumper (Stack, Rectangle, BumperContent);
 impl OnEvent for Bumper {}
 
 impl Bumper {
-    pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
+    pub fn new(ctx: &mut Context, content: Vec<Box<dyn Drawable>>) -> Self {
+        let background = ctx.get::<PelicanUI>().theme.colors.background.primary;
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, 375.0));
+        let height = Size::custom(move |heights: Vec<(f32, f32)>|(heights[1].0, heights[1].1));
         Bumper(
-            Stack(Offset::Center, Offset::Start, width, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
-            BumperContent::new(content)
+            Stack(Offset::Center, Offset::Start, width, height, Padding::default()),
+            Rectangle::new(background), BumperContent::new(content)
         )
     }
 
-    pub fn double_button(a: Button, b: Button) -> Self {
-        Self::new(vec![Box::new(a), Box::new(b)])
+    pub fn double_button(ctx: &mut Context, a: Button, b: Button) -> Self {
+        Self::new(ctx, vec![Box::new(a), Box::new(b)])
     }
 
-    pub fn single_button(a: Button) -> Self {
-        Self::new(vec![Box::new(a)])
+    pub fn single_button(ctx: &mut Context, a: Button) -> Self {
+        Self::new(ctx, vec![Box::new(a)])
     }
 
     // pub fn message_input(a: TextInput) -> Self {
     //     Self::new(vec![Box::new(a)])
     // }
-    pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.1.1}
+    pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.2.1}
 }
 
 #[derive(Debug, Component)]
@@ -261,6 +263,6 @@ impl OnEvent for BumperContent {}
 
 impl BumperContent {
     fn new(content: Vec<Box<dyn Drawable>>) -> Self {
-        BumperContent(Row::center(16.0), content)
+        BumperContent(Row(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)), content)
     }
 }
