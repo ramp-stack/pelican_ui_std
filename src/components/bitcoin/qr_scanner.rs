@@ -5,10 +5,20 @@ use crate::elements::shapes::RoundedRectangle;
 use crate::layout::{Column, Stack, Offset, Size, Padding};
 use crate::PelicanUI;
 
+/// A component for scanning QR codes using the device camera.
 #[derive(Debug, Component)]
 pub struct QRCodeScanner(Stack, Option<Image>, QRGuide, #[skip] Camera);
 
 impl QRCodeScanner {
+    /// Creates a new `QRCodeScanner` component with a centered stack layout, a QR guide, and a camera instance.
+    ///
+    /// # Parameters
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
+    ///
+    /// # Example
+    /// ```
+    /// let scanner = QRCodeScanner::new(ctx);
+    /// ```
     pub fn new(ctx: &mut Context) -> Self {
         QRCodeScanner(Stack::center(), None, QRGuide::new(ctx), Camera::new())
     }

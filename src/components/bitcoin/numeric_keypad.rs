@@ -2,11 +2,18 @@ use rust_on_rails::prelude::*;
 use crate::components::button::Button;
 use crate::layout::{Column, Row, Offset, Size, Padding};
 
+/// A numeric keypad component with four rows of buttons.
 #[derive(Debug, Component)]
 pub struct NumericKeypad(Column, ButtonRow, ButtonRow, ButtonRow, ButtonRow);
 impl OnEvent for NumericKeypad {}
 
 impl NumericKeypad {
+    /// Creates a new [`NumericKeypad`] component with 4 rows of buttons.
+    ///
+    /// # Example
+    /// ```
+    /// let mut keypad = NumericKeypad::new(ctx);
+    /// ```
     pub fn new(ctx: &mut Context) -> Self {
         NumericKeypad(
             Column::new(16.0, Offset::Center, Size::Fit, Padding::default()), 

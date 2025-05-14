@@ -1,5 +1,5 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/ramp-stack/pelican_ui/main/logo.png")]
-// #![deny(missing_docs)]
+#![deny(missing_docs)]
 
 //! A UI system for managing minimalistic components, themes, pages, and navigation in a Rust-based application.
 //!
@@ -24,6 +24,19 @@ pub mod interface;
 use rust_on_rails::prelude::*;
 use crate::theme::Theme;
 
+/// A boxed, mutable callback function that takes a mutable reference to a [`Context`].
+///
+/// This type is typically used to store closures that modify or respond to the state
+/// of the `Context` during event handling, rendering, or other application logic.
+///
+/// # Example
+/// ```rust
+/// fn make_callback() -> Callback {
+///     Box::new(|ctx: &mut Context| {
+///         ctx.do_something();
+///     })
+/// }
+/// ```
 pub type Callback = Box<dyn FnMut(&mut Context)>;
 
 #[cfg(target_os = "ios")]

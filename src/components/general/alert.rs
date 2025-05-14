@@ -13,7 +13,7 @@ impl Alert {
     /// Creates a new `Alert` with a warning message.
     ///
     /// # Parameters
-    /// - `ctx`: Context.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `message`: The warning message to display.
     ///
     /// # Returns

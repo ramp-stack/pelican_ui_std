@@ -13,7 +13,7 @@ impl IconButton {
     /// Creates a new `IconButton` with specified parameters.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `icon`: A string representing the icon's name.
     /// - `size`: The size of the button.
     /// - `style`: The style of the button. secondary or ghost. (primary is not supported).
@@ -52,7 +52,7 @@ impl IconButton {
     /// Updates the colors of the `IconButton` based on the button's state.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `state`: The state that will determine the button's colors.
     ///
     /// # Description
@@ -88,12 +88,33 @@ impl OnEvent for IconButton {
     }
 }
 
-/// A row of secondary style `IconButton`s, spaced `24.0` apart.
+/// A row of secondary style [`IconButton`]s, spaced `24.0` apart.
 #[derive(Debug, Component)]
 pub struct IconButtonRow(Row, Vec<IconButton>);
 impl OnEvent for IconButtonRow {}
 
 impl IconButtonRow {
+    /// Creates a new [`IconButtonRow`] component with a list of icon buttons.
+    ///
+    /// This function initializes the [`IconButtonRow`] by creating a row layout and adding the provided list of
+    /// icon buttons. Each button is created with a label and an associated callback function, which is triggered
+    /// when the button is clicked. The buttons are arranged in a row with 24.0 units of space between them.
+    ///
+    /// # Parameters
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
+    /// - `buttons`: A vector of tuples, where each tuple contains a label (`&'static str`) and a callback function
+    ///   (`Box<[`Callback`]>`) to be executed when the corresponding button is clicked.
+    ///
+    /// # Returns
+    /// A new [`IconButtonRow`] component containing the list of icon buttons arranged in a centered row layout.
+    ///
+    /// # Example
+    /// ```rust
+    /// let icon_button_row = IconButtonRow::new(ctx, vec![
+    ///     ("Button 1", Box::new(|ctx: &mut Context| { /* some action */ })),
+    ///     ("Button 2", Box::new(|ctx: &mut Context| { /* some action */ }))
+    /// ]);
+    /// ```
     pub fn new(ctx: &mut Context, buttons: Vec<(&'static str, Box<Callback>)>) -> Self {
         let buttons = buttons.into_iter().map(|(i, on_click)| IconButton::secondary(ctx, i, on_click)).collect();
         IconButtonRow(Row::center(24.0), buttons)
@@ -101,19 +122,19 @@ impl IconButtonRow {
 }
 
 impl IconButton {
-    /// Creates a new `IconButton` preset with a secondary style.
+    /// Creates a new [`IconButton`] preset with a secondary style.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
-    /// - `icon`: The icon for the button, represented as a string (e.g., a file name or path).
-    /// - `on_click`: A closure that will be executed when the button is clicked.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
+    /// - `icon`: The icon for the button, represented by it's name as a string.
+    /// - `on_click`: A [`Callback`] that will be executed when the button is clicked.
     ///
     /// # Returns
     /// - A new `IconButton` with a secondary style, large size, and default state.
     pub fn secondary(
         ctx: &mut Context, 
         icon: &'static str, 
-        on_click: Box<dyn FnMut(&mut Context)>
+        on_click: Box<Callback>
     ) -> Self {
         IconButton::new(
             ctx,
@@ -128,7 +149,7 @@ impl IconButton {
     /// Creates a new `IconButton` preset for input fields.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `icon`: The icon for the button, represented as a string (e.g., a file name or path).
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
@@ -152,7 +173,7 @@ impl IconButton {
     /// Creates a new `IconButton` preset for use in a mobile keyboard.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `icon`: The icon for the button, represented as a string (e.g., a file name or path).
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
@@ -176,7 +197,7 @@ impl IconButton {
     /// Creates a new `IconButton` preset for header navigation.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `icon`: The icon for the button, represented as a string (e.g., a file name or path).
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
@@ -200,7 +221,7 @@ impl IconButton {
     /// Creates a new `IconButton` preset for closing a page.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `on_click`: A closure that will be executed when the button is clicked.
     ///
     /// # Returns
@@ -222,7 +243,7 @@ impl IconButton {
     /// Creates a new `IconButton` preset for the app's mobile navigator.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `icon`: The name of the icon to display.
     /// - `selected`: Indicates whether the icon is initially selected.
     /// - `on_click`: A closure that will be executed when the button is clicked.

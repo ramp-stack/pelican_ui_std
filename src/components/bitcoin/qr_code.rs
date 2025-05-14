@@ -6,11 +6,22 @@ use crate::PelicanUI;
 
 use qrcode::{QrCode, Color};
 
+/// A component representing a QR code with a branded logo.
 #[derive(Debug, Component)]
 pub struct QRCode(Stack, Bin<Stack, RoundedRectangle>, QRModules, Image);
 impl OnEvent for QRCode {}
 
 impl QRCode {
+    /// Creates a new `QRCode` component with a QR code and a branded logo.
+    ///
+    /// # Parameters
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
+    /// - `data`: The data to encode in the QR code.
+    ///
+    /// # Example
+    /// ```
+    /// let qr_code = QRCode::new(ctx, "https://example.com");
+    /// ```
     pub fn new(ctx: &mut Context, data: &'static str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (app_icon, color) = (theme.brand.app_icon.clone(), theme.colors.shades.white);
@@ -29,12 +40,13 @@ impl QRCode {
     }
 }
 
+
 #[derive(Debug, Component)]
-pub struct QRModules(Column, Vec<QRModuleRow>);
+struct QRModules(Column, Vec<QRModuleRow>);
 impl OnEvent for QRModules {}
 
 impl QRModules {
-    pub fn new(ctx: &mut Context, code_str: &'static str, qr_size: f32, logo_size: f32) -> Self {
+    fn new(ctx: &mut Context, code_str: &'static str, qr_size: f32, logo_size: f32) -> Self {
         let code = QrCode::new(code_str).unwrap();
         let module_count = code.width() as u32;
         let module_size = qr_size / module_count as f32;
@@ -57,10 +69,10 @@ impl QRModules {
 }
 
 #[derive(Debug, Component)]
-pub struct QRModuleRow(Row, Vec<Shape>);
+struct QRModuleRow(Row, Vec<Shape>);
 impl OnEvent for QRModuleRow{}
 impl QRModuleRow {
-    pub fn new(
+    fn new(
         ctx: &mut Context, 
         code: QrCode, 
         module_count: u32, 

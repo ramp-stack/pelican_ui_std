@@ -5,35 +5,37 @@ pub use fonts::*;
 pub use icons::*;
 pub use brand::*;
 
+/// Defines the color palette used across the application.
 pub mod colors;
+/// Specifies font styles and typography settings.
 pub mod fonts;
+/// Provides access to application-wide icon assets.
 pub mod icons;
+/// Contains branding elements such as logos and brand colors.
 pub mod brand;
 
 /// Represents the visual theme of the application, encapsulating color, font, icon, and brand resources.
-///
-/// # Modules:
-/// - `colors`: Defines and manages color resources used in the theme.
-/// - `fonts`: Defines and manages font resources used in the theme.
-/// - `icons`: Defines and manages icon resources used in the theme.
-/// - `brand`: Defines and manages branding resources such as logos or trademarks.
 pub struct Theme {
+    /// Defines and manages color resources used in the theme.
     pub colors: ColorResources,
+    /// Defines and manages font resources used in the theme.
     pub fonts: FontResources,
+    /// Defines and manages icon resources used in the theme.
     pub icons: IconResources,
+    /// Defines and manages branding resources such as logos or trademarks.
     pub brand: BrandResources,
 }
 
 impl Theme {
     /// Returns the default theme for the application, using default resources for colors, fonts, icons, and brand.
     ///
-    /// This function initializes a `Theme` instance with default values for all resources, making it suitable for applications that don't require custom styling or resources.
+    /// This function initializes a [`Theme`] instance with default values for all resources, making it suitable for applications that don't require custom styling or resources.
     ///
     /// # Parameters
-    /// - `ctx`: A mutable reference to the `Context` used to initialize `FontResources` and `IconResources`. These resources may require context-specific data, such as loaded font files or icon images.
+    /// - `ctx`: A mutable reference to the [`Context`] used to initialize [`FontResources`] and [`IconResources`]. These resources may require context-specific data, such as loaded font files or icon images.
     ///
     /// # Returns
-    /// A `Theme` instance initialized with default color, font, icon, and brand resources.
+    /// A [`Theme`] instance initialized with default color, font, icon, and brand resources.
     ///
     /// # Example
     /// ```

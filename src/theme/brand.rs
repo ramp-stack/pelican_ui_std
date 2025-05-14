@@ -12,10 +12,14 @@ use std::collections::HashMap;
 /// - `illustrations`: A collection of illustrations associated with the brand, accessible by name.
 #[derive(Clone, Debug)]
 pub struct BrandResources {
-    pub wordmark: resources::Image,       // The wordmark image for the brand.
-    pub logomark: resources::Image,       // The logomark image for the brand.
-    pub app_icon: resources::Image,       // The app icon image for the brand.
-    pub illustrations: Illustrations      // A collection of illustrations associated with the brand.
+    /// The wordmark image for the brand.
+    pub wordmark: resources::Image,
+    /// The logomark image for the brand.
+    pub logomark: resources::Image,
+    /// The app icon image for the brand.
+    pub app_icon: resources::Image,
+    /// A collection of illustrations associated with the brand.
+    pub illustrations: Illustrations
 }
 
 impl BrandResources {
@@ -49,7 +53,7 @@ impl BrandResources {
     /// with default values. It also loads illustrations using the `Illustrations::default` method.
     ///
     /// # Parameters:
-    /// - `ctx`: A mutable reference to the `Context` used to load and add the SVG resources.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     ///
     /// # Returns
     /// A `BrandResources` instance initialized with the default SVG images and illustrations.
@@ -86,7 +90,7 @@ impl Illustrations {
     /// accessed by their name using the `get` method.
     ///
     /// # Parameters:
-    /// - `ctx`: A mutable reference to the `Context` used to load and add the SVG illustration resources.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     ///
     /// # Returns
     /// A new `Illustrations` instance with the default illustrations.

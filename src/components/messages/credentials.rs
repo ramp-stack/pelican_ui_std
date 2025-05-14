@@ -1,14 +1,29 @@
 use rust_on_rails::prelude::*;
 use crate::prelude::ListItem;
 
+/// Represents various user credentials.
 pub enum Credential {
+    /// Credential proving the user is not a bot.
     NotABot,
+    /// Credential confirming the user's real name.
     RealName,
+    /// Credential confirming the user has access to a US bank account.
     USAccount,
-    EighteenPlus
+    /// Credential proving the user is over 18 years of age.
+    EighteenPlus,
 }
 
+
 impl Credential {
+    /// Retrieves a [`ListItem`] representing the credential with description and associated color.
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx` - The context used to generate the [`ListItem`].
+    ///
+    /// # Returns
+    ///
+    /// A `ListItem` representing the credential with its name, description, and associated color.
     pub fn get(&self, ctx: &mut Context) -> ListItem {
         let color = self.color();
         match self {

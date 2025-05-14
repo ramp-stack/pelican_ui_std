@@ -17,6 +17,7 @@ pub struct MobileKeyboard(Stack, Rectangle, KeyboardContent);
 impl OnEvent for MobileKeyboard {}
 
 impl MobileKeyboard {
+    /// Creates an new [`MobileKeyboard`] component.
     pub fn new(ctx: &mut Context) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.secondary;
         MobileKeyboard(

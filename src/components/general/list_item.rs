@@ -19,7 +19,7 @@ impl ListItem {
     /// interactions, and an optional element ID.
     ///
     /// # Parameters
-    /// - `ctx`: The context of the UI environment.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `caret`: Whether to show a caret icon.
     /// - `title`: The title displayed on the list item.
     /// - `flair`: Optional flair text and associated color for the list item.
@@ -366,7 +366,7 @@ impl ListItemSelector {
     /// Creates a new `ListItemSelector` with four selectable list items, where the first item is selected by default.
     ///
     /// # Parameters:
-    /// - `ctx`: A mutable reference to the `Context` for handling events.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `first`: A tuple containing the title, subtitle, and an optional description for the first list item (selected).
     /// - `second`: A tuple containing the title, subtitle, and an optional description for the second list item (unselected).
     /// - `third`: An optional tuple containing the title, subtitle, and an optional description for the third list item (unselected).
@@ -467,11 +467,48 @@ impl QuickDeselectContent {
     }
 }
 
+/// A component representing a group of list items, arranged vertically in a column.
+///
+/// [`ListItemGroup`] is used to display multiple [`ListItem`] components stacked vertically.
+/// It provides a container that arranges the list items in a column layout, making it
+/// ideal for organizing and presenting lists of items within a user interface.
+///
+/// # Components
+/// - `Column`: A layout component that arranges its children in a vertical column.
+/// - `Vec<ListItem>`: A vector of [`ListItem`] components to be displayed within the column.
+///
+/// # Example
+/// ```rust
+/// let list_item_group = ListItemGroup::new(vec![
+///     ListItem::new("Item 1"),
+///     ListItem::new("Item 2"),
+///     ListItem::new("Item 3")
+/// ]);
+/// ```
 #[derive(Debug, Component)]
 pub struct ListItemGroup(Column, Vec<ListItem>);
 impl OnEvent for ListItemGroup {}
 
 impl ListItemGroup {
+    /// Creates a new [`ListItemGroup`] with a vector of list items.
+    ///
+    /// This function initializes a [`ListItemGroup`] component by arranging the provided
+    /// list items in a vertical column layout. The `Column` component ensures the items
+    /// are stacked properly with default alignment.
+    ///
+    /// # Parameters
+    /// - `list_items`: A vector of [`ListItem`] components to be displayed in the group.
+    ///
+    /// # Returns
+    /// A new [`ListItemGroup`] component containing the provided list items arranged in a column.
+    ///
+    /// # Example
+    /// ```rust
+    /// let list_item_group = ListItemGroup::new(vec![
+    ///     ListItem::new("Item A"),
+    ///     ListItem::new("Item B"),
+    /// ]);
+    /// ```
     pub fn new(list_items: Vec<ListItem>) -> Self {
         ListItemGroup(Column::center(0.0), list_items)
     }

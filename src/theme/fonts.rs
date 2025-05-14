@@ -25,7 +25,7 @@ impl FontResources {
     /// Loads the default font resources using the context to load fonts.
     ///
     /// # Parameters
-    /// - `ctx`: The context used to load the fonts.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     ///
     /// # Returns
     /// A `FontResources` struct with default fonts and sizes.
@@ -77,7 +77,7 @@ impl Fonts {
     /// Loads the default fonts using the provided context.
     ///
     /// # Parameters
-    /// - `ctx`: The context used to load the fonts.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     ///
     /// # Returns
     /// A `Fonts` struct with default fonts loaded from the specified paths.

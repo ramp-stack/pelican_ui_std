@@ -34,7 +34,7 @@ impl Button {
     /// Creates a new `Button` component.
     ///
     /// # Parameters:
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `avatar`: An optional avatar image to display inside the button.
     /// - `icon_l`: An optional icon to display on the left side of the button.
     /// - `label`: An optional label for the button's text.
@@ -101,7 +101,7 @@ impl Button {
     /// Updates the color of the button based on its current state and style.
     ///
     /// # Parameters:
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     ///
     /// This function updates the button's background, outline, and label colors.
     pub fn color(&mut self, ctx: &mut Context) {
@@ -179,7 +179,7 @@ impl Button {
     /// Creates a primary style button. Typically used for the main actions in the UI.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `label`: The text displayed on the button.
     /// - `on_click`:  A closure that will be executed when the button is clicked.
     ///
@@ -208,7 +208,7 @@ impl Button {
     /// Creates a secondary style button with optional left and right icons.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `icon_l`: An optional icon to display on the left side of the button.
     /// - `label`: The text displayed on the button.
     /// - `icon_r`: An optional icon to display on the right side of the button.
@@ -241,7 +241,7 @@ impl Button {
     /// Creates a ghost style button, typically used for non-intrusive actions.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `label`: The text displayed on the button.
     /// - `on_click` A closure that will be executed when the button is clicked.
     ///
@@ -270,7 +270,7 @@ impl Button {
     /// Creates a disabled button, which cannot be interacted with.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `label`: The text displayed on the button.
     /// - `on_click`: A closure that defines the action when the button is clicked (this will not be triggered as the button is disabled).
     ///
@@ -299,7 +299,7 @@ impl Button {
     /// Creates a numeric keypad style button, typically used for numbers or symbols on a keypad.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `label`: The text displayed on the button.
     /// - `icon`: An optional icon displayed on the button.
     /// - `on_click` A closure that will be executed when the button is clicked.
@@ -330,7 +330,7 @@ impl Button {
     /// Creates a navigation button for desktop-style navigators, with optional selection.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `icon`: The icon to display on the button.
     /// - `label`: The text displayed on the button.
     /// - `selected`: A flag that determines if the button should be in the selected state.
@@ -363,7 +363,7 @@ impl Button {
     /// Creates a profile photo button for desktop-style navigation with a photo.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `label`: The text displayed on the button.
     /// - `photo`: The photo or avatar content for the button.
     /// - `selected`: A flag that determines if the button should be in the pressed state.
@@ -396,7 +396,7 @@ impl Button {
     /// Creates a close page button, typically used for closing dialogs or pages.
     ///
     /// # Parameters
-    /// - `ctx`: The current context, used for accessing themes and UI elements.
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
     /// - `label`: The text displayed on the button.
     /// - `on_click` A closure that will be executed when the button is clicked.
     ///
@@ -423,27 +423,85 @@ impl Button {
     }
 }
 
+/// A component that represents a set of quick action buttons displayed in a wrap layout.
+///
+/// The `QuickActions` component is used to display multiple buttons in a flexible wrap layout, where the buttons
+/// can be customized and interact with various events. The component is designed to allow easy addition and removal
+/// of buttons. Each button is displayed with a default margin between them for easy organization.
+///
+/// # Fields
+/// - `Wrap`: A layout component that arranges the buttons in a wrap style, with adjustable spacing and alignment.
+/// - `Vec<Button>`: A vector of buttons that represent the quick actions. Each button can trigger different actions when clicked.
+///
+/// # Example
+/// ```rust
+/// let quick_actions = QuickActions::new(vec![Button::primary(...), Button::secondary(...)]);
+/// ```
 #[derive(Debug, Component)]
 pub struct QuickActions(Wrap, Vec<Button>);
+
 impl OnEvent for QuickActions {}
 
 impl QuickActions {
+    /// Creates a new `QuickActions` component with a list of action buttons.
+    ///
+    /// This function initializes the `QuickActions` component by arranging the provided buttons in a wrap layout,
+    /// where the buttons are displayed with a spacing of 8.0 units. The buttons are typically secondary in style.
+    ///
+    /// # Parameters
+    /// - `buttons`: A vector of `Button` components that will be displayed in the wrap layout.
+    ///
+    /// # Returns
+    /// A new `QuickActions` component containing the provided buttons arranged in a wrap layout.
     pub fn new(buttons: Vec<Button>) -> Self {
-        // Wrap of custom buttons (secondary)
         QuickActions(Wrap(8.0, 8.0, Offset::Start, Offset::Center, Padding::default()), buttons)
     }
 }
 
+/// A component that represents a button for deselecting or removing a contact.
+///
+/// The [`QuickDeselectButton`] is a specialized button that triggers an event to remove a contact when clicked.
+/// It is displayed in a stack layout, and includes a "close" label. The component also
+/// stores an `ElementID` to identify the contact being removed.
+///
+/// # Fields
+/// - `Stack`: A layout component that arranges the button in a stack layout.
+/// - `Button`: The button component that triggers the removal action.
+/// - `ElementID`: A hidden field that stores the ID of the contact being removed.
+///
+/// # Example
+/// ```rust
+/// let quick_deselect = QuickDeselectButton::new(ctx, "Remove Contact", id);
+/// ```
 #[derive(Debug, Component)]
 pub struct QuickDeselectButton(Stack, Button, #[skip] ElementID);
+
 impl OnEvent for QuickDeselectButton {}
 
 impl QuickDeselectButton {
+    /// Creates a new [`QuickDeselectButton`] component with a remove contact action.
+    ///
+    /// This function initializes the [`QuickDeselectButton`] by creating a button that triggers the [`RemoveContactEvent`]
+    /// when clicked. The button is displayed with the "close" label and is linked to a specific contact identified
+    /// by the provided [`ElementID`].
+    ///
+    /// # Parameters
+    /// - `ctx`: A mutable reference to the [`Context`], used to trigger events and manage resources.
+    /// - `name`: The name or label displayed on the button (e.g., "Remove Contact").
+    /// - `id`: The [`ElementID`] associated with the contact to be removed.
+    ///
+    /// # Returns
+    /// A new [`QuickDeselectButton`] component that allows deselecting or removing a contact.
     pub fn new(ctx: &mut Context, name: &'static str, id: ElementID) -> Self {
-        // Wrap of secondary contact buttons
         let button = Button::secondary(ctx, None, name, Some("close"), move |ctx: &mut Context| ctx.trigger_event(RemoveContactEvent(id)));
         QuickDeselectButton(Stack::default(), button, id)
     }
 
+    /// Returns the [`ElementID`] of the contact associated with the button.
+    ///
+    /// This method allows retrieval of the ID of the contact that will be removed when the button is clicked.
+    ///
+    /// # Returns
+    /// The [`ElementID`] of the contact to be removed.
     pub fn id(&self) -> ElementID {self.2}
 }

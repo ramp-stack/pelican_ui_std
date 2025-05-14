@@ -188,6 +188,27 @@ impl OnEvent for InputField {
     }
 }
 
+/// A type alias for a callback function that takes a mutable reference to a [`Context`]
+/// and a mutable reference to a `String`, and returns nothing.
+///
+/// The `SubmitCallback` type is intended for functions that are triggered upon submission
+/// of a form or input, allowing them to modify the [`Context`] and the associated `String`
+/// value. It is commonly used for handling form submission or other actions that require
+/// modifying state within the [`Context`] based on user input.
+///
+/// # Type Signature
+/// ```rust
+/// pub type SubmitCallback = Box<dyn FnMut(&mut Context, &mut String)>;
+/// ```
+///
+/// # Example
+/// ```rust
+/// let submit_action: SubmitCallback = Box::new(|ctx, input| {
+///     // Process the input and modify the context
+///     println!("Submitting input: {}", input);
+///     ctx.trigger_event(SubmitEvent(input.clone()));
+/// });
+/// ```
 pub type SubmitCallback = Box<dyn FnMut(&mut Context, &mut String)>;
 
 #[derive(Component)]

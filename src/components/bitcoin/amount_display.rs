@@ -4,11 +4,32 @@ use crate::elements::text::{Text, TextStyle};
 use crate::layout::{Column, Offset, Padding, Row, Size, Stack};
 use crate::PelicanUI;
 
+/// A component displaying an amount in both USD and BTC formats.
+///
+/// The `AmountDisplay` component is used to show financial information, such as
+/// a currency amount in both USD and Bitcoin (BTC). It consists of a column layout
+/// containing a main text for the USD amount and a subtext for the BTC equivalent.
 #[derive(Debug, Component)]
 pub struct AmountDisplay(Column, Text, SubText);
 impl OnEvent for AmountDisplay {}
 
 impl AmountDisplay {
+    /// Creates a new [`AmountDisplay`] component.
+    ///
+    /// This function initializes the [`AmountDisplay`] with a column layout,
+    /// a text component showing the USD amount, and a subtext component displaying
+    /// the BTC equivalent.
+    ///
+    /// # Parameters
+    /// - `ctx`: A mutable reference to [`Context`].
+    ///
+    /// # Returns
+    /// A new [`AmountDisplay`] component with default values.
+    ///
+    /// # Example
+    /// ```rust
+    /// let amount_display = AmountDisplay::new(ctx);
+    /// ```
     pub fn new(ctx: &mut Context) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.title;
 
@@ -19,9 +40,23 @@ impl AmountDisplay {
         )
     }
 
-    pub fn usd(&mut self) -> &mut String {&mut self.1.text().spans[0].text}
-    pub fn btc(&mut self) -> &mut String {&mut self.2.2.text().spans[0].text}
+    /// Returns a mutable reference to the USD text in the [`AmountDisplay`].
+    ///
+    /// This method allows modifying the USD amount.
+    ///
+    /// # Returns
+    /// A mutable reference to the USD amount text.
+    pub fn usd(&mut self) -> &mut String { &mut self.1.text().spans[0].text }
+
+    /// Returns a mutable reference to the BTC text in the [`AmountDisplay`].
+    ///
+    /// This method allows modifying the BTC amount.
+    ///
+    /// # Returns
+    /// A mutable reference to the BTC amount text.
+    pub fn btc(&mut self) -> &mut String { &mut self.2.2.text().spans[0].text }
 }
+
 
 #[derive(Debug, Component)]
 struct SubText(Row, Option<Image>, Text, #[skip] bool);
@@ -50,11 +85,18 @@ impl SubText {
     fn _text(&mut self) -> &mut String {&mut self.2.text().spans[0].text}
 }
 
-
+/// A component for inputting an amount in both USD and BTC.
 #[derive(Debug, Component)]
 pub struct AmountInput(Stack, AmountInputContent);
 impl OnEvent for AmountInput {}
+
 impl AmountInput {
+    /// Creates a new `AmountInput` component.
+    ///
+    /// # Example
+    /// ```
+    /// let mut amount_input = AmountInput::new(ctx);
+    /// ```
     pub fn new(ctx: &mut Context) -> Self {
         AmountInput (
             Stack(Offset::Center, Offset::Center, Size::Fit, Size::fill(), Padding::default()),
@@ -62,19 +104,63 @@ impl AmountInput {
         )
     }
 
-    pub fn usd(&mut self) -> String {self.1.1.value()}
+    /// Returns the USD input value as a string.
+    ///
+    /// # Example
+    /// ```
+    /// let usd_value = amount_input.usd();
+    /// ```
+    pub fn usd(&mut self) -> String { self.1.1.value() }
+
+    /// Returns a mutable reference to the BTC input value.
+    ///
+    /// # Example
+    /// ```
+    /// let btc_value = amount_input.btc();
+    /// *btc_value = 0.1; // Set BTC value
+    /// ```
     pub fn btc(&mut self) -> &mut f32 { &mut self.1.5 }
-    pub fn error(&mut self) -> &mut bool {self.1.2.error()}
-    pub fn set_min(&mut self, a: f32) {self.1.3.0 = a;}
-    pub fn set_max(&mut self, a: f32) {self.1.3.1 = a;}
-    pub fn set_price(&mut self, a: f32) {self.1.4 = a;}
+
+    /// Returns a mutable reference to the error flag.
+    ///
+    /// # Example
+    /// ```
+    /// let error_flag = amount_input.error();
+    /// *error_flag = true; // Set error flag
+    /// ```
+    pub fn error(&mut self) -> &mut bool { self.1.2.error() }
+
+    /// Sets the minimum value for the amount input.
+    ///
+    /// # Example
+    /// ```
+    /// amount_input.set_min(0.01);
+    /// ```
+    pub fn set_min(&mut self, a: f32) { self.1.3.0 = a; }
+
+    /// Sets the maximum value for the amount input.
+    ///
+    /// # Example
+    /// ```
+    /// amount_input.set_max(1000.0);
+    /// ```
+    pub fn set_max(&mut self, a: f32) { self.1.3.1 = a; }
+
+    /// Sets the price value for the amount input.
+    ///
+    /// # Example
+    /// ```
+    /// amount_input.set_price(50000.0);
+    /// ```
+    pub fn set_price(&mut self, a: f32) { self.1.4 = a; }
 }
 
+
 #[derive(Debug, Component)]
-pub struct AmountInputContent(Column, Display, SubText, #[skip] (f32, f32), #[skip] f32, #[skip] f32);
+struct AmountInputContent(Column, Display, SubText, #[skip] (f32, f32), #[skip] f32, #[skip] f32);
 // layout, display, subtext, (min, max fee), btc_price, btc input
 impl AmountInputContent {
-    pub fn new(ctx: &mut Context) -> Self {
+    fn new(ctx: &mut Context) -> Self {
         let subtext = if !crate::config::IS_MOBILE {"Type dollar amount."} else {"0.00001234 BTC"};
         AmountInputContent (
             Column::new(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),

@@ -153,10 +153,39 @@ impl Component for ExpandableText {
     }
 }
 
+/// A component that represents bulleted text, combining a row layout, circular bullet, and expandable text.
+///
+/// The `BulletedText` component is designed to display a piece of text with a bullet (circle) preceding it.
+/// The bullet and text are arranged in a row layout, and the text is expandable. This component supports styling
+/// through `TextStyle` and alignment via `Align`.
+///
+/// # Fields
+/// - `Row`: A layout component that arranges the bullet and text in a row, with configurable size, alignment, and padding.
+/// - `Shape`: A circular bullet shape that precedes the text. The size of the bullet is proportional to the provided `size`.
+/// - `ExpandableText`: The text component that holds the actual text, with support for styling and expandable behavior.
+///
+/// # Example
+/// ```rust
+/// let ctx: &mut Context = ...;
+/// let bulleted_text = BulletedText::new(ctx, "This is a bulleted item.", TextStyle::default(), 20.0, Align::Left);
+/// ```
 #[derive(Debug, Component)]
 pub struct BulletedText(Row, Shape, ExpandableText);
+
 impl OnEvent for BulletedText {}
+
 impl BulletedText {
+    /// Creates a new `BulletedText` component.
+    ///
+    /// # Parameters
+    /// - `ctx`: The [`Context`] for accessing the app's theme.
+    /// - `text`: The static text to display next to the bullet.
+    /// - `style`: The text style used for styling the text.
+    /// - `size`: The size of the bullet and text.
+    /// - `align`: The alignment of the text.
+    ///
+    /// # Returns
+    /// A new `BulletedText` component containing a row with a bullet and expandable text.
     pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, _) = style.get(ctx);
         BulletedText(
@@ -166,6 +195,11 @@ impl BulletedText {
         )
     }
 
+    /// Returns a mutable reference to the `BasicText` component inside the `ExpandableText` part of `BulletedText`.
+    ///
+    /// This method allows direct manipulation of the text within the `ExpandableText` component.
+    ///
+    /// # Returns
+    /// A mutable reference to the `BasicText` component for modifying the text.
     pub fn text(&mut self) -> &mut BasicText { self.2.text() }
 }
-
