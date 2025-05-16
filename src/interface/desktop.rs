@@ -26,8 +26,8 @@ impl DesktopInterface {
         ctx: &mut Context, 
         start_page: impl AppPage, 
         start_index: Option<usize>,
-        navigation: Option<Vec<(&'static str, &'static str, Box<Callback>)>>,
-        profile: Option<(&'static str, AvatarContent, Box<Callback>)>,
+        navigation: Option<Vec<(&'static str, &'static str, Callback)>>,
+        profile: Option<(&'static str, AvatarContent, Callback)>,
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
         let navigator = navigation.zip(profile).zip(start_index).map(|((nav, p), i)| DesktopNavigator::new(ctx, i, nav, p));
@@ -93,8 +93,8 @@ impl DesktopNavigator {
     pub fn new(
         ctx: &mut Context, 
         start_index: usize,
-        navigation: Vec<(&'static str, &'static str, Box<Callback>)>,
-        mut profile: (&'static str, AvatarContent, Box<Callback>)
+        navigation: Vec<(&'static str, &'static str, Callback)>,
+        mut profile: (&'static str, AvatarContent, Callback)
     ) -> Self {
         if navigation.is_empty() {panic!("DesktopNavigator: Parameter 1 was empty. Navigator has no data.")}
 

@@ -54,8 +54,8 @@ impl Interface {
         ctx: &mut Context, 
         start_page: impl AppPage,
         start_index: Option<usize>, 
-        navigation: Option<Vec<(&'static str, &'static str, Box<Callback>)>>,
-        profile: Option<(&'static str, AvatarContent, Box<Callback>)>,
+        navigation: Option<Vec<(&'static str, &'static str, Callback)>>,
+        profile: Option<(&'static str, AvatarContent, Callback)>,
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
         let (mobile, desktop) = match crate::config::IS_MOBILE {
@@ -118,7 +118,7 @@ impl Page {
 /// The `Content` component is used to display and manage the content area of a page,
 /// with the ability to dynamically modify the list of drawable items.
 #[derive(Debug, Component)]
-pub struct Content (Stack, ContentChildren, #[skip] bool);
+pub struct Content (Stack, ContentChildren);
 
 impl Content {
     /// Creates a new `Content` component with the specified layout and child items.
@@ -130,12 +130,12 @@ impl Content {
     /// # Returns:
     /// - **`Content`**: A new `Content` component that contains the stack layout and the provided items.
     ///
-    pub fn new(offset: Offset, does_scroll: bool, content: Vec<Box<dyn Drawable>>) -> Self {
+    pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(375.0), 375.0));
         let height = Size::custom(move |_: Vec<(f32, f32)>|(0.0, f32::MAX));
         Content(
             Stack(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0)),
-            ContentChildren::new(content), does_scroll // scrollable boolean
+            ContentChildren::new(content)
         )
     }
     
@@ -147,8 +147,8 @@ impl Content {
     /// # Returns:
     /// - **`&mut Vec<Box<dyn Drawable>>`**: A mutable reference to the vector of drawable items.
     pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.1.1}
-    /// Returns a mutable reference to the internal flag allowing scroll behavior.
-    pub fn can_scroll(&mut self) -> &mut bool {&mut self.2}
+    /// Returns a mutable reference to the [`Offset`] value.
+    pub fn offset(&mut self) -> &mut Offset {&mut self.0.1}
 }
 
 impl OnEvent for Content {

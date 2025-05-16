@@ -1,8 +1,8 @@
 use rust_on_rails::prelude::*;
 use crate::elements::text::{Text, ExpandableText, TextStyle};
-use crate::elements::shapes::Circle;
+use crate::elements::shapes::{Circle, Rectangle};
 use crate::components::button::Button;
-use crate::layout::{Column, Row, Stack, Padding, Offset, Size};
+use crate::layout::{Column, Bin, Row, Stack, Padding, Offset, Size};
 use crate::PelicanUI;
 
 /// A `DataItem` component. Used to organize and display information.
@@ -114,15 +114,20 @@ impl Table {
 }
 
 #[derive(Debug, Component)]
-struct Tabular(Row, Text, Text);
+struct Tabular(Row, Text, Bin<Stack, Rectangle>, Text);
 impl OnEvent for Tabular {}
 
 impl Tabular {
     fn new(ctx: &mut Context, name: &'static str, data: &'static str) -> Self {
-        let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
+        let theme = &ctx.get::<PelicanUI>().theme;
+        let (font_size, color) = (theme.fonts.size.sm, theme.colors.shades.transparent);
         Tabular (
             Row(8.0, Offset::Start, Size::Fit, Padding(0.0, 4.0, 0.0, 4.0)),
             Text::new(ctx, name, TextStyle::Primary, font_size, Align::Left),
+            Bin(
+                Stack(Offset::Center, Offset::Center, Size::Fit, Size::Static(1.0), Padding::default()),
+                Rectangle::new(color),
+            ),
             Text::new(ctx, data, TextStyle::Primary, font_size, Align::Left),
         )
     }

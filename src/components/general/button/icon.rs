@@ -105,7 +105,7 @@ impl IconButtonRow {
     ///     ("Button 2", Box::new(|ctx: &mut Context| { /* some action */ }))
     /// ]);
     /// ```
-    pub fn new(ctx: &mut Context, buttons: Vec<(&'static str, Box<Callback>)>) -> Self {
+    pub fn new(ctx: &mut Context, buttons: Vec<(&'static str, Callback)>) -> Self {
         let buttons = buttons.into_iter().map(|(i, on_click)| IconButton::secondary(ctx, i, on_click)).collect();
         IconButtonRow(Row::center(24.0), buttons)
     }
@@ -124,7 +124,7 @@ impl IconButton {
     pub fn secondary(
         ctx: &mut Context, 
         icon: &'static str, 
-        on_click: Box<Callback>
+        on_click: Callback
     ) -> Self {
         IconButton::new(
             ctx,

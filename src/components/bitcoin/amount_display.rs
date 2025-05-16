@@ -30,13 +30,13 @@ impl AmountDisplay {
     /// ```rust
     /// let amount_display = AmountDisplay::new(ctx);
     /// ```
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context, text: &'static str, subtext: &'static str) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.title;
 
         AmountDisplay (
             Column::new(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
-            Text::new(ctx, "$0.00", TextStyle::Heading, font_size, Align::Left),
-            SubText::new(ctx, "0.00000000 BTC")
+            Text::new(ctx, text, TextStyle::Heading, font_size, Align::Left),
+            SubText::new(ctx, subtext)
         )
     }
 
@@ -97,20 +97,18 @@ impl AmountInput {
     /// Returns the USD input value as a string.
     pub fn usd(&mut self) -> String { self.1.1.value() }
     /// Returns a mutable reference to the BTC input value.
-    pub fn btc(&mut self) -> &mut f32 { &mut self.1.5 }
+    pub fn btc(&mut self) -> &mut f32 { &mut self.1.4 }
     /// Returns a mutable reference to the error flag.
     pub fn error(&mut self) -> &mut bool { self.1.2.error() }
     /// Sets the minimum value for the amount input.
     pub fn set_min(&mut self, a: f32) { self.1.3.0 = a; }
     /// Sets the maximum value for the amount input.
     pub fn set_max(&mut self, a: f32) { self.1.3.1 = a; }
-    /// Sets the price value for the amount input.
-    pub fn set_price(&mut self, a: f32) { self.1.4 = a; }
 }
 
 
 #[derive(Debug, Component)]
-struct AmountInputContent(Column, Display, SubText, #[skip] (f32, f32), #[skip] f32, #[skip] f32);
+struct AmountInputContent(Column, Display, SubText, #[skip] (f32, f32), #[skip] f32);
 // layout, display, subtext, (min, max fee), btc_price, btc input
 impl AmountInputContent {
     fn new(ctx: &mut Context) -> Self {
@@ -119,7 +117,7 @@ impl AmountInputContent {
             Column::new(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
             Display::new(ctx),
             SubText::new(ctx, subtext), 
-            (0.0, 0.0), 0.0, 0.0
+            (0.0, 0.0), 0.0
         )
     }
 }
@@ -240,8 +238,8 @@ impl OnEvent for AmountInputContent {
                     self.2.3 = true; // Disable buttons
                 }
                 _ => {
-                    self.5 = value*self.4;
-                    let amount = format!("{:.8} BTC", self.5);
+                    println!("AMOUNT");
+                    let amount = format!("{:.8} BTC", self.4);
                     self.2.set_subtext(ctx, Box::leak(amount.into_boxed_str()));
                     self.2.3 = false; // Enable buttons
                 }
