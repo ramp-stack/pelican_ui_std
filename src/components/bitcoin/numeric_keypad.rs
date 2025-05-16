@@ -33,8 +33,8 @@ impl ButtonRow {
     fn new(ctx: &mut Context, a: Option<&'static str>, b: Option<&'static str>, c: Option<&'static str>) -> Self {
         let key = |ctx: &mut Context, a: Option<&'static str>| {
             match a {
-                Some(txt) => Button::keypad(ctx, Some(txt), None, move |ctx: &mut Context| fire(ctx, Key::Character(SmolStr::new_static(txt)))),
-                None => Button::keypad(ctx, None, Some("back"), |ctx: &mut Context| fire(ctx, Key::Named(NamedKey::Backspace)))
+                Some(txt) => Button::keypad(ctx, Some(txt), None, move |ctx: &mut Context| on_click(ctx, Key::Character(SmolStr::new_static(txt)))),
+                None => Button::keypad(ctx, None, Some("back"), |ctx: &mut Context| on_click(ctx, Key::Named(NamedKey::Backspace)))
             }
         };
         
@@ -42,6 +42,6 @@ impl ButtonRow {
     }
 }
 
-fn fire(ctx: &mut Context, key: Key) {
+fn on_click(ctx: &mut Context, key: Key) {
     ctx.trigger_event(KeyboardEvent{state: KeyboardState::Pressed, key})
 }

@@ -98,6 +98,8 @@ impl AmountInput {
     pub fn usd(&mut self) -> String { self.1.1.value() }
     /// Returns a mutable reference to the BTC input value.
     pub fn btc(&mut self) -> &mut f32 { &mut self.1.4 }
+    /// Returns the bitcoin price set for calculating btc equivalent.
+    pub fn price(&mut self) -> &mut f32 { &mut self.1.5 }
     /// Returns a mutable reference to the error flag.
     pub fn error(&mut self) -> &mut bool { self.1.2.error() }
     /// Sets the minimum value for the amount input.
@@ -106,9 +108,8 @@ impl AmountInput {
     pub fn set_max(&mut self, a: f32) { self.1.3.1 = a; }
 }
 
-
 #[derive(Debug, Component)]
-struct AmountInputContent(Column, Display, SubText, #[skip] (f32, f32), #[skip] f32);
+struct AmountInputContent(Column, Display, SubText, #[skip] (f32, f32), #[skip] f32, #[skip] f32);
 // layout, display, subtext, (min, max fee), btc_price, btc input
 impl AmountInputContent {
     fn new(ctx: &mut Context) -> Self {
@@ -117,7 +118,7 @@ impl AmountInputContent {
             Column::new(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
             Display::new(ctx),
             SubText::new(ctx, subtext), 
-            (0.0, 0.0), 0.0
+            (0.0, 0.0), 0.0, 0.0 // min amount, max amount, btc, btc price
         )
     }
 }
@@ -238,8 +239,8 @@ impl OnEvent for AmountInputContent {
                     self.2.3 = true; // Disable buttons
                 }
                 _ => {
-                    println!("AMOUNT");
-                    let amount = format!("{:.8} BTC", self.4);
+                    self.4 = value/self.5;
+                    let amount = format!("{:.8} BTC", self.4); // value divided by bitcoin price.
                     self.2.set_subtext(ctx, Box::leak(amount.into_boxed_str()));
                     self.2.3 = false; // Enable buttons
                 }
