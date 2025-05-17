@@ -63,6 +63,11 @@ impl ListItem {
 
         ListItem(layout, Rectangle::new(color), content, ButtonState::Default, Box::new(on_click), element_id)
     }
+
+    /// Returns a boolean representing the state of the [`RadioButton`]. Will return false if no [`RadioButton`] exists.
+    pub fn is_selected(&self) -> bool {
+        self.2.1.as_ref().map(|r| r.2).unwrap_or(false)
+    }
 }
 
 impl OnEvent for ListItem {
@@ -131,22 +136,24 @@ impl ListItemContent {
 }
 
 #[derive(Debug, Component)]
-struct RadioButton(Row, Image);
+struct RadioButton(Row, Image, #[skip] bool); // is selected
 impl OnEvent for RadioButton {}
 
 impl RadioButton {
     fn new(ctx: &mut Context, is_enabled: bool) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.text.heading;
         let icon = if is_enabled { "radio_filled" } else { "radio"};
-        RadioButton(Row::center(0.0), Icon::new(ctx, icon, color, 32.0))
+        RadioButton(Row::center(0.0), Icon::new(ctx, icon, color, 32.0), is_enabled)
     }
 
     fn select(&mut self, ctx: &mut Context) {
+        self.2 = true;
         let color = ctx.get::<PelicanUI>().theme.colors.text.heading;
         self.1 =  Icon::new(ctx, "radio_filled", color, 32.0);
     }
 
     fn deselect(&mut self, ctx: &mut Context) {
+        self.2 = false;
         let color = ctx.get::<PelicanUI>().theme.colors.text.heading;
         self.1 =  Icon::new(ctx, "radio", color, 32.0);
     }
@@ -360,9 +367,7 @@ pub struct ListItemSelector(
     Option<ListItem>,  // The third list item (optional, unselected).
     Option<ListItem>,  // The fourth list item (optional, unselected).
 );
-
 impl OnEvent for ListItemSelector {}
-
 impl ListItemSelector {
     /// Creates a new `ListItemSelector` with four selectable list items, where the first item is selected by default.
     ///
@@ -400,6 +405,15 @@ impl ListItemSelector {
             third.map(|third| ListItem::selection(ctx, false, third.0, third.1, third.2, |_: &mut Context| ())),
             fourth.map(|fourth| ListItem::selection(ctx, false, fourth.0, fourth.1, fourth.2, |_: &mut Context| ())),
         )
+    }
+
+    /// Returns the index of currently selected [`ListItem`].
+    pub fn index(&self) -> Option<u8> {
+        if self.1.is_selected() { return Some(0) }
+        if self.2.is_selected() { return Some(1) }
+        if self.3.as_ref().map(|s| s.is_selected()).unwrap_or(false) { return Some(2) }
+        if self.4.as_ref().map(|s| s.is_selected()).unwrap_or(false) { return Some(3) }
+        None
     }
 }
 
