@@ -20,3 +20,5 @@ qrcode = "0.14.1"
 uuid = { version = "1.16.0", features = ["v4"] }
 dyn-clone = "1.0.19"
 rust_on_rails = "4.0.1"
+quircs = "0.10.2"
+image = "0.25.6"

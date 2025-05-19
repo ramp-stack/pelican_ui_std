@@ -1,13 +1,17 @@
 use rust_on_rails::prelude::*;
+use crate::events::QRCodeScannedEvent;
 use crate::elements::images::Icon;
 use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::RoundedRectangle;
 use crate::layout::{Column, Stack, Offset, Size, Padding};
 use crate::PelicanUI;
+use std::path::Path;
+use quircs::Quirc;
+use image::{ImageBuffer, Rgba, RgbImage, Luma, RgbaImage, DynamicImage, GrayImage};
 
 /// A component for scanning QR codes using the device camera.
 #[derive(Debug, Component)]
-pub struct QRCodeScanner(Stack, Option<Image>, QRGuide, #[skip] Camera);
+pub struct QRCodeScanner(Stack, Option<Image>, QRGuide, #[skip] Camera, #[skip] Quirc, #[skip] Vec<GrayImage>);
 
 impl QRCodeScanner {
     /// Creates a new `QRCodeScanner` component with a centered stack layout, a QR guide, and a camera instance.
@@ -20,7 +24,36 @@ impl QRCodeScanner {
     /// let scanner = QRCodeScanner::new(ctx);
     /// ```
     pub fn new(ctx: &mut Context) -> Self {
-        QRCodeScanner(Stack::center(), None, QRGuide::new(ctx), Camera::new())
+        QRCodeScanner(Stack::center(), None, QRGuide::new(ctx), Camera::new(), Quirc::default(), Vec::new())
+    }
+
+    fn find_code(&mut self, img: RgbaImage) -> Option<String> {
+        // let img_gray = image::ImageBuffer::from_fn(img.width(), img.height(), |x, y| {
+        //     let Luma([l]) = img.get_pixel(x, y);
+        //     if *l > 128 { Luma([255u8]) } else { Luma([0u8]) }
+        // });
+
+        let img_gray = DynamicImage::ImageRgba8(img).into_luma8();
+        let mut decoder = quircs::Quirc::default();
+        let codes = decoder.identify(img_gray.width() as usize, img_gray.height() as usize, &img_gray);
+
+        for code in codes {
+            match code {
+                Ok(c) => {
+                    match c.decode() {
+                        Ok(decoded) => {
+                            let code = std::str::from_utf8(&decoded.payload).unwrap();
+                            println!("qrcode: {}", code);
+                            return Some(code.to_string());
+                        }
+                        Err(e) => println!("COULD NOT DECODE {:?}", e)
+                    }
+                }
+                Err(e) => println!("COULD NOT UNWRAP {:?}", e)
+            }
+        }
+
+        None
     }
 }
 
@@ -30,6 +63,11 @@ impl OnEvent for QRCodeScanner {
             let frame = self.3.get_frame();
             match frame {
                 Ok(f) => {
+                    if let Some(data) = self.find_code(f.clone()) {
+                        println!("FOUND DATA, TRIGGERING EVENT");
+                        ctx.trigger_event(QRCodeScannedEvent(Box::leak(data.into_boxed_str())))
+                    }
+                    
                     *self.2.message() = None; *self.2.background() = None;
                     let image = ctx.add_image(f);
                     self.1 = Some(Image{shape: ShapeType::Rectangle(0.0, (300.0, 300.0)), image, color: None});

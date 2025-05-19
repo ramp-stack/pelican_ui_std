@@ -70,3 +70,13 @@ impl Event for SetActiveInput {
         children.into_iter().map(|_| Some(Box::new(*self) as Box<dyn Event>)).collect()
     }
 }
+
+/// Event triggered when the [`QRScanner`] component detects a QR code.
+#[derive(Debug, Clone, Copy)]
+pub struct QRCodeScannedEvent(pub &'static str);
+
+impl Event for QRCodeScannedEvent {
+    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
+        children.into_iter().map(|_| Some(Box::new(*self) as Box<dyn Event>)).collect()
+    }
+}
