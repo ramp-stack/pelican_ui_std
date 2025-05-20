@@ -161,32 +161,61 @@ impl OnEvent for InputField {
         } else if let Some(KeyboardEvent{state: KeyboardState::Pressed, key}) = event.downcast_ref() {
             if self.3 == InputState::Focus {
                 if let Some((i, _)) = self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::GetIndex) {
+                    let mut new_text = self.2.text().text().spans[0].text.clone();
                     match key {
                         Key::Named(NamedKey::Enter) => {
-                            self.2.text().text().spans[0].text.insert(i as usize, '\n');
+                            new_text = insert_char(new_text, '\n', i as usize);
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveNewline);
                         },
                         Key::Named(NamedKey::Space) => {
-                            self.2.text().text().spans[0].text.insert(i as usize, ' ');
+                            new_text = insert_char(new_text, ' ', i as usize);
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
                         },
                         Key::Named(NamedKey::Delete | NamedKey::Backspace) if (!self.2.text().text().spans[0].text.is_empty() && i as usize != 0) => {
-                            self.2.text().text().spans[0].text.remove(i as usize -1);
+                            new_text = remove_char(new_text, i as usize);
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveLeft);
                         },
                         Key::Character(c) => {
-                            println!("MOVING RIGHT {:?}", c);
-                            self.2.text().text().spans[0].text.insert_str(i as usize , c);
+                            let new_char = c.to_string().chars().next().unwrap();
+                            new_text = insert_char(new_text, new_char, i as usize);
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
                         },
                         _ => {}
                     };
+
+                    self.2.text().text().spans[0].text = new_text;
+
                 }
             }
         }
         true
     }
 }
+
+fn insert_char(new_text: String, new_char: char, i: usize) -> String {
+    let mut chars = new_text.chars().collect::<Vec<char>>();
+    match chars.len() == i {
+        true => chars.push(new_char),
+        false => chars.insert(i, new_char)
+    }
+    chars.into_iter().collect::<String>()
+}
+
+fn remove_char(text: String, index: usize) -> String {
+    let mut chars: Vec<char> = text.chars().collect();
+
+    if chars.len() == 1 {
+        chars.clear();
+    } else if index == chars.len() {
+        chars.pop();
+        chars.pop();
+    } else if index < chars.len().saturating_sub(1) {
+        chars.drain(index..=index + 1);
+    }
+
+    chars.into_iter().collect()
+}
+
 
 /// `SubmitCallback` is triggered when the optional icon button within the text input is pressed.
 /// It has access to a mutable reference to the [`Context`] and the current input value as a `&mut String`.

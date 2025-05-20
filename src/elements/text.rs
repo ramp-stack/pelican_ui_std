@@ -136,7 +136,20 @@ impl ExpandableText {
     pub fn cursor(&mut self) -> &mut Option<TextCursor> { self.0.cursor() }
 }
 
-impl OnEvent for ExpandableText {}
+impl OnEvent for ExpandableText {
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if event.downcast_ref::<TickEvent>().is_some() {
+            if self.0.cursor().is_some() {
+                // println!("INSERTING LIGATURES");
+                let text = self.0.text().spans[0].text.clone();
+                let s = break_all_ligatures(&text);
+                // println!("INSERTED {:?}", s);
+                self.0.text().spans[0].text = s;
+            }
+        }
+        true
+    }
+}
 
 impl Component for ExpandableText {
     fn children_mut(&mut self) -> Vec<&mut dyn Drawable> { vec![&mut self.0] }
@@ -202,4 +215,29 @@ impl BulletedText {
     /// # Returns
     /// A mutable reference to the `BasicText` component for modifying the text.
     pub fn text(&mut self) -> &mut BasicText { self.2.text() }
+}
+
+/// Breaks text ligatures to prevent tt and ff from becoming a single glyph
+pub fn break_all_ligatures(s: &str) -> String {
+    const ZWNJ: char = '\u{200C}';
+
+    let mut result = String::new();
+    let mut chars = s.chars().peekable();
+
+    if let Some(first) = chars.next() {
+        result.push(first);
+
+        while let Some(&c) = chars.peek() {
+            // println!("NEXT {:?}", c);
+            if result.ends_with(ZWNJ) || c == ZWNJ {
+                result.push(c);
+            } else {
+                result.push(ZWNJ);
+                result.push(c);
+            }
+            chars.next();
+        }
+    }
+
+    result
 }
