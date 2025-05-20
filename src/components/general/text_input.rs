@@ -109,7 +109,7 @@ impl InputField {
 impl OnEvent for InputField {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
-            self.2.text().cursor().as_mut().map(|c| c.display(self.3 == InputState::Focus));
+            if let Some(c) = self.2.text().cursor().as_mut() { c.display(self.3 == InputState::Focus) }
             self.3 = match self.3 {
                 InputState::Default if self.4 => Some(InputState::Error),
                 InputState::Error if !self.4 => Some(InputState::Default),
@@ -163,11 +163,11 @@ impl OnEvent for InputField {
                 if let Some((i, _)) = self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::GetIndex) {
                     match key {
                         Key::Named(NamedKey::Enter) => {
-                            self.2.text().text().spans[0].text.insert_str(i as usize, "\n");
+                            self.2.text().text().spans[0].text.insert(i as usize, '\n');
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveNewline);
                         },
                         Key::Named(NamedKey::Space) => {
-                            self.2.text().text().spans[0].text.insert_str(i as usize, " ");
+                            self.2.text().text().spans[0].text.insert(i as usize, ' ');
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
                         },
                         Key::Named(NamedKey::Delete | NamedKey::Backspace) if (!self.2.text().text().spans[0].text.is_empty() && i as usize != 0) => {

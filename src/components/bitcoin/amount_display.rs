@@ -81,16 +81,16 @@ pub struct AmountInput(Stack, AmountInputContent);
 impl OnEvent for AmountInput {}
 
 impl AmountInput {
-    /// Creates a new `AmountInput` component.
+    /// Creates a new `AmountInput` component. Optionally takes in a preset usd amount.
     ///
     /// # Example
     /// ```
-    /// let mut amount_input = AmountInput::new(ctx);
+    /// let mut amount_input = AmountInput::new(ctx, None);
     /// ```
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context, usd: Option<(f64, &'static str)> ) -> Self {
         AmountInput (
             Stack(Offset::Center, Offset::Center, Size::Fit, Size::fill(), Padding::default()),
-            AmountInputContent::new(ctx),
+            AmountInputContent::new(ctx, usd),
         )
     }
 
@@ -106,20 +106,64 @@ impl AmountInput {
     pub fn set_min(&mut self, a: f32) { self.1.3.0 = a; }
     /// Sets the maximum value for the amount input.
     pub fn set_max(&mut self, a: f32) { self.1.3.1 = a; }
+    /// Validates the input field against checks.
+    pub fn validate(&mut self, ctx: &mut Context) { self.1.validate(ctx) }
 }
 
 #[derive(Debug, Component)]
 struct AmountInputContent(Column, Display, SubText, #[skip] (f32, f32), #[skip] f32, #[skip] f32);
 // layout, display, subtext, (min, max fee), btc_price, btc input
 impl AmountInputContent {
-    fn new(ctx: &mut Context) -> Self {
-        let subtext = if !crate::config::IS_MOBILE {"Type dollar amount."} else {"0.00001234 BTC"};
+    fn new(ctx: &mut Context, usd: Option<(f64, &'static str)>) -> Self { // usd, nans
+        let (num, sub) = usd.map(|(d, n)| {
+            if d == 0.0 {
+                ("0", "Type dollar amount.")
+            } else {
+                let s = format!("{:.2}", d);
+                match &s[s.len() - 2..] == "00" {
+                    true => (Box::leak(s[..1].to_string().into_boxed_str()) as &'static str, n),
+                    false => (Box::leak(s.into_boxed_str()) as &'static str, n),
+                }
+            }
+        }).unwrap_or(("0", "Type dollar amount."));
+
         AmountInputContent (
             Column::new(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
-            Display::new(ctx),
-            SubText::new(ctx, subtext), 
+            Display::new(ctx, num),
+            SubText::new(ctx, sub), 
             (0.0, 0.0), 0.0, 0.0 // min amount, max amount, btc, btc price
         )
+    }
+
+    pub fn validate(&mut self, ctx: &mut Context) {
+        // Parse final amount as f64 for validation
+        let t_formatted = self.1.2.text().spans[0].text.clone();
+        let value = t_formatted.replace(",", "").parse::<f32>().unwrap_or(0.0);
+
+        // Display subtext or error message based on parsed value
+        println!("VAL: {:?}", value);
+        match t_formatted.as_str() {
+            "0" | "0." | "0.0" | "0.00" if !crate::config::IS_MOBILE => {
+                self.2.set_subtext(ctx, "Type dollar amount."); // Prompt input
+                self.2.3 = true; // Disable buttons
+            }
+            _ if value < self.3.0 => {
+                let error = format!("${:.2} minimum.", self.3.0);
+                self.2.set_error(ctx, Box::leak(error.into_boxed_str())); // Exceeds min -> show error
+                self.2.3 = true; // Disable buttons
+            }
+            _ if value > self.3.1 => {
+                let error = format!("${:.2} maximum.", self.3.1);
+                self.2.set_error(ctx, Box::leak(error.into_boxed_str())); // Exceeds max -> show error
+                self.2.3 = true; // Disable buttons
+            }
+            _ => {
+                self.4 = value/self.5;
+                let amount = format!("{:.8} BTC", self.4); // value divided by bitcoin price.
+                self.2.set_subtext(ctx, Box::leak(amount.into_boxed_str()));
+                self.2.3 = false; // Enable buttons
+            }
+        }
     }
 }
 
@@ -218,33 +262,7 @@ impl OnEvent for AmountInputContent {
             self.1.currency().font_size = size;
             self.1.currency().line_height = size * 1.25;
 
-            // Parse final amount as f64 for validation
-            let value = t_formatted.replace(",", "").parse::<f32>().unwrap_or(0.0);
-
-            // Display subtext or error message based on parsed value
-            println!("VAL: {:?}", value);
-            match t_formatted.as_str() {
-                "0" | "0." | "0.0" | "0.00" if !crate::config::IS_MOBILE => {
-                    self.2.set_subtext(ctx, "Type dollar amount."); // Prompt input
-                    self.2.3 = true; // Disable buttons
-                }
-                _ if value < self.3.0 => {
-                    let error = format!("${:.2} minimum.", self.3.0);
-                    self.2.set_error(ctx, Box::leak(error.into_boxed_str())); // Exceeds min -> show error
-                    self.2.3 = true; // Disable buttons
-                }
-                _ if value > self.3.1 => {
-                    let error = format!("${:.2} maximum.", self.3.1);
-                    self.2.set_error(ctx, Box::leak(error.into_boxed_str())); // Exceeds max -> show error
-                    self.2.3 = true; // Disable buttons
-                }
-                _ => {
-                    self.4 = value/self.5;
-                    let amount = format!("{:.8} BTC", self.4); // value divided by bitcoin price.
-                    self.2.set_subtext(ctx, Box::leak(amount.into_boxed_str()));
-                    self.2.3 = false; // Enable buttons
-                }
-            }
+            self.validate(ctx)
         }  
         true
     }
@@ -255,14 +273,15 @@ struct Display(Row, Text, Text, Text);
 impl OnEvent for Display {}
 
 impl Display {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context, num: &'static str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let font_size = theme.fonts.size.title;
         let (mc, dc) = (theme.colors.text.heading, theme.colors.text.secondary);
+
         Display (
             Row::center(0.0),
             Text::new(ctx, "$", TextStyle::Label(mc), font_size, Align::Left),
-            Text::new(ctx, "0", TextStyle::Label(mc), font_size, Align::Left),
+            Text::new(ctx, num, TextStyle::Label(mc), font_size, Align::Left),
             Text::new(ctx, "", TextStyle::Label(dc), font_size, Align::Left),
         )
     }

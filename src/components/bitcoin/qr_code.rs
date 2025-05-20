@@ -1,10 +1,10 @@
 use rust_on_rails::prelude::*;
-use crate::elements::images::Brand;
-use crate::elements::shapes::{RoundedRectangle, Circle};
-use crate::layout::{Row, Column, Bin, Stack, Size, Offset, Padding};
+// use crate::elements::images::Brand;
+use crate::elements::shapes::RoundedRectangle;
+use crate::layout::{Bin, Stack, Size, Offset, Padding};
 use crate::PelicanUI;
 
-use qrcode::{QrCode, Color};
+use qrcode::QrCode;
 
 /// A component representing a QR code with a branded logo.
 #[derive(Debug, Component)]
@@ -24,9 +24,9 @@ impl QRCode {
     /// ```
     pub fn new(ctx: &mut Context, data: &'static str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
-        let (app_icon, color) = (theme.brand.app_icon.clone(), theme.colors.shades.white);
+        let (_app_icon, color) = (theme.brand.app_icon.clone(), theme.colors.shades.white);
         let qr_size = 275.0;
-        let logo_size = 72.0;
+        // let logo_size = 72.0;
 
         let code = QrCode::new(data).unwrap(); // temp
         let gray_image = code.render::<image::Luma<u8>>().build(); // temp

@@ -306,13 +306,11 @@ impl ListItem {
     pub fn bitcoin(
         ctx: &mut Context,
         is_received: bool,
-        usd: f32,
-        date: &String,
+        usd: &'static str,
+        date: &'static str,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let title = if is_received { "Received Bitcoin" } else { "Sent Bitcoin" };
-        let usd = Box::leak(format!("${:.2}", usd).into_boxed_str());
-        let date = Box::leak(date.clone().into_boxed_str());
         ListItem::new(ctx, true, title, None, Some(date), None, Some(usd), Some("Details"), None, None, None, on_click)
     }
 

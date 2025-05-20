@@ -5,13 +5,12 @@ use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::RoundedRectangle;
 use crate::layout::{Column, Stack, Offset, Size, Padding};
 use crate::PelicanUI;
-use std::path::Path;
 use quircs::Quirc;
-use image::{ImageBuffer, Rgba, RgbImage, Luma, RgbaImage, DynamicImage, GrayImage};
+use image::{RgbaImage, DynamicImage};
 
 /// A component for scanning QR codes using the device camera.
 #[derive(Debug, Component)]
-pub struct QRCodeScanner(Stack, Option<Image>, QRGuide, #[skip] Camera, #[skip] Quirc, #[skip] Vec<GrayImage>);
+pub struct QRCodeScanner(Stack, Option<Image>, QRGuide, #[skip] Camera, #[skip] Quirc);
 
 impl QRCodeScanner {
     /// Creates a new `QRCodeScanner` component with a centered stack layout, a QR guide, and a camera instance.
@@ -24,7 +23,7 @@ impl QRCodeScanner {
     /// let scanner = QRCodeScanner::new(ctx);
     /// ```
     pub fn new(ctx: &mut Context) -> Self {
-        QRCodeScanner(Stack::center(), None, QRGuide::new(ctx), Camera::new(), Quirc::default(), Vec::new())
+        QRCodeScanner(Stack::center(), None, QRGuide::new(ctx), Camera::new(), Quirc::default())
     }
 
     fn find_code(&mut self, img: RgbaImage) -> Option<String> {
@@ -34,8 +33,7 @@ impl QRCodeScanner {
         // });
 
         let img_gray = DynamicImage::ImageRgba8(img).into_luma8();
-        let mut decoder = quircs::Quirc::default();
-        let codes = decoder.identify(img_gray.width() as usize, img_gray.height() as usize, &img_gray);
+        let codes = self.4.identify(img_gray.width() as usize, img_gray.height() as usize, &img_gray);
 
         for code in codes {
             match code {
