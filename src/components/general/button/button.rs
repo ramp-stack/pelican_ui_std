@@ -152,7 +152,7 @@ impl ButtonContent {
     ) -> Self {
         let (text_size, icon_size, spacing) = size.content(ctx);
         ButtonContent(
-            Row(spacing, Offset::Center, Size::Fit, Padding(padding, 0.0, padding, 0.0)),
+            Row::new(spacing, Offset::Center, Size::Fit, Padding(padding, 0.0, padding, 0.0)),
             avatar.map(|content| Avatar::new(ctx, content, None, false, icon_size, None)),
             icon_l.map(|icon| Icon::new(ctx, icon, color, icon_size)),
             label.map(|label| Text::new(ctx, label, TextStyle::Label(color), text_size, Align::Left)),

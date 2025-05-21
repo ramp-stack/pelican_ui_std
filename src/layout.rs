@@ -1,4 +1,5 @@
 use rust_on_rails::prelude::*;
+use std::sync::{Arc, Mutex};
 
 /// Represents how a layout should offset itself
 #[derive(Clone, Copy, Default, Debug)]
@@ -224,16 +225,26 @@ impl UniformExpand {
 /// This structure defines a row with a specified spacing, alignment (`Offset`), size (`Size`), 
 /// and padding (`Padding`). It is used to arrange elements horizontally in a row, with various 
 /// configuration options for how the row behaves and how the elements are laid out within it.
-///
-/// # Fields
-/// - `spacing`: The space between items in the row (in horizontal direction).
-/// - `offset`: Defines how the items in the row are aligned (start, center, end, etc.).
-/// - `size`: Defines how the row sizes itself (fit to content, fill within boundaries, fixed size, etc.).
-/// - `padding`: The padding around the row content (left, right, top, bottom).
 #[derive(Debug)]
-pub struct Row(pub f32, pub Offset, pub Size, pub Padding);
+pub struct Row(f32, Offset, Size, Padding);
 
 impl Row {
+    /// Creates a new row with the specified spacing, offset, size, and padding.
+    ///
+    /// This method initializes a [`Row`] with the provided spacing, alignment ([`Offset`]), size behavior ([`Size`]), 
+    /// and padding ([`Padding`]). The scroll value is initialized to `0.0`.
+    ///
+    /// # Parameters
+    /// - `spacing`: The space between items in the column.
+    /// - `offset`: The alignment of the items in the column.
+    /// - `size`: The size behavior of the column.
+    /// - `padding`: The padding around the column content.
+    ///
+    /// # Returns
+    /// A [`Row`] with the specified `spacing`, `offset`, `size`, `padding`, and `scroll` initialized to `0.0`.
+    pub fn new(spacing: f32, offset: Offset, size: Size, padding: Padding) -> Self {
+        Row(spacing, offset, size, padding)
+    }
     /// Creates a centered row with the specified spacing.
     ///
     /// This method will create a row with items aligned to the center and a dynamic size (`Size::Fit`), 
@@ -245,11 +256,8 @@ impl Row {
     /// # Returns
     /// A `Row` with the specified spacing, centered alignment, fit size, and default padding.
     pub fn center(spacing: f32) -> Self {
-        Row(spacing, Offset::Center, Size::Fit, Padding::default())
+        Row::new(spacing, Offset::Center, Size::Fit, Padding::default())
     }
-
-    // TODO: Add scroll functionality in the future.
-    // A function for enabling scrollable rows when content overflows.
 }
 
 
@@ -285,15 +293,8 @@ impl Layout for Row {
 /// size behavior (`Size`), padding (`Padding`), and an optional scrollable parameter. It is used to 
 /// arrange elements vertically in a column, with various configuration options for how the column behaves 
 /// and how the elements are laid out within it.
-///
-/// # Fields
-/// - `spacing`: The space between items in the column (in the vertical direction).
-/// - `offset`: Defines how the items in the column are aligned (start, center, end, etc.).
-/// - `size`: Defines how the column sizes itself (fit to content, fill within boundaries, fixed size, etc.).
-/// - `padding`: The padding around the column content (top, bottom, left, right).
-/// - `scroll`: A value to enable scroll behavior if the column's content exceeds the available space.
 #[derive(Debug)]
-pub struct Column(f32, Offset, Size, Padding, f32);
+pub struct Column(f32, Offset, Size, Padding);
 
 impl Column {
     /// Creates a new column with the specified spacing, offset, size, and padding.
@@ -310,7 +311,7 @@ impl Column {
     /// # Returns
     /// A `Column` with the specified `spacing`, `offset`, `size`, `padding`, and `scroll` initialized to `0.0`.
     pub fn new(spacing: f32, offset: Offset, size: Size, padding: Padding) -> Self {
-        Column(spacing, offset, size, padding, 0.0)
+        Column(spacing, offset, size, padding)
     }
 
     /// Creates a centered column with the specified spacing.
@@ -327,21 +328,11 @@ impl Column {
     /// # Returns
     /// A `Column` with the specified `spacing`, centered alignment, dynamic size, default padding, and scroll value of `0.0`.
     pub fn center(spacing: f32) -> Self {
-        Column(spacing, Offset::Center, Size::Fit, Padding::default(), 0.0)
+        Column(spacing, Offset::Center, Size::Fit, Padding::default())
     }
 
-    /// Allows modification of the scroll value for the column.
-    ///
-    /// This method provides a mutable reference to the scroll value, which can be used to 
-    /// enable or modify scrolling behavior when the content of the column exceeds the available space.
-    ///
-    /// # Returns
-    /// A mutable reference to the scroll value (`f32`).
-    pub fn scroll(&mut self) -> &mut f32 {
-        &mut self.4
-    }
+    pub fn offset(&mut self) -> &mut Offset { &mut self.1 }
 }
-
 
 impl Layout for Column {
     fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
@@ -363,8 +354,7 @@ impl Layout for Column {
         let mut offset = 0.0;
         children.into_iter().zip(heights).map(|(i, height)| {
             let size = i.get((col_size.0, height));
-            let y_offset = offset - self.4;
-            let off = self.3.adjust_offset((self.1.get(col_size.0, size.0), y_offset));
+            let off = self.3.adjust_offset((self.1.get(col_size.0, size.0), offset));
             offset += size.1+self.0;
             Area{offset: off, size}
         }).collect()
@@ -421,7 +411,6 @@ impl Stack {
         Stack(Offset::Center, Offset::Center, Size::fill(), Size::fill(), Padding::default())
     }
 }
-
 
 impl Layout for Stack {
     fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
@@ -532,6 +521,55 @@ impl Layout for Wrap {
     }
 }
 
+/// documentation tbd
+#[derive(Debug, Default)]
+pub struct Scroll(Offset, Offset, Size, Size, Padding, Arc<Mutex<f32>>); // allow for horizontal scroll (FUTURE)
+
+impl Scroll {
+    pub fn new(offset_x: Offset, offset_y: Offset, size_x: Size, size_y: Size, padding: Padding) -> Self {
+        Scroll(offset_x, offset_y, size_x, size_y, padding, Arc::new(Mutex::new(0.0)))
+    }
+
+    pub fn center() -> Self {
+        Scroll(Offset::Center, Offset::Center, Size::Fit, Size::Fit, Padding::default(), Arc::new(Mutex::new(0.0)))
+    }
+
+    pub fn adjust_scroll(&mut self, val: f32) {
+        *self.5.lock().unwrap() += val;
+    }
+}
+
+impl Layout for Scroll {
+    fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
+        let (widths, heights): (Vec<_>, Vec<_>) = children.into_iter().map(|r|
+            ((r.min_width(), r.max_width()), (r.min_height(), r.max_height()))
+        ).unzip();
+        let width = self.2.get(widths, Size::max);
+        let height = self.3.get(heights, Size::max);
+        self.4.adjust_request(SizeRequest::new(width.0, height.0, width.1, height.1))
+    }
+
+    fn build(&self, _ctx: &mut Context, scroll_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
+        let scroll_size = self.4.adjust_size(scroll_size);
+        let children_height: f32 = children.iter().map(|i| i.min_height()).sum();
+        let scroll_val = self.5.lock().unwrap().min(children_height - scroll_size.1).max(0.0);
+        *self.5.lock().unwrap() = scroll_val;
+        children.into_iter().map(|i| {
+            let size = i.get(scroll_size);
+            let offset = (self.0.get(scroll_size.0, size.0), self.1.get(scroll_size.1, size.1)-scroll_val);
+            Area{offset: self.4.adjust_offset(offset), size}
+        }).collect()
+    }
+}
+
+        //1. get max size of all children added up
+        //2. subtract size of scroll element height from above
+        //3. This is max scroll
+        //4. scroll_val min max_scroll
+        //5. set scroll_val to above
+        //6. add scroll_val to height offset of all objects
+
+
 /// A bin layout that encapsulates a single layout and a single drawable component.
 ///
 /// The `Bin` layout is a container that holds one layout and one drawable component. The layout determines how the
@@ -540,11 +578,11 @@ impl Layout for Wrap {
 ///
 /// # Type Parameters
 /// - `L`: The layout type that determines how the contained component is arranged.
-/// - `D`: The drawable component that will be arranged by the layout. This component must implement the `Drawable` trait.
+/// - `D`: The drawable component that will be arranged by the layout. This component must implement the [`Drawable`] trait.
 ///
 /// # Fields
 /// - `L`: The layout used to arrange the contained drawable component.
-/// - `D`: The drawable component (e.g., an image, button, or any UI element that implements the `Drawable` trait) to be displayed in the layout.
+/// - `D`: The drawable component to be displayed in the layout.
 ///
 /// # Methods
 /// - `inner`: Returns a mutable reference to the contained drawable component, allowing manipulation of the drawable's properties.

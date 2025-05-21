@@ -294,7 +294,7 @@ impl AvatarRow {
     /// A new [`AvatarRow`] component containing a centered row of avatar icons.
     pub fn new(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {
         AvatarRow(
-            Row::center(0.0),  // Allow for negative offset.
+            Row::center(-16.0),
             avatars.into_iter().map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0, None)).collect()
         )
     }

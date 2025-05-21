@@ -64,9 +64,14 @@ impl TextInput {
         self.2.error()
     }
 
-    /// Returns a mutable reference to the input field's string value.
-    pub fn get_value(&mut self) -> &mut String {
-        self.2.input()
+    /// Returns the input field's string value.
+    pub fn get_value(&mut self) -> String {
+        self.2.input().replace('\u{200C}', "")
+    }
+
+    /// Sets the input's text to the provided string. 
+    pub fn set_value(&mut self, new: String) {
+        *self.2.input() = new;
     }
 }
 
@@ -171,7 +176,7 @@ impl OnEvent for InputField {
                             new_text = insert_char(new_text, ' ', i as usize);
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
                         },
-                        Key::Named(NamedKey::Delete | NamedKey::Backspace) if (!self.2.text().text().spans[0].text.is_empty() && i as usize != 0) => {
+                        Key::Named(NamedKey::Delete | NamedKey::Backspace) if (!new_text.is_empty() && i as usize != 0) => {
                             new_text = remove_char(new_text, i as usize);
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveLeft);
                         },
@@ -203,14 +208,11 @@ fn insert_char(new_text: String, new_char: char, i: usize) -> String {
 
 fn remove_char(text: String, index: usize) -> String {
     let mut chars: Vec<char> = text.chars().collect();
-
-    if chars.len() == 1 {
-        chars.clear();
-    } else if index == chars.len() {
-        chars.pop();
-        chars.pop();
-    } else if index < chars.len().saturating_sub(1) {
-        chars.drain(index..=index + 1);
+    match chars.len() == 1 {
+        true => chars.clear(),
+        false if index == chars.len() => {chars.pop(); chars.pop();},
+        false if index < chars.len().saturating_sub(1) => {chars.drain(index..=index + 1);},
+        _ => {}
     }
 
     chars.into_iter().collect()
@@ -244,7 +246,7 @@ impl InputContent {
         }).unwrap_or((None, None));
 
         InputContent(
-            Row(0.0, Offset::End, Size::Fit, Padding(16.0, 8.0, 8.0, 8.0)),
+            Row::new(0.0, Offset::End, Size::Fit, Padding(16.0, 8.0, 8.0, 8.0)),
             Bin(
                 Stack(Offset::default(), Offset::End, Size::fill(), Size::Fit, Padding(8.0, 8.0, 8.0, 8.0)),
                 EitherOr::new(

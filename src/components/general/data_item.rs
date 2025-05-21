@@ -52,7 +52,7 @@ impl DataItem {
         quick_actions: Option<Vec<Button>>,
     ) -> Self {
         DataItem (
-            Row(32.0, Offset::Start, Size::Fit, Padding::default()),
+            Row::new(32.0, Offset::Start, Size::Fit, Padding::default()),
             number.map(|n| Number::new(ctx, n)),
             DataItemContent::new(ctx, label, text, secondary, table, quick_actions)
         )
@@ -122,7 +122,7 @@ impl Tabular {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (font_size, color) = (theme.fonts.size.sm, theme.colors.shades.transparent);
         Tabular (
-            Row(8.0, Offset::Start, Size::Fit, Padding(0.0, 4.0, 0.0, 4.0)),
+            Row::new(8.0, Offset::Start, Size::Fit, Padding(0.0, 4.0, 0.0, 4.0)),
             Text::new(ctx, name, TextStyle::Primary, font_size, Align::Left),
             Bin(
                 Stack(Offset::Center, Offset::Center, Size::Fit, Size::Static(1.0), Padding::default()),
@@ -139,6 +139,6 @@ impl OnEvent for QuickActions {}
 
 impl QuickActions {
     fn new(buttons: Vec<Button>) -> Self {
-        QuickActions(Row(8.0, Offset::Start, Size::Fit, Padding::default()), buttons)
+        QuickActions(Row::new(8.0, Offset::Start, Size::Fit, Padding::default()), buttons)
     }
 }

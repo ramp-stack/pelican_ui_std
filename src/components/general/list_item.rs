@@ -126,7 +126,7 @@ impl ListItemContent {
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.text.secondary;
         ListItemContent(
-            Row(16.0, Offset::Center, Size::Fit, Padding::default()),
+            Row::new(16.0, Offset::Center, Size::Fit, Padding::default()),
             radio_button.map(|enabled| RadioButton::new(ctx, enabled)), 
             circle_icon.map(|data| Avatar::new(ctx, data, None, false, 48.0, None)),
             ListItemData::new(ctx, title, flair, subtitle, description, right_title, right_subtitle),
@@ -174,7 +174,7 @@ impl ListItemData {
         right_subtitle: Option<&'static str>,
     ) -> Self {
         ListItemData(
-            Row(8.0, Offset::Start, Size::Fit, Padding::default()),
+            Row::new(8.0, Offset::Start, Size::Fit, Padding::default()),
             LeftData::new(ctx, title, flair, subtitle, description),
             right_title.map(|r_title| RightData::new(ctx, r_title, right_subtitle)), 
         )
@@ -188,7 +188,7 @@ impl TitleRow {
     fn new(ctx: &mut Context, title: &'static str, flair: Option<(&'static str, Color)>) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
         TitleRow(
-            Row(8.0, Offset::Start, Size::Fit, Padding::default()),
+            Row::new(8.0, Offset::Start, Size::Fit, Padding::default()),
             Text::new(ctx, title, TextStyle::Heading, font_size, Align::Left),
             flair.map(|(name, color)| Icon::new(ctx, name, color, 20.0)),
         )
@@ -310,7 +310,7 @@ impl ListItem {
         date: &'static str,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
-        let title = if is_received { "Received Bitcoin" } else { "Sent Bitcoin" };
+        let title = if is_received { "Received bitcoin" } else { "Sent bitcoin" };
         ListItem::new(ctx, true, title, None, Some(date), None, Some(usd), Some("Details"), None, None, None, on_click)
     }
 
@@ -327,7 +327,7 @@ impl ListItem {
         let flair = ("warning", color);
         let usd = Box::leak(format!("${:.2}", usd).into_boxed_str());
         let btc = Box::leak(format!("${:.8} BTC", btc).into_boxed_str());
-        ListItem::new(ctx, true, "Sending Bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, None, on_click)
+        ListItem::new(ctx, true, "Sending bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, None, on_click)
     }
 
     /// Creates a list item for a radio selection.

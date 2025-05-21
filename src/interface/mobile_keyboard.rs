@@ -58,7 +58,7 @@ impl KeyboardIcons {
     fn new(ctx: &mut Context) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.shades.transparent;
         KeyboardIcons(
-            Row(16.0, Offset::Start, Size::Fit, Padding(12.0, 6.0, 12.0, 6.0)), 
+            Row::new(16.0, Offset::Start, Size::Fit, Padding(12.0, 6.0, 12.0, 6.0)), 
             IconButton::keyboard(ctx, "emoji", |_ctx: &mut Context| ()),
             IconButton::keyboard(ctx, "gif", |_ctx: &mut Context| ()),
             IconButton::keyboard(ctx, "photos", |_ctx: &mut Context| ()),
@@ -387,7 +387,7 @@ impl KeyCharacter {
     fn char(ctx: &mut Context, key: &'static str) -> Self {
         let size = ctx.get::<PelicanUI>().theme.fonts.size.xl;
         KeyCharacter(
-            Row(0.0, Offset::Center, Size::Fit, Padding(0.0, 0.0, 0.0, 10.0)),
+            Row::new(0.0, Offset::Center, Size::Fit, Padding(0.0, 0.0, 0.0, 10.0)),
             None,
             Some(Text::new(ctx, key, TextStyle::Keyboard, size, Align::Left)),
             None, None

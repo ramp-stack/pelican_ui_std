@@ -143,7 +143,7 @@ impl MobileNavigator {
         tabs.push(NavigationButton::new(profile_id, None, Some(ib)));
 
         MobileNavigator(
-            Row(48.0, Offset::Center, Size::Fit, Padding(0.0, 8.0, 0.0, 8.0)),
+            Row::new(48.0, Offset::Center, Size::Fit, Padding(0.0, 8.0, 0.0, 8.0)),
             tabs
         )
     }

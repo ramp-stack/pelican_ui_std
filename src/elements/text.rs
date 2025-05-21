@@ -138,14 +138,9 @@ impl ExpandableText {
 
 impl OnEvent for ExpandableText {
     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if event.downcast_ref::<TickEvent>().is_some() {
-            if self.0.cursor().is_some() {
-                // println!("INSERTING LIGATURES");
-                let text = self.0.text().spans[0].text.clone();
-                let s = break_all_ligatures(&text);
-                // println!("INSERTED {:?}", s);
+        if event.downcast_ref::<TickEvent>().is_some() && self.0.cursor().is_some() {
+                let s = break_all_ligatures(&self.0.text().spans[0].text.clone());
                 self.0.text().spans[0].text = s;
-            }
         }
         true
     }
@@ -202,7 +197,7 @@ impl BulletedText {
     pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, _) = style.get(ctx);
         BulletedText(
-            Row(size*0.75, Offset::Center, Size::Fit, Padding::default()),
+            Row::new(size*0.75, Offset::Center, Size::Fit, Padding::default()), // change this offset to be line_height - circle size / 2
             Circle::new(size*0.5, color),
             ExpandableText::new(ctx, text, style, size, align)
         )

@@ -33,7 +33,7 @@ impl DesktopInterface {
         let navigator = navigation.zip(profile).zip(start_index).map(|((nav, p), i)| DesktopNavigator::new(ctx, i, nav, p));
 
         DesktopInterface(
-            Row(0.0, Offset::Start, Size::Fit, Padding::default()),
+            Row::new(0.0, Offset::Start, Size::Fit, Padding::default()),
             navigator,
             Bin (
                 Stack(Offset::default(), Offset::default(), Size::Static(1.0),  Size::Fit, Padding::default()), 

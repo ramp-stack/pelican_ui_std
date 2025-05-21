@@ -23,7 +23,7 @@ impl Alert {
         let (color, font_size) = (theme.colors.status.warning, theme.fonts.size.md);
 
         Alert(
-            Row(4.0, Offset::Center, Size::Fit, Padding::default()),
+            Row::new(4.0, Offset::Center, Size::Fit, Padding::default()),
             Icon::new(ctx, "warning", color, 32.0),
             Text::new(ctx, message, TextStyle::Primary, font_size, Align::Left)
         )

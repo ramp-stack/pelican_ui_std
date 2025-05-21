@@ -67,7 +67,7 @@ impl Message {
         };
 
         Message (
-            Row(8.0, offset, Size::Fit, Padding::default()),
+            Row::new(8.0, offset, Size::Fit, Padding::default()),
             avatar.then(|| Avatar::new(ctx, sender.avatar.clone(), None, false, 24.0, None)),
             MessageContent::new(ctx, style, messages, sender, time)
         )
@@ -126,7 +126,7 @@ impl MessageData {
             _ => (TextStyle::Secondary, text_size.sm, true),
         };
         MessageData(
-            Row(8.0, Offset::End, Size::Fit, Padding::default()),
+            Row::new(8.0, Offset::End, Size::Fit, Padding::default()),
             Text::new(ctx, name, title_style, title_size, Align::Left),
             divider.then(|| Text::new(ctx, "·", TextStyle::Secondary, text_size.sm, Align::Left)),
             Text::new(ctx, time, TextStyle::Secondary, text_size.sm, Align::Left),

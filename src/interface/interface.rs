@@ -1,7 +1,7 @@
 use rust_on_rails::prelude::*;
 use crate::elements::shapes::{Rectangle};
 use crate::elements::text::TextStyle;
-use crate::layout::{Column, Stack, Row, Padding, Offset, Size};
+use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Scroll};
 use crate::components::avatar::{AvatarContent, AvatarRow};
 use crate::components::button::{IconButton, Button};
 use crate::components::text_input::TextInput;
@@ -11,6 +11,7 @@ use crate::AppPage;
 use crate::ElementID;
 use std::fmt::Debug;
 
+use crate::prelude::Profile;
 use super::{DesktopInterface, MobileInterface};
 
 /// Root interface component with both mobile and desktop layouts options.
@@ -118,7 +119,7 @@ impl Page {
 /// The `Content` component is used to display and manage the content area of a page,
 /// with the ability to dynamically modify the list of drawable items.
 #[derive(Debug, Component)]
-pub struct Content (Stack, ContentChildren);
+pub struct Content (Scroll, ContentChildren);
 
 impl Content {
     /// Creates a new `Content` component with the specified layout and child items.
@@ -134,7 +135,7 @@ impl Content {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(375.0), 375.0));
         let height = Size::custom(move |_: Vec<(f32, f32)>|(0.0, f32::MAX));
         Content(
-            Stack(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0)),
+            Scroll::new(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0)),
             ContentChildren::new(content)
         )
     }
@@ -148,14 +149,13 @@ impl Content {
     /// - **`&mut Vec<Box<dyn Drawable>>`**: A mutable reference to the vector of drawable items.
     pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.1.1}
     /// Returns a mutable reference to the [`Offset`] value.
-    pub fn offset(&mut self) -> &mut Offset {&mut self.0.1}
+    pub fn offset(&mut self) -> &mut Offset {self.1.0.offset()}
 }
 
 impl OnEvent for Content {
     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(MouseEvent{state: MouseState::Scroll(_, y), ..}) = event.downcast_ref::<MouseEvent>() {
-            *self.1.0.scroll() += y;
-            *self.1.0.scroll() = self.1.0.scroll().clamp(0.0, 100.); // 100 = content height
+            self.0.adjust_scroll(*y);
         }
         true
     }
@@ -216,7 +216,7 @@ impl Header {
     /// Creates a simple header with a home button and a title.
     pub fn home(ctx: &mut Context, title: &'static str) -> Self {
         Header(
-            Row(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
+            Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
             HeaderIcon::new(None), 
             HeaderContent::home(ctx, title),
             HeaderIcon::new(None)
@@ -231,7 +231,7 @@ impl Header {
         right: Option<IconButton>
     ) -> Self {
         Header(
-            Row(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
+            Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
             HeaderIcon::new(left), 
             HeaderContent::stack(ctx, title), 
             HeaderIcon::new(right)
@@ -243,19 +243,19 @@ impl Header {
         ctx: &mut Context, 
         left: Option<IconButton>,
         right: Option<IconButton>,
-        avatars: Vec<AvatarContent>,
+        profiles: Vec<Profile>,
     ) -> Self {
         Header(
-            Row(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
+            Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
             HeaderIcon::new(left), 
-            HeaderContent::chat(ctx, avatars), 
+            HeaderContent::chat(ctx, profiles), 
             HeaderIcon::new(right)
         )
     }
 }
 
 #[derive(Debug, Component)]
-struct HeaderContent(Column, Text, Option<AvatarRow>);
+struct HeaderContent(Column, Option<AvatarRow>, Text);
 impl OnEvent for HeaderContent {}
 
 impl HeaderContent {
@@ -264,8 +264,8 @@ impl HeaderContent {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
             Column::new(10.0, Offset::Center, width, Padding::default()), 
-            Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
             None,
+            Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
         )
     }
 
@@ -274,19 +274,20 @@ impl HeaderContent {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
             Column::new(10.0, Offset::Center, width, Padding::default()),  
-            Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
             None,
+            Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
         )
     }
 
-    pub fn chat(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {
+    pub fn chat(ctx: &mut Context, profiles: Vec<Profile>) -> Self {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
-        let title = if avatars.len() > 1 {"Ella Couch"} else {"Group Message"};
+        let title = if profiles.len() == 1 {profiles[0].name} else {"Group Message"};
+        let avatars = profiles.into_iter().map(|p| p.avatar).collect::<Vec<AvatarContent>>();
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
             Column::new(10.0, Offset::Center, width, Padding::default()), 
-            Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
             Some(AvatarRow::new(ctx, avatars)),
+            Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
         )
     }
 }
@@ -355,7 +356,7 @@ impl OnEvent for BumperContent {}
 
 impl BumperContent {
     fn new(content: Vec<Box<dyn Drawable>>) -> Self {
-        BumperContent(Row(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)), content)
+        BumperContent(Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)), content)
     }
 }
 

@@ -1,5 +1,5 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/ramp-stack/pelican_ui/main/logo.png")]
-#![deny(missing_docs)]
+// #![deny(missing_docs)]
 
 //! A UI system for managing minimalistic components, themes, pages, and navigation in a Rust-based application.
 //!
