@@ -3,6 +3,7 @@ use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::RoundedRectangle;
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size};
+use crate::utils::Timestamp;
 use crate::PelicanUI;
 
 /// Represents the style or source of a message in the UI.
@@ -56,10 +57,13 @@ impl Message {
     pub fn new(
         ctx: &mut Context,
         style: MessageType,
-        messages: Vec<&'static str>,
-        sender: Profile,
-        time: &'static str,
+        message: String,
+        sender: (String, AvatarContent), // name, biography, identifier, avatar
+        time: Timestamp,
     ) -> Self {
+        let name = Box::leak(sender.0.into_boxed_str());
+        let message = Box::leak(message.into_boxed_str());
+
         let (offset, avatar) = match style {
             MessageType::You => (Offset::End, false),
             MessageType::Rooms => (Offset::Start, true),
@@ -68,8 +72,8 @@ impl Message {
 
         Message (
             Row::new(8.0, offset, Size::Fit, Padding::default()),
-            avatar.then(|| Avatar::new(ctx, sender.avatar.clone(), None, false, 24.0, None)),
-            MessageContent::new(ctx, style, messages, sender, time)
+            avatar.then(|| Avatar::new(ctx, sender.1, None, false, 24.0, None)),
+            MessageContent::new(ctx, style, message, name, time)
         )
     }
 }
@@ -82,13 +86,13 @@ impl MessageContent {
     fn new(
         ctx: &mut Context,
         style: MessageType,
-        messages: Vec<&'static str>,
-        sender: Profile,
-        time: &'static str,
+        message: &'static str,
+        name: &'static str,
+        time: Timestamp,
     ) -> Self {
         let name = match style {
             MessageType::You => "You",
-            _ => sender.name,
+            _ => name,
         };
         let data = MessageData::new(ctx, style, name, time);
 
@@ -104,7 +108,7 @@ impl MessageContent {
 
         MessageContent(
             Column::new(8.0, offset, Size::custom(|widths: Vec<(f32, f32)>| (widths[1].0, f32::MAX)), Padding::default()),
-            top, MessageBubbles::new(ctx, messages, style), bottom
+            top, MessageBubbles::new(ctx, message, style), bottom
         )
     }
 }
@@ -118,7 +122,7 @@ impl MessageData {
         ctx: &mut Context,
         style: MessageType,
         name: &'static str,
-        time: &'static str,
+        time: Timestamp,
     ) -> Self {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size;
         let (title_style, title_size, divider) = match style {
@@ -129,7 +133,7 @@ impl MessageData {
             Row::new(8.0, Offset::End, Size::Fit, Padding::default()),
             Text::new(ctx, name, title_style, title_size, Align::Left),
             divider.then(|| Text::new(ctx, "·", TextStyle::Secondary, text_size.sm, Align::Left)),
-            Text::new(ctx, time, TextStyle::Secondary, text_size.sm, Align::Left),
+            Text::new(ctx, time.friendly(), TextStyle::Secondary, text_size.sm, Align::Left),
         )
     }
 }
@@ -142,11 +146,12 @@ impl OnEvent for MessageBubbles {}
 impl MessageBubbles {
     fn new(
         ctx: &mut Context,
-        messages: Vec<&'static str>,
+        // messages: Vec<&'static str>,
+        message: &'static str,
         style: MessageType,
     ) -> Self {
-        let messages = messages.iter().map(|m| MessageBubble::new(ctx, m, style)).collect();
-        MessageBubbles(Column::new(8.0, Offset::Start, Size::Fit, Padding::default()), messages)
+        // let messages = messages.iter().map(|m| MessageBubble::new(ctx, m, style)).collect();
+        MessageBubbles(Column::new(8.0, Offset::Start, Size::Fit, Padding::default()), vec![MessageBubble::new(ctx, message, style)])
     }
 }
 
@@ -170,7 +175,7 @@ impl MessageBubble {
         };
 
         let (hp, vp) = (12.0, 12.0);
-        let max_w = 200.0-(hp*2.0);
+        let max_w = 300.0-(hp*2.0);
         let background = RoundedRectangle::new(0.0, 16.0, bg_color);
         let mut content = Text::new(ctx, message, text_style, text_size, Align::Left);
         content.text().width = Some(max_w);

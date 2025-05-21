@@ -22,3 +22,5 @@ dyn-clone = "1.0.19"
 rust_on_rails = {path="../rust_on_rails"}
 quircs = "0.10.2"
 image = "0.25.6"
+chrono = "0.4.41"
+serde = "1.0.219"

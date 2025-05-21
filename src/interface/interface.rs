@@ -149,7 +149,7 @@ impl Content {
     /// - **`&mut Vec<Box<dyn Drawable>>`**: A mutable reference to the vector of drawable items.
     pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.1.1}
     /// Returns a mutable reference to the [`Offset`] value.
-    pub fn offset(&mut self) -> &mut Offset {self.1.0.offset()}
+    pub fn offset(&mut self) -> &mut Offset {self.0.offset()}
 }
 
 impl OnEvent for Content {
@@ -243,7 +243,7 @@ impl Header {
         ctx: &mut Context, 
         left: Option<IconButton>,
         right: Option<IconButton>,
-        profiles: Vec<Profile>,
+        profiles: Vec<(String, AvatarContent)>,
     ) -> Self {
         Header(
             Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
@@ -279,10 +279,10 @@ impl HeaderContent {
         )
     }
 
-    pub fn chat(ctx: &mut Context, profiles: Vec<Profile>) -> Self {
+    pub fn chat(ctx: &mut Context, profiles: Vec<(String, AvatarContent)>) -> Self {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
-        let title = if profiles.len() == 1 {profiles[0].name} else {"Group Message"};
-        let avatars = profiles.into_iter().map(|p| p.avatar).collect::<Vec<AvatarContent>>();
+        let title = if profiles.len() == 1 {Box::leak(profiles[0].0.clone().into_boxed_str())} else {"Group Message"};
+        let avatars = profiles.into_iter().map(|p| p.1).collect::<Vec<AvatarContent>>();
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
             Column::new(10.0, Offset::Center, width, Padding::default()), 

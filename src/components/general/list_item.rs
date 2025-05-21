@@ -255,11 +255,12 @@ impl ListItem {
     pub fn recipient(
         ctx: &mut Context,
         data: AvatarContent,
-        name: &'static str,
-        nym: &'static str,
+        name: String,
+        nym: String,
     ) -> Self {
+        let name = Box::leak(name.into_boxed_str()) as &'static str;
         ListItem::new(
-            ctx, true, name, None, Some(nym), None, None, None, None, Some(data), None, 
+            ctx, true, name, None, Some(Box::leak(nym.into_boxed_str())), None, None, None, None, Some(data), None, 
             move |ctx: &mut Context| ctx.trigger_event(AddContactEvent(name, ElementID::new()))
         )
     }
@@ -269,18 +270,18 @@ impl ListItem {
     pub fn direct_message(
         ctx: &mut Context,
         data: AvatarContent,
-        name: &'static str,
-        recent: &'static str,
+        name: String,
+        recent: String,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        ListItem::new(ctx, true, name, None, Some(recent), None, None, None, None, Some(data), None, on_click)
+        ListItem::new(ctx, true, Box::leak(name.into_boxed_str()), None, Some(Box::leak(recent.into_boxed_str())), None, None, None, None, Some(data), None, on_click)
     }
 
     /// Creates a list item for a group message.
     /// Displays the names of the group members as the description.
     pub fn group_message(
         ctx: &mut Context,
-        names: Vec<&'static str>,
+        names: Vec<String>,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
         let description = Box::leak(names.join(", ").into_boxed_str());

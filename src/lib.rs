@@ -20,6 +20,8 @@ pub mod elements;
 pub mod components;
 /// Modular for interface
 pub mod interface;
+/// Modular for helper functions and objects
+pub mod utils;
 
 use rust_on_rails::prelude::*;
 use crate::theme::Theme;
@@ -159,5 +161,6 @@ pub mod prelude {
     pub use crate::components::*;
     pub use crate::elements::*;
     pub use crate::theme::*;
+    pub use crate::utils::*;
     pub use crate::PelicanUI;
 }

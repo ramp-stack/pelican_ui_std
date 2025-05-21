@@ -9,6 +9,9 @@ use crate::ElementID;
 use std::fmt::Debug;
 use super::{NavigationButton, MobileKeyboard};
 
+#[cfg(target_os = "ios")]
+use crate::prelude::safe_area_insets;
+
 /// `MobileInterface` is a component that represents the mobile user interface. It consists of a column layout, a main 
 /// application page, an optional mobile navigator, and an optional mobile keyboard. This interface is ideal for 
 /// structuring mobile app UIs that need navigation and interactivity, supporting elements like profiles and app pages.
@@ -49,8 +52,8 @@ impl MobileInterface {
         navigation: Option<Vec<(&'static str, &'static str, Callback)>>,
         profile: Option<(&'static str, AvatarContent, Callback)>,
     ) -> Self {
-        let navigator = navigation.zip(profile).zip(start_index).map(|((nav, p), i)| Opt::new(MobileNavigator::new(ctx, i, nav, p), false));
-        
+        let navigator = navigation.zip(profile).zip(start_index).map(|((nav, p), i)| Opt::new(MobileNavigator::new(ctx, i, nav, p), true));
+        println!("Navigator {:?}", navigator);
         #[cfg(target_os = "ios")] // move to rust_on_rails layer
         let insets = safe_area_insets();
         

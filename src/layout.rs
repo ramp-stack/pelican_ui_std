@@ -330,8 +330,6 @@ impl Column {
     pub fn center(spacing: f32) -> Self {
         Column(spacing, Offset::Center, Size::Fit, Padding::default())
     }
-
-    pub fn offset(&mut self) -> &mut Offset { &mut self.1 }
 }
 
 impl Layout for Column {
@@ -343,7 +341,6 @@ impl Layout for Column {
         let width = self.2.get(widths, Size::max);
         let height = Size::add(heights);
         self.3.adjust_request(SizeRequest::new(width.0, height.0, width.1, height.1).add_height(spacing))
-
     }
 
     fn build(&self, _ctx: &mut Context, col_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
@@ -537,6 +534,9 @@ impl Scroll {
     pub fn adjust_scroll(&mut self, val: f32) {
         *self.5.lock().unwrap() += val;
     }
+
+
+    pub fn offset(&mut self) -> &mut Offset { &mut self.1 }
 }
 
 impl Layout for Scroll {
