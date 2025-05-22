@@ -24,7 +24,6 @@ pub mod interface;
 pub mod utils;
 
 use rust_on_rails::prelude::*;
-use serde::{Serialize, Deserialize};
 use crate::theme::Theme;
 
 /// A boxed, mutable callback function that takes a mutable reference to a [`Context`].

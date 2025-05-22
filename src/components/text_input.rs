@@ -170,26 +170,27 @@ impl OnEvent for InputField {
                     match key {
                         Key::Named(NamedKey::Enter) => {
                             new_text = insert_char(new_text, '\n', i as usize);
+                            self.2.text().text().spans[0].text = new_text;
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveNewline);
                         },
                         Key::Named(NamedKey::Space) => {
                             new_text = insert_char(new_text, ' ', i as usize);
+                            self.2.text().text().spans[0].text = new_text;
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
                         },
                         Key::Named(NamedKey::Delete | NamedKey::Backspace) if (!new_text.is_empty() && i as usize != 0) => {
                             new_text = remove_char(new_text, i as usize);
+                            self.2.text().text().spans[0].text = new_text;
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveLeft);
                         },
                         Key::Character(c) => {
                             let new_char = c.to_string().chars().next().unwrap();
                             new_text = insert_char(new_text, new_char, i as usize);
+                            self.2.text().text().spans[0].text = new_text;
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
                         },
                         _ => {}
                     };
-
-                    self.2.text().text().spans[0].text = new_text;
-
                 }
             }
         }
@@ -197,13 +198,19 @@ impl OnEvent for InputField {
     }
 }
 
-fn insert_char(new_text: String, new_char: char, i: usize) -> String {
-    let mut chars = new_text.chars().collect::<Vec<char>>();
-    match chars.len() <= i {
-        true => chars.push(new_char),
-        false => chars.insert(i, new_char)
+fn insert_char(text: String, new_char: char, i: usize) -> String {
+    const INVISIBLE: char = '\u{200C}'; 
+
+    let mut chars: Vec<char> = text.chars().collect();
+    if i >= chars.len() {
+        chars.push(new_char);
+        chars.push(INVISIBLE);
+    } else {
+        chars.insert(i, new_char);
+        chars.insert(i + 1, INVISIBLE);
     }
-    chars.into_iter().collect::<String>()
+
+    chars.into_iter().collect()
 }
 
 fn remove_char(text: String, index: usize) -> String {

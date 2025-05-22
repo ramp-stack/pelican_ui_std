@@ -1,5 +1,4 @@
 use rust_on_rails::prelude::*;
-use crate::ElementID;
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;

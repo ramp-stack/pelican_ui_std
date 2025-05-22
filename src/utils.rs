@@ -28,7 +28,7 @@ impl Timestamp {
         let today = Local::now().date_naive();
         let date = dt.date_naive();
 
-        let result = match date == today {
+        match date == today {
             true => {
                 let hour = dt.hour();
                 let minute = dt.minute();
@@ -44,9 +44,7 @@ impl Timestamp {
             false if date.iso_week() == today.iso_week() => format!("{}", dt.format("%A")),
             false if date.year() == today.year() => format!("{}", dt.format("%B %-d")),
             false => format!("{}", dt.format("%m/%d/%y"))
-        };
-
-        result
+        }
     }
 
     pub fn date(&self) -> String {self.0.clone()}

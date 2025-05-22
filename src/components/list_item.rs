@@ -3,9 +3,9 @@ use crate::events::ListItemSelect;
 use crate::elements::images::Icon;
 use crate::elements::text::{Text, ExpandableText, TextStyle};
 use crate::elements::shapes::Rectangle;
-use crate::components::button::{ButtonState, Button};
-use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
-use crate::layout::{Column, Stack, Row, Wrap, Padding, Offset, Size};
+use crate::components::button::ButtonState;
+use crate::components::avatar::{Avatar, AvatarContent};
+use crate::layout::{Column, Stack, Row, Padding, Offset, Size};
 use crate::{PelicanUI, ElementID}; // REMOVE ELEMENTID AND JUST USE UUID
 
 /// A List Item with various customizable components, such as a title, subtitle, description, 
@@ -250,6 +250,7 @@ impl ListItem {
         ListItem::new(ctx, false, title, None, Some(subtitle), description, None, None, Some(selected), None, Some(ElementID::new()), on_click)
     }
 }
+
 /// A component representing a radio-style list item selector with multiple options.
 #[derive(Debug, Component)]
 pub struct ListItemSelector(
@@ -259,6 +260,7 @@ pub struct ListItemSelector(
     Option<ListItem>,  // The third list item (optional, unselected).
     Option<ListItem>,  // The fourth list item (optional, unselected).
 );
+
 impl OnEvent for ListItemSelector {}
 impl ListItemSelector {
     /// Creates a new `ListItemSelector` with four selectable list items, where the first item is selected by default.

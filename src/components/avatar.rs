@@ -96,7 +96,7 @@ impl MainAvatar {
 
         let (circle_icon, image) = match content {
             AvatarContent::Image(image) => (None, Some(Image{shape: ShapeType::Ellipse(0.0, (size, size)), image, color: None})),
-            AvatarContent::Icon(name, style) => (Some(AvatarIcon::new(ctx, &name, style, size)), None)
+            AvatarContent::Icon(name, style) => (Some(AvatarIcon::new(ctx, name, style, size)), None)
         };
 
         MainAvatar(
