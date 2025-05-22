@@ -47,7 +47,8 @@ impl DesktopInterface {
 impl OnEvent for DesktopInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigateEvent(page)) = event.downcast_ref::<NavigateEvent>() {
-            self.3 = page.get_page(ctx);
+            let (page, _) = page.get_page(ctx);
+            self.3 = page;
         }
         true
     }

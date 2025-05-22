@@ -1,8 +1,10 @@
 use rust_on_rails::prelude::*;
 use crate::events::{KeyboardActiveEvent, NavigateEvent, NavigatorSelect};
-use crate::layout::{Column, Row, Padding, Offset, Size, Opt};
+use crate::layout::{Column, Row, Padding, Offset, Size, Opt, Stack, Bin};
 use crate::components::avatar::AvatarContent;
 use crate::components::button::{IconButton, ButtonState};
+use crate::elements::shapes::Rectangle;
+use crate::PelicanUI;
 use crate::Callback;
 use crate::AppPage;
 use crate::ElementID;
@@ -26,7 +28,7 @@ use crate::prelude::safe_area_insets;
 /// let mobile_interface = MobileInterface::new(&mut ctx, HomePage::new(), Some(0), Some(navigation), Some(profile));
 /// ```
 #[derive(Debug, Component)]
-pub struct MobileInterface (Column, Box<dyn AppPage>, Option<Opt<MobileNavigator>>, Option<MobileKeyboard>);
+pub struct MobileInterface (Column, Bin<Stack, Rectangle>, Box<dyn AppPage>, Option<MobileKeyboard>, Option<Opt<MobileNavigator>>, Bin<Stack, Rectangle>);
 
 impl MobileInterface {
     /// Creates a new `MobileInterface` with the specified starting page, navigation, and optional profile.
@@ -52,19 +54,20 @@ impl MobileInterface {
         navigation: Option<Vec<(&'static str, &'static str, Callback)>>,
         profile: Option<(&'static str, AvatarContent, Callback)>,
     ) -> Self {
+        let background = ctx.get::<PelicanUI>().theme.colors.background.primary;
         let navigator = navigation.zip(profile).zip(start_index).map(|((nav, p), i)| Opt::new(MobileNavigator::new(ctx, i, nav, p), true));
-        println!("Navigator {:?}", navigator);
         #[cfg(target_os = "ios")] // move to rust_on_rails layer
         let insets = safe_area_insets();
-        
         #[cfg(not(target_os = "ios"))]
         let insets = (0., 0., 0., 0.);
         
         MobileInterface(
-            Column::new(0.0, Offset::Center, Size::Fit, Padding(0.0, insets.0, 0.0, insets.1)), 
+            Column::new(0.0, Offset::Center, Size::Fit, Padding::default()), 
+            Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(insets.0), Padding::default()), Rectangle::new(background)),
             Box::new(start_page), 
-            navigator, 
             None,
+            navigator,
+            Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(insets.1), Padding::default()), Rectangle::new(background))
         )
     }
 }
@@ -79,7 +82,9 @@ impl OnEvent for MobileInterface {
                 false => None
             };
         } else if let Some(NavigateEvent(page)) = event.downcast_ref::<NavigateEvent>() {
-            self.1 = page.get_page(ctx);
+            let (new_page, display_nav) = page.get_page(ctx);
+            self.2 = new_page;
+            if let Some(navigator) = self.4.as_mut() { navigator.display(display_nav) }
         }
         true
     }
@@ -99,25 +104,33 @@ impl OnEvent for MobileInterface {
 /// let mobile_nav = MobileNavigator::new(&mut ctx, 0, navigation, profile);
 /// ```
 #[derive(Debug, Component)]
-pub struct MobileNavigator(Row, Vec<NavigationButton>);
+pub struct MobileNavigator(Stack, Rectangle, MobileNavigatorContent);
 
 impl MobileNavigator {
-    /// Creates a new `MobileNavigator` with the specified starting index, navigation options, and profile button.
-    ///
-    /// - `start_index`: The index of the currently selected navigation button.
-    /// - `navigation`: A vector of tuples, where each tuple contains a navigation item (ID, label, and callback).
-    /// - `profile`: A tuple containing the profile label, avatar content, and a callback to open the profile view.
-    ///
-    /// Example usage:
-    /// ```rust
-    /// let navigation = vec![
-    ///     ("home", "Home", Box::new(|ctx| { println!("Navigating to Home!"); })),
-    ///     ("settings", "Settings", Box::new(|ctx| { println!("Navigating to Settings!"); }))
-    /// ];
-    /// let profile = ("Profile", AvatarContent::new(), Box::new(|ctx| { println!("Opening profile..."); }));
-    /// let mobile_nav = MobileNavigator::new(&mut ctx, 0, navigation, profile);
-    /// ```
     pub fn new(
+        ctx: &mut Context,
+        start_index: usize,
+        navigation: Vec<(&'static str, &'static str, Callback)>,
+        profile: (&'static str, AvatarContent, Callback)
+    ) -> Self {
+        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
+        let height = Size::custom(move |heights: Vec<(f32, f32)>|(heights[1].0, heights[1].1));
+        let background = ctx.get::<PelicanUI>().theme.colors.background.primary;
+
+        MobileNavigator(
+            Stack(Offset::Center, Offset::Start, width, height, Padding::default()), Rectangle::new(background),
+            MobileNavigatorContent::new(ctx, start_index, navigation, profile)
+        )
+    }
+}
+
+impl OnEvent for MobileNavigator {}
+
+#[derive(Debug, Component)]
+struct MobileNavigatorContent(Row, Vec<NavigationButton>);
+
+impl MobileNavigatorContent {
+    fn new(
         ctx: &mut Context,
         start_index: usize,
         navigation: Vec<(&'static str, &'static str, Callback)>,
@@ -145,7 +158,7 @@ impl MobileNavigator {
 
         tabs.push(NavigationButton::new(profile_id, None, Some(ib)));
 
-        MobileNavigator(
+        MobileNavigatorContent(
             Row::new(48.0, Offset::Center, Size::Fit, Padding(0.0, 8.0, 0.0, 8.0)),
             tabs
         )
@@ -153,7 +166,7 @@ impl MobileNavigator {
 }
 
 
-impl OnEvent for MobileNavigator {
+impl OnEvent for MobileNavigatorContent {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigatorSelect(id)) = event.downcast_ref::<NavigatorSelect>() {
             self.1.iter_mut().for_each(|button| {

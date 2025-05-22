@@ -20,7 +20,7 @@ use crate::Callback;
 ///     Some(("edit", AvatarIconStyle::Secondary)), true, 48.0);
 /// ```
 #[derive(Component)]
-pub struct Avatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>, Option<Flair>, #[skip] pub Option<Callback>);
+pub struct Avatar(Stack, MainAvatar, Option<Flair>, #[skip] pub Option<Callback>);
 
 impl Avatar {
     /// Creates a new `Avatar` component.
@@ -48,31 +48,24 @@ impl Avatar {
     ) -> Self {
         let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
 
-        let (circle_icon, image) = match content {
-            AvatarContent::Image(image) => (None, Some(Image{shape: ShapeType::Ellipse(0.0, (size, size)), image, color: None})),
-            AvatarContent::Icon(name, style) => (Some(AvatarIcon::new(ctx, name, style, size)), None)
-        };
-
         Avatar(
             Stack(Offset::End, Offset::End, Size::Fit, Size::Fit, Padding::default()),
-            circle_icon,
-            image,
-            outline.then(|| Outline::circle(size, black)),
+            MainAvatar::new(ctx, content, outline, size),
             flair.map(|(name, style)| Flair::new(ctx, name, style, size / 3.0, black)),
             on_click
         )
     }
 
     /// Gets a mutable reference to the optional [`Flair`] component.
-    pub fn flair(&mut self) -> &mut Option<Flair> {&mut self.4}
+    pub fn flair(&mut self) -> &mut Option<Flair> {&mut self.2}
     /// Gets a mutable reference to the optional [`Outline`] component.
-    pub fn outline(&mut self) -> &mut Option<Shape> {&mut self.3}
+    pub fn outline(&mut self) -> &mut Option<Shape> {&mut self.1.3}
 }
 
 impl OnEvent for Avatar {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(MouseEvent{state: MouseState::Pressed, position: Some(_)}) = event.downcast_ref::<MouseEvent>() {
-            if let Some(on_click) = &mut self.5 {
+            if let Some(on_click) = &mut self.3 {
                 #[cfg(target_os = "ios")]
                 crate::vibrate();
                 (on_click)(ctx)
@@ -85,6 +78,31 @@ impl OnEvent for Avatar {
 impl std::fmt::Debug for Avatar {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Avatar...")
+    }
+}
+
+#[derive(Component, Debug)]
+struct MainAvatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>);
+impl OnEvent for MainAvatar {}
+
+impl MainAvatar {
+    fn new(
+        ctx: &mut Context, 
+        content: AvatarContent,
+        outline: bool, 
+        size: f32,
+    ) -> Self {
+        let black = ctx.get::<PelicanUI>().theme.colors.shades.black;
+
+        let (circle_icon, image) = match content {
+            AvatarContent::Image(image) => (None, Some(Image{shape: ShapeType::Ellipse(0.0, (size, size)), image, color: None})),
+            AvatarContent::Icon(name, style) => (Some(AvatarIcon::new(ctx, name, style, size)), None)
+        };
+
+        MainAvatar(
+            Stack(Offset::Center, Offset::Center, Size::Fit, Size::Fit, Padding::default()),
+            circle_icon, image, outline.then(|| Outline::circle(size, black)),
+        )
     }
 }
 
@@ -295,7 +313,7 @@ impl AvatarRow {
     pub fn new(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {
         AvatarRow(
             Row::center(-16.0),
-            avatars.into_iter().map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0, None)).collect()
+            avatars.into_iter().take(5).map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0, None)).collect()
         )
     }
 }

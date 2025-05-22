@@ -11,7 +11,6 @@ use crate::AppPage;
 use crate::ElementID;
 use std::fmt::Debug;
 
-use crate::prelude::Profile;
 use super::{DesktopInterface, MobileInterface};
 
 /// Root interface component with both mobile and desktop layouts options.
@@ -71,7 +70,7 @@ impl Interface {
 ///
 /// Contains a [`Header`,] main [`Content`], optional [`Bumper`] (e.g., a bottom call-to-action).
 #[derive(Debug, Component)]
-pub struct Page(Column, Header, Content, Option<Bumper>, #[skip] bool);
+pub struct Page(Column, Header, Content, Option<Bumper>);
 impl OnEvent for Page {}
 
 impl Page {
@@ -83,7 +82,6 @@ impl Page {
     /// - **`header`**: The header of the page, which is of type `Header`. It typically contains the title or navigation elements for the page.
     /// - **`content`**: The main content of the page, which is of type `Content`. This part holds the primary information displayed on the page.
     /// - **`bumper`**: An optional `Bumper` component, which could be used for additional UI elements or effects at the bottom of the page.
-    /// - **`has_nav`**: A boolean flag that determines whether the page includes a navigation interface (e.g., a bottom navigation bar).
     ///
     /// # Returns:
     /// - **`Page`**: The constructed `Page` component, which consists of a `Column` layout, header, content, optional bumper, and navigation status.
@@ -94,14 +92,13 @@ impl Page {
     /// ```
     /// This creates a new page with a header, content, a bumper at the bottom, and navigation enabled.
     ///
-    pub fn new(header: Header, content: Content, bumper: Option<Bumper>, has_nav: bool) -> Self {
+    pub fn new(header: Header, content: Content, bumper: Option<Bumper>) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[1].0, f32::MAX));
         Page(
             Column::new(12.0, Offset::Center, width, Padding::default()),
             header,
             content,
-            bumper,
-            has_nav
+            bumper
         )
     }
 
@@ -111,8 +108,6 @@ impl Page {
     pub fn content(&mut self) -> &mut Content {&mut self.2}
     /// Returns a mutable reference to the `Bumper` component of the page.
     pub fn bumper(&mut self) -> &mut Option<Bumper> {&mut self.3}
-    /// Returns the navigation status of the page as a boolean.
-    pub fn navigator_status(&self) -> bool {self.4}
 }
 
 /// A component that holds and arranges its child elements in a column.

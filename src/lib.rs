@@ -100,7 +100,7 @@ pub trait AppFlow: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static
     /// # Returns
     ///
     /// A boxed trait object implementing `AppPage`, which represents the current page.
-    fn get_page(&self, ctx: &mut Context) -> Box<dyn crate::AppPage>;
+    fn get_page(&self, ctx: &mut Context) -> (Box<dyn crate::AppPage>, bool);
 
     /// Navigates to a new page in the application flow.
     ///
@@ -110,6 +110,7 @@ pub trait AppFlow: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static
     ///
     /// This function triggers a `NavigateEvent` that updates the current flow of the app.
     fn navigate(self, ctx: &mut Context) where Self: Sized {
+        ctx.trigger_event(crate::events::KeyboardActiveEvent(false));
         ctx.trigger_event(crate::events::NavigateEvent(Box::new(self) as Box<dyn AppFlow>));
     }
 }

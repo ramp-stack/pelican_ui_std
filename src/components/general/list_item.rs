@@ -196,7 +196,7 @@ impl TitleRow {
 }
 
 #[derive(Debug, Component)]
-struct LeftData(Column, TitleRow, Option<ExpandableText>, Option<Text>);
+struct LeftData(Column, TitleRow, Option<ExpandableText>, Option<ExpandableText>);
 impl OnEvent for LeftData {}
 
 impl LeftData {
@@ -213,11 +213,9 @@ impl LeftData {
             TitleRow::new(ctx, title, flair),
             subtitle.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, Align::Left)),
             description.map(|text| {
-                text.len()
-                    .checked_sub(70 + 1)
-                    .map(|_| format!("{}...", &text[..70_usize.saturating_sub(3)]))
-                    .unwrap_or_else(|| text.to_string());
-                Text::new(ctx, text, TextStyle::Secondary, font_size, Align::Left)
+                let limit = if crate::config::IS_MOBILE {80} else {100};
+                let trimmed = Box::leak(if text.len() > limit { format!("{}...", &text[..(limit-3)]) } else { text.to_string() }.into_boxed_str());
+                ExpandableText::new(ctx, trimmed, TextStyle::Secondary, font_size, Align::Left)
             }),
         )
     }
@@ -243,10 +241,12 @@ impl ListItem {
     pub fn contact(
         ctx: &mut Context,
         data: AvatarContent,
-        name: &'static str,
-        nym: &'static str,
+        name: String,
+        nym: String,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
+        let name = Box::leak(name.into_boxed_str());
+        let nym = Box::leak(nym.into_boxed_str());
         ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), None, on_click)
     }
 

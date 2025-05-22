@@ -130,7 +130,7 @@ impl MessageData {
             _ => (TextStyle::Secondary, text_size.sm, true),
         };
         MessageData(
-            Row::new(8.0, Offset::End, Size::Fit, Padding::default()),
+            Row::new(4.0, Offset::End, Size::Fit, Padding::default()),
             Text::new(ctx, name, title_style, title_size, Align::Left),
             divider.then(|| Text::new(ctx, "·", TextStyle::Secondary, text_size.sm, Align::Left)),
             Text::new(ctx, time.friendly(), TextStyle::Secondary, text_size.sm, Align::Left),

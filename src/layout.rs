@@ -676,6 +676,10 @@ impl<D: Drawable + 'static> Opt<D> {
     pub fn inner(&mut self) -> &mut D {
         self.1.as_mut().unwrap_or_else(|| self.2.as_mut().unwrap())
     }
+
+    pub fn is_showing(&self) -> bool {
+        self.1.is_some()
+    }
 }
 
 

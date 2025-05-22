@@ -199,7 +199,8 @@ impl OnEvent for InputField {
 
 fn insert_char(new_text: String, new_char: char, i: usize) -> String {
     let mut chars = new_text.chars().collect::<Vec<char>>();
-    match chars.len() == i {
+    println!("CHARS {:?}", chars.len());
+    match chars.len() <= i {
         true => chars.push(new_char),
         false => chars.insert(i, new_char)
     }
