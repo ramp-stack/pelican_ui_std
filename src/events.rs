@@ -1,5 +1,5 @@
 use rust_on_rails::prelude::*;
-use crate::{AppFlow, ElementID, Profile};
+use crate::{AppFlow, ElementID};
 
 /// Event used to navigate between pages of the app.
 #[derive(Debug, Clone)]
@@ -41,41 +41,12 @@ impl Event for NavigatorSelect {
     }
 }
 
-/// Event to add a contact to a `QuickDeselect` component.
-#[derive(Debug, Clone)]
-pub struct AddContactEvent(pub Profile);
-
-impl Event for AddContactEvent {
-    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
-        children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
-    }
-}
-
-/// Event to remove a contact from a `QuickDeselect` component.
-#[derive(Debug, Clone)]
-pub struct RemoveContactEvent(pub Profile);
-
-impl Event for RemoveContactEvent {
-    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
-        children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
-    }
-}
 
 /// Event used to set the content of the currently active input field.
 #[derive(Debug, Clone)]
 pub struct SetActiveInput(pub String);
 
 impl Event for SetActiveInput {
-    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
-        children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
-    }
-}
-
-/// Event triggered when the [`QRScanner`] component detects a QR code.
-#[derive(Debug, Clone)]
-pub struct QRCodeScannedEvent(pub String);
-
-impl Event for QRCodeScannedEvent {
     fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
         children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
     }

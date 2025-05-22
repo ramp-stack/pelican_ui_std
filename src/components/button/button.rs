@@ -4,7 +4,6 @@ use crate::components::avatar::{Avatar, AvatarContent};
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text, TextStyle};
-use crate::events::RemoveContactEvent;
 use crate::layout::{Offset, Padding, Row, Size, Stack, Wrap};
 
 use super::{ButtonSize, ButtonState, ButtonStyle};

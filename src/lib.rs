@@ -164,15 +164,7 @@ pub mod prelude {
     pub use crate::elements::*;
     pub use crate::theme::*;
     pub use crate::utils::*;
+    pub use crate::config::*;
     pub use crate::PelicanUI;
 }
 
-// TEMP
-#[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
-pub struct Profile {
-    pub user_name: String,
-    pub biography: String,
-    pub identifier: String, // orange identity
-    pub blocked_dids: Vec<String>,
-    // Bitcoin Wallet Associated???
-}

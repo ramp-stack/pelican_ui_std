@@ -1,12 +1,14 @@
-//! - [`general`] — Basic reusable UI components (buttons, inputs, etc).
-//! - [`bitcoin`] — Components specific to Bitcoin UIs (wallets, balances, QR, etc).
-//! - [`messages`] — Components for displaying and interacting with messages (chat UIs, etc).
-
-pub mod general;
-pub use general::*;
-
-pub mod bitcoin;
-pub use bitcoin::*;
-
-pub mod messages;
-pub use messages::*;
+pub mod button;
+pub use button::*;
+pub mod alert;
+pub use alert::*;
+pub mod avatar;
+pub use avatar::*;
+pub mod card;
+pub use card::*;
+pub mod data_item;
+pub use data_item::*;
+pub mod list_item;
+pub use list_item::*;
+pub mod text_input;
+pub use text_input::*;
