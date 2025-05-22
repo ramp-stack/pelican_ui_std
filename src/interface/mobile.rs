@@ -51,7 +51,7 @@ impl MobileInterface {
         ctx: &mut Context, 
         start_page: impl AppPage,
         start_index: Option<usize>,
-        navigation: Option<Vec<(&'static str, &'static str, Callback)>>,
+        navigation: Option<Vec<(&'static str, &str, Callback)>>,
         profile: Option<(&'static str, AvatarContent, Callback)>,
     ) -> Self {
         let background = ctx.get::<PelicanUI>().theme.colors.background.primary;
@@ -110,7 +110,7 @@ impl MobileNavigator {
     pub fn new(
         ctx: &mut Context,
         start_index: usize,
-        navigation: Vec<(&'static str, &'static str, Callback)>,
+        navigation: Vec<(&'static str, &str, Callback)>,
         profile: (&'static str, AvatarContent, Callback)
     ) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
@@ -133,7 +133,7 @@ impl MobileNavigatorContent {
     fn new(
         ctx: &mut Context,
         start_index: usize,
-        navigation: Vec<(&'static str, &'static str, Callback)>,
+        navigation: Vec<(&'static str, &str, Callback)>,
         mut profile: (&'static str, AvatarContent, Callback)
     ) -> Self {
         if navigation.is_empty() {

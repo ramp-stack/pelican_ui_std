@@ -24,6 +24,7 @@ pub mod interface;
 pub mod utils;
 
 use rust_on_rails::prelude::*;
+use serde::{Serialize, Deserialize};
 use crate::theme::Theme;
 
 /// A boxed, mutable callback function that takes a mutable reference to a [`Context`].
@@ -164,4 +165,14 @@ pub mod prelude {
     pub use crate::theme::*;
     pub use crate::utils::*;
     pub use crate::PelicanUI;
+}
+
+// TEMP
+#[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
+pub struct Profile {
+    pub user_name: String,
+    pub biography: String,
+    pub identifier: String, // orange identity
+    pub blocked_dids: Vec<String>,
+    // Bitcoin Wallet Associated???
 }

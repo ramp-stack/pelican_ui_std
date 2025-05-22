@@ -54,7 +54,7 @@ impl Interface {
         ctx: &mut Context, 
         start_page: impl AppPage,
         start_index: Option<usize>, 
-        navigation: Option<Vec<(&'static str, &'static str, Callback)>>,
+        navigation: Option<Vec<(&'static str, &str, Callback)>>,
         profile: Option<(&'static str, AvatarContent, Callback)>,
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
@@ -209,7 +209,7 @@ impl OnEvent for Header {}
 
 impl Header {
     /// Creates a simple header with a home button and a title.
-    pub fn home(ctx: &mut Context, title: &'static str) -> Self {
+    pub fn home(ctx: &mut Context, title: &str) -> Self {
         Header(
             Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
             HeaderIcon::new(None), 
@@ -222,7 +222,7 @@ impl Header {
     pub fn stack(
         ctx: &mut Context, 
         left: Option<IconButton>, 
-        title: &'static str, 
+        title: &str, 
         right: Option<IconButton>
     ) -> Self {
         Header(
@@ -238,7 +238,7 @@ impl Header {
         ctx: &mut Context, 
         left: Option<IconButton>,
         right: Option<IconButton>,
-        profiles: Vec<(String, AvatarContent)>,
+        profiles: Vec<(&str, AvatarContent)>,
     ) -> Self {
         Header(
             Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
@@ -254,7 +254,7 @@ struct HeaderContent(Column, Option<AvatarRow>, Text);
 impl OnEvent for HeaderContent {}
 
 impl HeaderContent {
-    pub fn home(ctx: &mut Context, title: &'static str) -> Self {
+    pub fn home(ctx: &mut Context, title: &str) -> Self {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size.h3;
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
@@ -264,7 +264,7 @@ impl HeaderContent {
         )
     }
 
-    pub fn stack(ctx: &mut Context, title: &'static str) -> Self {
+    pub fn stack(ctx: &mut Context, title: &str) -> Self {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size.h4;
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
@@ -274,9 +274,9 @@ impl HeaderContent {
         )
     }
 
-    pub fn chat(ctx: &mut Context, profiles: Vec<(String, AvatarContent)>) -> Self {
+    pub fn chat(ctx: &mut Context, profiles: Vec<(&str, AvatarContent)>) -> Self {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
-        let title = if profiles.len() == 1 {Box::leak(profiles[0].0.clone().into_boxed_str())} else {"Group Message"};
+        let title = if profiles.len() == 1 {profiles[0].0.clone()} else {"Group Message"};
         let avatars = profiles.into_iter().map(|p| p.1).collect::<Vec<AvatarContent>>();
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(

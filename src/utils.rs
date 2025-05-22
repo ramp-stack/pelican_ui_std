@@ -23,7 +23,7 @@ impl Timestamp {
         Local.from_local_datetime(&naive).unwrap()
     }
 
-    pub fn friendly(&self) -> &'static str {
+    pub fn friendly(&self) -> String {
         let dt = self.to_datetime();
         let today = Local::now().date_naive();
         let date = dt.date_naive();
@@ -46,13 +46,9 @@ impl Timestamp {
             false => format!("{}", dt.format("%m/%d/%y"))
         };
 
-        static_from(result)
+        result
     }
 
-    pub fn date(&self) -> &'static str {static_from(self.0.clone())}
-    pub fn time(&self) -> &'static str {static_from(self.1.clone())}
-}
-
-pub fn static_from(s: String) -> &'static str {
-    Box::leak(s.into_boxed_str())
+    pub fn date(&self) -> String {self.0.clone()}
+    pub fn time(&self) -> String {self.1.clone()}
 }

@@ -96,7 +96,7 @@ impl MainAvatar {
 
         let (circle_icon, image) = match content {
             AvatarContent::Image(image) => (None, Some(Image{shape: ShapeType::Ellipse(0.0, (size, size)), image, color: None})),
-            AvatarContent::Icon(name, style) => (Some(AvatarIcon::new(ctx, name, style, size)), None)
+            AvatarContent::Icon(name, style) => (Some(AvatarIcon::new(ctx, &name, style, size)), None)
         };
 
         MainAvatar(
@@ -113,7 +113,7 @@ impl MainAvatar {
 /// by an image resource.
 ///
 /// # Variants
-/// - `Icon(&'static str, [`AvatarIconStyle`])`: Represents an icon, with the icon's name and its style.
+/// - `Icon(&str, [`AvatarIconStyle`])`: Represents an icon, with the icon's name and its style.
 /// - `Image([`resources::Image`])`: Represents an image resource used as the avatar.
 ///
 /// # Example

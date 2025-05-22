@@ -44,11 +44,11 @@ impl DataItem {
     /// ```
     pub fn new(
         ctx: &mut Context,
-        number: Option<&'static str>,
-        label: &'static str,
-        text: Option<&'static str>,
-        secondary: Option<&'static str>,
-        table: Option<Vec<(&'static str, &'static str)>>,
+        number: Option<&str>,
+        label: &str,
+        text: Option<&str>,
+        secondary: Option<&str>,
+        table: Option<Vec<(&str, &str)>>,
         quick_actions: Option<Vec<Button>>,
     ) -> Self {
         DataItem (
@@ -64,7 +64,7 @@ struct Number(Stack, Shape, Text);
 impl OnEvent for Number {}
 
 impl Number {
-    pub fn new(ctx: &mut Context, txt: &'static str) -> Self {
+    pub fn new(ctx: &mut Context, txt: &str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (color, font_size) = (theme.colors.background.secondary, theme.fonts.size.h5);
         Number(
@@ -82,10 +82,10 @@ impl OnEvent for DataItemContent {}
 impl DataItemContent {
     fn new(
         ctx: &mut Context,
-        label: &'static str,
-        text: Option<&'static str>,
-        secondary: Option<&'static str>,
-        table: Option<Vec<(&'static str, &'static str)>>,
+        label: &str,
+        text: Option<&str>,
+        secondary: Option<&str>,
+        table: Option<Vec<(&str, &str)>>,
         quick_actions: Option<Vec<Button>>,
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
@@ -105,7 +105,7 @@ struct Table(pub Column, pub Vec<Tabular>);
 impl OnEvent for Table {}
 
 impl Table {
-    pub fn new(ctx: &mut Context, items: Vec<(&'static str, &'static str)>) -> Self {
+    pub fn new(ctx: &mut Context, items: Vec<(&str, &str)>) -> Self {
         Table (
             Column::new(0.0, Offset::Start, Size::Fit, Padding::default()),
             items.iter().map(|(name, data)| Tabular::new(ctx, name, data)).collect()
@@ -118,7 +118,7 @@ struct Tabular(Row, Text, Bin<Stack, Rectangle>, Text);
 impl OnEvent for Tabular {}
 
 impl Tabular {
-    fn new(ctx: &mut Context, name: &'static str, data: &'static str) -> Self {
+    fn new(ctx: &mut Context, name: &str, data: &str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (font_size, color) = (theme.fonts.size.sm, theme.colors.shades.transparent);
         Tabular (

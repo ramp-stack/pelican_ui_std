@@ -30,7 +30,7 @@ impl AmountDisplay {
     /// ```rust
     /// let amount_display = AmountDisplay::new(ctx);
     /// ```
-    pub fn new(ctx: &mut Context, text: &'static str, subtext: &'static str) -> Self {
+    pub fn new(ctx: &mut Context, text: &str, subtext: &str) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.title;
 
         AmountDisplay (
@@ -53,19 +53,19 @@ struct SubText(Row, Option<Image>, Text, #[skip] bool);
 impl OnEvent for SubText {}
 
 impl SubText {
-    fn new(ctx: &mut Context, btc: &'static str) -> Self {
+    fn new(ctx: &mut Context, btc: &str) -> Self {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size.lg;
         SubText(Row::center(8.0), None, Text::new(ctx, btc, TextStyle::Secondary, text_size, Align::Left), true)
     }
 
-    fn set_error(&mut self, ctx: &mut Context, err: &'static str) {
+    fn set_error(&mut self, ctx: &mut Context, err: &str) {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (color, text_size) = (theme.colors.status.danger, theme.fonts.size.lg);
         self.1 = Some(Icon::new(ctx, "error", color, 24.0));
         self.2 = Text::new(ctx, err, TextStyle::Error, text_size, Align::Left);
     }
 
-    fn set_subtext(&mut self, ctx: &mut Context, txt: &'static str) {
+    fn set_subtext(&mut self, ctx: &mut Context, txt: &str) {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size.lg;
         self.1 = None;
         self.2 = Text::new(ctx, txt, TextStyle::Secondary, text_size, Align::Left);
@@ -87,7 +87,7 @@ impl AmountInput {
     /// ```
     /// let mut amount_input = AmountInput::new(ctx, None);
     /// ```
-    pub fn new(ctx: &mut Context, usd: Option<(f64, &'static str)> ) -> Self {
+    pub fn new(ctx: &mut Context, usd: Option<(f64, &str)> ) -> Self {
         AmountInput (
             Stack(Offset::Center, Offset::Center, Size::Fit, Size::fill(), Padding::default()),
             AmountInputContent::new(ctx, usd),
@@ -114,23 +114,23 @@ impl AmountInput {
 struct AmountInputContent(Column, Display, SubText, #[skip] (f32, f32), #[skip] f32, #[skip] f32);
 // layout, display, subtext, (min, max fee), btc_price, btc input
 impl AmountInputContent {
-    fn new(ctx: &mut Context, usd: Option<(f64, &'static str)>) -> Self { // usd, nans
+    fn new(ctx: &mut Context, usd: Option<(f64, &str)>) -> Self { // usd, nans
         let (num, sub) = usd.map(|(d, n)| {
             if d == 0.0 {
-                ("0", "Type dollar amount.")
+                ("0".to_string(), "Type dollar amount.".to_string())
             } else {
                 let s = format!("{:.2}", d);
                 match &s[s.len() - 2..] == "00" {
-                    true => (Box::leak(s[..1].to_string().into_boxed_str()) as &'static str, n),
-                    false => (Box::leak(s.into_boxed_str()) as &'static str, n),
+                    true => (s[..1].to_string(), n.to_string()),
+                    false => (s.to_string(), n.to_string()),
                 }
             }
-        }).unwrap_or(("0", "Type dollar amount."));
+        }).unwrap_or(("0".to_string(), "Type dollar amount.".to_string()));
 
         AmountInputContent (
             Column::new(16.0, Offset::Center, Size::Fit, Padding(16.0, 64.0, 16.0, 64.0)),
-            Display::new(ctx, num),
-            SubText::new(ctx, sub), 
+            Display::new(ctx, &num),
+            SubText::new(ctx, &sub), 
             (0.0, 0.0), 0.0, 0.0 // min amount, max amount, btc, btc price
         )
     }
@@ -149,18 +149,18 @@ impl AmountInputContent {
             }
             _ if value < self.3.0 => {
                 let error = format!("${:.2} minimum.", self.3.0);
-                self.2.set_error(ctx, Box::leak(error.into_boxed_str())); // Exceeds min -> show error
+                self.2.set_error(ctx, &error); // Exceeds min -> show error
                 self.2.3 = true; // Disable buttons
             }
             _ if value > self.3.1 => {
                 let error = format!("${:.2} maximum.", self.3.1);
-                self.2.set_error(ctx, Box::leak(error.into_boxed_str())); // Exceeds max -> show error
+                self.2.set_error(ctx, &error); // Exceeds max -> show error
                 self.2.3 = true; // Disable buttons
             }
             _ => {
                 self.4 = value/self.5;
                 let amount = format!("{:.8} BTC", self.4); // value divided by bitcoin price.
-                self.2.set_subtext(ctx, Box::leak(amount.into_boxed_str()));
+                self.2.set_subtext(ctx, &amount);
                 self.2.3 = false; // Enable buttons
             }
         }
@@ -273,7 +273,7 @@ struct Display(Row, Text, Text, Text);
 impl OnEvent for Display {}
 
 impl Display {
-    pub fn new(ctx: &mut Context, num: &'static str) -> Self {
+    pub fn new(ctx: &mut Context, num: &str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let font_size = theme.fonts.size.title;
         let (mc, dc) = (theme.colors.text.heading, theme.colors.text.secondary);

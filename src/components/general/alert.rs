@@ -18,7 +18,7 @@ impl Alert {
     ///
     /// # Returns
     /// - A new [`Alert`] component with a warning icon and a message.
-    pub fn new(ctx: &mut Context, message: &'static str) -> Self {
+    pub fn new(ctx: &mut Context, message: &str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (color, font_size) = (theme.colors.status.warning, theme.fonts.size.md);
 
@@ -28,7 +28,4 @@ impl Alert {
             Text::new(ctx, message, TextStyle::Primary, font_size, Align::Left)
         )
     }
-
-    /// Retrieves and allows modifying the message of the alert.
-    pub fn message(&mut self) -> &mut String { &mut self.2.text().spans[0].text }
 }

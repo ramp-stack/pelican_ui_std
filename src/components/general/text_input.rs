@@ -26,10 +26,10 @@ impl TextInput {
     /// If `help_text` is provided, it is shown by default. Use [`set_error`] to override it with an error.
     pub fn new(
         ctx: &mut Context,
-        value: Option<&'static str>,
-        label: Option<&'static str>,
-        placeholder: &'static str,
-        help_text: Option<&'static str>,
+        value: Option<&str>,
+        label: Option<&str>,
+        placeholder: &str,
+        help_text: Option<&str>,
         icon_button: Option<(&'static str, impl FnMut(&mut Context, &mut String) + 'static)>,
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
@@ -45,7 +45,7 @@ impl TextInput {
 
     /// Sets an error message to be displayed below the input field,
     /// replacing any existing help text.
-    pub fn set_error(&mut self, ctx: &mut Context, error: &'static str) {
+    pub fn set_error(&mut self, ctx: &mut Context, error: &str) {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
         self.4 = Some(Text::new(ctx, error, TextStyle::Error, font_size, Align::Left));
         self.3 = None;
@@ -53,7 +53,7 @@ impl TextInput {
 
     /// Sets help text to be displayed below the input field,
     /// removing any currently displayed error message.
-    pub fn set_help(&mut self, ctx: &mut Context, help: &'static str) {
+    pub fn set_help(&mut self, ctx: &mut Context, help: &str) {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.sm;
         self.3 = Some(Text::new(ctx, help, TextStyle::Secondary, font_size, Align::Left));
         self.4 = None;
@@ -92,8 +92,8 @@ struct InputField(Stack, OutlinedRectangle, InputContent, #[skip] InputState, #[
 impl InputField {
     pub fn new(
         ctx: &mut Context,
-        value: Option<&'static str>,
-        placeholder: &'static str,
+        value: Option<&str>,
+        placeholder: &str,
         icon_button: Option<(&'static str, impl FnMut(&mut Context, &mut String) + 'static)>,
     ) -> Self {
         let (background, outline) = InputState::Default.get_color(ctx);
@@ -199,7 +199,6 @@ impl OnEvent for InputField {
 
 fn insert_char(new_text: String, new_char: char, i: usize) -> String {
     let mut chars = new_text.chars().collect::<Vec<char>>();
-    println!("CHARS {:?}", chars.len());
     match chars.len() <= i {
         true => chars.push(new_char),
         false => chars.insert(i, new_char)
@@ -221,7 +220,7 @@ fn remove_char(text: String, index: usize) -> String {
 
 
 /// `SubmitCallback` is triggered when the optional icon button within the text input is pressed.
-/// It has access to a mutable reference to the [`Context`] and the current input value as a `&mut String`.
+/// It has access to a mutable reference to the [`Context`] and the current input value as a `&mut &str`.
 pub type SubmitCallback = Box<dyn FnMut(&mut Context, &mut String)>;
 
 #[derive(Component)]
@@ -233,8 +232,8 @@ struct InputContent(
 impl InputContent {
     fn new(
         ctx: &mut Context,
-        value: Option<&'static str>,
-        placeholder: &'static str,
+        value: Option<&str>,
+        placeholder: &str,
         icon_button: Option<(&'static str, impl FnMut(&mut Context, &mut String) + 'static)>,
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.md;

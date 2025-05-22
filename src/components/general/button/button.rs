@@ -70,7 +70,7 @@ impl Button {
         ctx: &mut Context,
         avatar: Option<AvatarContent>,
         icon_l: Option<&'static str>,
-        label: Option<&'static str>,
+        label: Option<&str>,
         icon_r: Option<&'static str>,
         size: ButtonSize,
         width: ButtonWidth,
@@ -144,7 +144,7 @@ impl ButtonContent {
         ctx: &mut Context,
         avatar: Option<AvatarContent>,
         icon_l: Option<&'static str>,
-        label: Option<&'static str>,
+        label: Option<&str>,
         icon_r: Option<&'static str>,
         size: ButtonSize,
         color: Color,
@@ -179,7 +179,7 @@ impl Button {
     /// A [`Button`] with style [`ButtonStyle::Primary`] and state [`ButtonState::Default`].
     pub fn primary (
         ctx: &mut Context,
-        label: &'static str,
+        label: &str,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -211,7 +211,7 @@ impl Button {
     pub fn secondary(
         ctx: &mut Context,
         icon_l: Option<&'static str>,
-        label: &'static str,
+        label: &str,
         icon_r: Option<&'static str>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
@@ -241,7 +241,7 @@ impl Button {
     /// A [`Button`] with style [`ButtonStyle::Ghost`] and state [`ButtonState::Default`].
     pub fn ghost(
         ctx: &mut Context,
-        label: &'static str,
+        label: &str,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -270,7 +270,7 @@ impl Button {
     /// A [`Button`] with style [`ButtonStyle::Primary`] and state [`ButtonState::Disabled`].
     pub fn disabled(
         ctx: &mut Context,
-        label: &'static str,
+        label: &str,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -300,7 +300,7 @@ impl Button {
     /// A [`Button`] with style [`ButtonStyle::Ghost`], state [`ButtonState::Default`], and size [`ButtonSize::Large`].
     pub fn keypad(
         ctx: &mut Context,
-        label: Option<&'static str>,
+        label: Option<&str>,
         icon: Option<&'static str>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
@@ -333,7 +333,7 @@ impl Button {
     pub fn navigation(
         ctx: &mut Context,
         icon: &'static str,
-        label: &'static str,
+        label: &str,
         selected: bool,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
@@ -365,7 +365,7 @@ impl Button {
     /// A [`Button`] with style [`ButtonStyle::Ghost`] and either state [`ButtonState::Selected`] or [`ButtonState::Default`].
     pub fn photo(
         ctx: &mut Context,
-        label: &'static str,
+        label: &str,
         photo: AvatarContent,
         selected: bool,
         on_click: impl FnMut(&mut Context) + 'static,
@@ -396,7 +396,7 @@ impl Button {
     /// A [`Button`] with style [`ButtonStyle::Secondary`] and state [`ButtonState::Default`].
     pub fn close(
         ctx: &mut Context,
-        label: &'static str,
+        label: &str,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         Button::new(
@@ -439,21 +439,4 @@ impl QuickActions {
     pub fn new(buttons: Vec<Button>) -> Self {
         QuickActions(Wrap(8.0, 8.0, Offset::Start, Offset::Center, Padding::default()), buttons)
     }
-}
-
-/// A component that represents a button for deselecting or removing a contact.
-#[derive(Debug, Component)]
-pub struct QuickDeselectButton(Stack, Button, #[skip] ElementID);
-
-impl OnEvent for QuickDeselectButton {}
-
-impl QuickDeselectButton {
-    /// Creates a new [`QuickDeselectButton`] component with a remove contact action.
-    pub fn new(ctx: &mut Context, name: &'static str, id: ElementID) -> Self {
-        let button = Button::secondary(ctx, None, name, Some("close"), move |ctx: &mut Context| ctx.trigger_event(RemoveContactEvent(id)));
-        QuickDeselectButton(Stack::default(), button, id)
-    }
-
-    /// Returns the [`ElementID`] of the contact associated with the button.
-    pub fn id(&self) -> ElementID {self.2}
 }

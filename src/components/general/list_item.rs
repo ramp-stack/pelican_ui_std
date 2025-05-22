@@ -3,10 +3,10 @@ use crate::events::{ListItemSelect, RemoveContactEvent, AddContactEvent};
 use crate::elements::images::Icon;
 use crate::elements::text::{Text, ExpandableText, TextStyle};
 use crate::elements::shapes::Rectangle;
-use crate::components::button::{ButtonState, QuickDeselectButton};
+use crate::components::button::{ButtonState, Button};
 use crate::components::avatar::{Avatar, AvatarIconStyle, AvatarContent};
 use crate::layout::{Column, Stack, Row, Wrap, Padding, Offset, Size};
-use crate::{PelicanUI, ElementID};
+use crate::{PelicanUI, ElementID, Profile};
 
 /// A List Item with various customizable components, such as a title, subtitle, description, 
 /// and other UI elements like a radio button or a circle icon. The item can be interacted with, triggering 
@@ -38,12 +38,12 @@ impl ListItem {
     pub fn new(
         ctx: &mut Context,
         caret: bool,
-        title: &'static str,
+        title: &str,
         flair: Option<(&'static str, Color)>,
-        subtitle: Option<&'static str>,
-        description: Option<&'static str>,
-        right_title: Option<&'static str>,
-        right_subtitle: Option<&'static str>,
+        subtitle: Option<&str>,
+        description: Option<&str>,
+        right_title: Option<&str>,
+        right_subtitle: Option<&str>,
         radio_button: Option<bool>,
         circle_icon: Option<AvatarContent>,
         element_id: Option<ElementID>,
@@ -115,12 +115,12 @@ impl ListItemContent {
     fn new(
         ctx: &mut Context,
         caret: bool,
-        title: &'static str,
+        title: &str,
         flair: Option<(&'static str, Color)>,
-        subtitle: Option<&'static str>,
-        description: Option<&'static str>,
-        right_title: Option<&'static str>,
-        right_subtitle: Option<&'static str>,
+        subtitle: Option<&str>,
+        description: Option<&str>,
+        right_title: Option<&str>,
+        right_subtitle: Option<&str>,
         radio_button: Option<bool>,
         circle_icon: Option<AvatarContent>,
     ) -> Self {
@@ -166,12 +166,12 @@ impl OnEvent for ListItemData {}
 impl ListItemData {
     fn new(
         ctx: &mut Context,
-        title: &'static str,
+        title: &str,
         flair: Option<(&'static str, Color)>,
-        subtitle: Option<&'static str>,
-        description: Option<&'static str>,
-        right_title: Option<&'static str>,
-        right_subtitle: Option<&'static str>,
+        subtitle: Option<&str>,
+        description: Option<&str>,
+        right_title: Option<&str>,
+        right_subtitle: Option<&str>,
     ) -> Self {
         ListItemData(
             Row::new(8.0, Offset::Start, Size::Fit, Padding::default()),
@@ -185,7 +185,7 @@ struct TitleRow(Row, Text, Option<Image>);
 impl OnEvent for TitleRow {}
 
 impl TitleRow {
-    fn new(ctx: &mut Context, title: &'static str, flair: Option<(&'static str, Color)>) -> Self {
+    fn new(ctx: &mut Context, title: &str, flair: Option<(&'static str, Color)>) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.h5;
         TitleRow(
             Row::new(8.0, Offset::Start, Size::Fit, Padding::default()),
@@ -202,10 +202,10 @@ impl OnEvent for LeftData {}
 impl LeftData {
     pub fn new(
         ctx: &mut Context,
-        title: &'static str,
+        title: &str,
         flair: Option<(&'static str, Color)>,
-        subtitle: Option<&'static str>,
-        description: Option<&'static str>,
+        subtitle: Option<&str>,
+        description: Option<&str>,
     ) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size.xs;
         LeftData (
@@ -214,8 +214,8 @@ impl LeftData {
             subtitle.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, Align::Left)),
             description.map(|text| {
                 let limit = if crate::config::IS_MOBILE {80} else {100};
-                let trimmed = Box::leak(if text.len() > limit { format!("{}...", &text[..(limit-3)]) } else { text.to_string() }.into_boxed_str());
-                ExpandableText::new(ctx, trimmed, TextStyle::Secondary, font_size, Align::Left)
+                let trimmed = if text.len() > limit { format!("{}...", &text[..(limit-3)]) } else { text.to_string() };
+                ExpandableText::new(ctx, &trimmed, TextStyle::Secondary, font_size, Align::Left)
             }),
         )
     }
@@ -226,7 +226,7 @@ struct RightData(Column, Text, Option<Text>);
 impl OnEvent for RightData {}
 
 impl RightData {
-    pub fn new(ctx: &mut Context, title: &'static str, subtitle: Option<&'static str>) -> Self {
+    pub fn new(ctx: &mut Context, title: &str, subtitle: Option<&str>) -> Self {
         let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
         RightData (
             Column::new(4.0, Offset::End, Size::Fit, Padding::default()),
@@ -241,12 +241,10 @@ impl ListItem {
     pub fn contact(
         ctx: &mut Context,
         data: AvatarContent,
-        name: String,
-        nym: String,
+        name: &str,
+        nym: &str,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        let name = Box::leak(name.into_boxed_str());
-        let nym = Box::leak(nym.into_boxed_str());
         ListItem::new(ctx, true, name, None, Some(nym), None, None, None, None, Some(data), None, on_click)
     }
 
@@ -255,13 +253,12 @@ impl ListItem {
     pub fn recipient(
         ctx: &mut Context,
         data: AvatarContent,
-        name: String,
-        nym: String,
+        profile: Profile,
     ) -> Self {
-        let name = Box::leak(name.into_boxed_str()) as &'static str;
+        let p = profile.clone();
         ListItem::new(
-            ctx, true, name, None, Some(Box::leak(nym.into_boxed_str())), None, None, None, None, Some(data), None, 
-            move |ctx: &mut Context| ctx.trigger_event(AddContactEvent(name, ElementID::new()))
+            ctx, true, &profile.user_name, None, Some(&profile.identifier), None, None, None, None, Some(data), None, 
+            move |ctx: &mut Context| ctx.trigger_event(AddContactEvent(p.clone()))
         )
     }
 
@@ -270,23 +267,23 @@ impl ListItem {
     pub fn direct_message(
         ctx: &mut Context,
         data: AvatarContent,
-        name: String,
-        recent: String,
+        name: &str,
+        recent: &str,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        ListItem::new(ctx, true, Box::leak(name.into_boxed_str()), None, Some(Box::leak(recent.into_boxed_str())), None, None, None, None, Some(data), None, on_click)
+        ListItem::new(ctx, true, name, None, Some(recent), None, None, None, None, Some(data), None, on_click)
     }
 
     /// Creates a list item for a group message.
     /// Displays the names of the group members as the description.
     pub fn group_message(
         ctx: &mut Context,
-        names: Vec<String>,
+        names: Vec<&str>,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
-        let description = Box::leak(names.join(", ").into_boxed_str());
+        let description = names.join(", ");
         let avatar = AvatarContent::Icon("group", AvatarIconStyle::Secondary);
-        ListItem::new(ctx, true, "Group Message", None, None, Some(description), None, None, None, Some(avatar), None, on_click)
+        ListItem::new(ctx, true, "Group Message", None, None, Some(&description), None, None, None, Some(avatar), None, on_click)
     }
 
     /// Creates a list item for a public room.
@@ -294,9 +291,9 @@ impl ListItem {
     pub fn room(
         ctx: &mut Context,
         data: AvatarContent,
-        name: &'static str,
-        members: &'static str,
-        description: &'static str,
+        name: &str,
+        members: &str,
+        description: &str,
         on_click: impl FnMut(&mut Context) + 'static
     ) -> Self {
         ListItem::new(ctx, true, name, None, Some(members), Some(description), None, None, None, Some(data), None, on_click)
@@ -307,8 +304,8 @@ impl ListItem {
     pub fn bitcoin(
         ctx: &mut Context,
         is_received: bool,
-        usd: &'static str,
-        date: &'static str,
+        usd: &str,
+        date: &str,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let title = if is_received { "Received bitcoin" } else { "Sent bitcoin" };
@@ -321,14 +318,14 @@ impl ListItem {
         ctx: &mut Context,
         usd: f32,
         btc: f32,
-        date: &'static str,
+        date: &str,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.status.warning;
         let flair = ("warning", color);
-        let usd = Box::leak(format!("${:.2}", usd).into_boxed_str());
-        let btc = Box::leak(format!("${:.8} BTC", btc).into_boxed_str());
-        ListItem::new(ctx, true, "Sending bitcoin", Some(flair), Some(date), None, Some(usd), Some(btc), None, None, None, on_click)
+        let usd = format!("${:.2}", usd);
+        let btc = format!("${:.8} BTC", btc);
+        ListItem::new(ctx, true, "Sending bitcoin", Some(flair), Some(date), None, Some(&usd), Some(&btc), None, None, None, on_click)
     }
 
     /// Creates a list item for a radio selection.
@@ -336,9 +333,9 @@ impl ListItem {
     pub fn selection(
         ctx: &mut Context,
         selected: bool,
-        title: &'static str,
-        subtitle: &'static str,
-        description: Option<&'static str>,
+        title: &str,
+        subtitle: &str,
+        description: Option<&str>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         ListItem::new(ctx, false, title, None, Some(subtitle), description, None, None, Some(selected), None, Some(ElementID::new()), on_click)
@@ -348,8 +345,8 @@ impl ListItem {
     /// Work in progress...
     pub fn credential(
         ctx: &mut Context,
-        title: &'static str,
-        subtitle: &'static str,
+        title: &str,
+        subtitle: &str,
         color: Color
     ) -> Self {
         let white = ctx.get::<PelicanUI>().theme.colors.shades.white;
@@ -392,10 +389,10 @@ impl ListItemSelector {
     /// ```
     pub fn new(
         ctx: &mut Context, 
-        first: (&'static str, &'static str, Option<&'static str>), // title, subtitle, description
-        second: (&'static str, &'static str, Option<&'static str>), 
-        third: Option<(&'static str, &'static str, Option<&'static str>)>, 
-        fourth: Option<(&'static str, &'static str, Option<&'static str>)>
+        first: (&str, &str, Option<&str>), // title, subtitle, description
+        second: (&str, &str, Option<&str>), 
+        third: Option<(&str, &str, Option<&str>)>, 
+        fourth: Option<(&str, &str, Option<&str>)>
     ) -> Self {
         ListItemSelector(
             Column::center(0.0), 
@@ -443,24 +440,28 @@ impl QuickDeselect {
             ListItemGroup::new(list_items)
         )
     }
+
+    pub fn get_profiles(&self) -> Option<Vec<Profile>> {
+        self.1.as_ref().map(|c| c.1.iter().map(|b| b.profile()).collect())
+    }
 }
 
 impl OnEvent for QuickDeselect {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(AddContactEvent(name, id)) = event.downcast_ref::<AddContactEvent>() {
-            let button = QuickDeselectButton::new(ctx, name, *id);
+        if let Some(AddContactEvent(profile)) = event.downcast_ref::<AddContactEvent>() {
+            let button = QuickDeselectButton::new(ctx, profile.clone());
             match &mut self.1 {
                 Some(select) => {
-                    if !select.1.iter().any(|b| b.id() == *id) {select.1.push(button)}
+                    if !select.1.iter().any(|b| b.profile() == *profile) {select.1.push(button)}
                 },
                 None => self.1 = Some(QuickDeselectContent::new(button)),
             }
-        } else if let Some(RemoveContactEvent(id)) = event.downcast_ref::<RemoveContactEvent>() {
+        } else if let Some(RemoveContactEvent(profile)) = event.downcast_ref::<RemoveContactEvent>() {
             if let Some(select) = &mut self.1 {
                 if select.1.len() == 1 {
                     self.1 = None;
                 } else {
-                    select.1.retain(|button| button.id() != *id);
+                    select.1.retain(|button| button.profile() != *profile);
                 }
             }
         }
@@ -480,6 +481,24 @@ impl QuickDeselectContent {
         )
     }
 }
+
+
+#[derive(Debug, Component)]
+struct QuickDeselectButton(Stack, Button, #[skip] Profile);
+impl OnEvent for QuickDeselectButton {}
+
+impl QuickDeselectButton {
+    fn new(ctx: &mut Context, profile: Profile) -> Self {
+        let p = profile.clone();
+        let button = Button::secondary(ctx, None, &p.user_name, Some("close"), move |ctx: &mut Context| {
+            ctx.trigger_event(RemoveContactEvent(profile.clone()))
+        });
+        QuickDeselectButton(Stack::default(), button, p)
+    }
+
+   fn profile(&self) -> Profile {self.2.clone()}
+}
+
 
 /// A component representing a group of list items, arranged vertically in a column.
 ///

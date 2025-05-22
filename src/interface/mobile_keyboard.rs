@@ -92,9 +92,9 @@ impl KeyboardContent {
     fn update(&mut self) {
         let caps = *self.4.capslock().as_mut().unwrap().status();
         let page = *self.5.paginator().as_mut().unwrap().status();
-        self.2.update(top_keys(page), caps);
-        self.3.update(mid_keys(page), caps);
-        self.4.update(bot_keys(page), caps);
+        self.2.update(top_keys(&page), caps);
+        self.3.update(mid_keys(&page), caps);
+        self.4.update(bot_keys(&page), caps);
         self.5.update(vec![], caps);
     }
 }
@@ -118,7 +118,7 @@ struct KeyRow(Row, Vec<Key>);
 impl OnEvent for KeyRow {}
 
 impl KeyRow {
-    fn new(ctx: &mut Context, keys: Vec<&'static str>) -> Self {
+    fn new(ctx: &mut Context, keys: Vec<&str>) -> Self {
         let keys = keys.iter().map(|k| Key::character(ctx, k)).collect();
         KeyRow(Row::center(0.0), keys)
     }
@@ -133,19 +133,19 @@ impl OnEvent for KeyboardRow {}
 
 impl KeyboardRow {
     fn top(ctx: &mut Context) -> Self {
-        let key_row = KeyRow::new(ctx, top_keys(0));
+        let key_row = KeyRow::new(ctx, top_keys(&0));
         KeyboardRow(Row::center(0.0), None, None, Some(key_row), None, None)
     }
 
     fn middle(ctx: &mut Context) -> Self {
-        let key_row = KeyRow::new(ctx, mid_keys(0));
+        let key_row = KeyRow::new(ctx, mid_keys(&0));
         KeyboardRow(Row::center(0.0), None, None, Some(key_row), None, None)
     }
 
     fn bottom(ctx: &mut Context, sender: Sender<u8>) -> Self {
         let capslock = Capslock::new(ctx, sender);
         let backspace = Key::backspace(ctx);
-        let key_row = KeyRow::new(ctx, bot_keys(0));
+        let key_row = KeyRow::new(ctx, bot_keys(&0));
         KeyboardRow(Row::center(6.0), Some(capslock), None, Some(key_row), None, Some(backspace))
     }
 
@@ -156,7 +156,7 @@ impl KeyboardRow {
         KeyboardRow(Row::center(6.0), None, Some(paginator), None, Some(spacebar), Some(newline))
     }
 
-    fn update(&mut self, new: Vec<&'static str>, caps_on: bool) {
+    fn update(&mut self, new: Vec<&str>, caps_on: bool) {
         let format_text = |text: &str| {
             match caps_on {
                 true => text.to_uppercase(),
@@ -195,10 +195,10 @@ impl KeyboardRow {
 struct Key(Stack, KeyContent, #[skip] ButtonState, #[skip] WinitKey);
 
 impl Key {
-    fn character(ctx: &mut Context, c: &'static str) -> Self {
+    fn character(ctx: &mut Context, c: &str) -> Self {
         let character = KeyCharacter::char(ctx, c);
         let content = KeyContent::new(ctx, 33.0, Offset::End, character);
-        Key(Stack::default(), content, ButtonState::Default, WinitKey::Character(SmolStr::new_static(c)))
+        Key(Stack::default(), content, ButtonState::Default, WinitKey::Character(SmolStr::new_inline(c)))
     }
 
     fn spacebar(ctx: &mut Context) -> Self {
@@ -384,7 +384,7 @@ struct KeyCharacter(Row, Option<Image>, Option<Text>, Option<Text>, Option<Text>
 impl OnEvent for KeyCharacter {}
 
 impl KeyCharacter {
-    fn char(ctx: &mut Context, key: &'static str) -> Self {
+    fn char(ctx: &mut Context, key: &str) -> Self {
         let size = ctx.get::<PelicanUI>().theme.fonts.size.xl;
         KeyCharacter(
             Row::new(0.0, Offset::Center, Size::Fit, Padding(0.0, 0.0, 0.0, 10.0)),
@@ -394,7 +394,7 @@ impl KeyCharacter {
         )
     }
 
-    fn text(ctx: &mut Context, key: &'static str) -> Self {
+    fn text(ctx: &mut Context, key: &str) -> Self {
         let size = ctx.get::<PelicanUI>().theme.fonts.size.md;
         KeyCharacter(Row::center(0.0), None, Some(Text::new(ctx, key, TextStyle::Keyboard, size, Align::Left)), None, None)
     }
@@ -446,7 +446,7 @@ fn handle_state(_ctx: &mut Context, state: ButtonState, event: MouseEvent) -> Bu
     }.unwrap_or(state)
 }
 
-fn top_keys(page: u32) -> Vec<&'static str> {
+fn top_keys(page: &u32) -> Vec<&str> {
     match page {
         0 => vec!["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
         1 => vec!["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
@@ -454,7 +454,7 @@ fn top_keys(page: u32) -> Vec<&'static str> {
     }
 }
 
-fn mid_keys(page: u32) -> Vec<&'static str> {
+fn mid_keys(page: &u32) -> Vec<&str> {
     match page {
         0 => vec!["a", "s", "d", "f", "g", "h", "j", "k", "l"],
         1 => vec!["/", "\\", "\"", "'", "~", ".", ",", "?", "!"],
@@ -462,7 +462,7 @@ fn mid_keys(page: u32) -> Vec<&'static str> {
     }  
 }
 
-fn bot_keys(page: u32) -> Vec<&'static str> {
+fn bot_keys(page: &u32) -> Vec<&str> {
     match page {
         0 => vec!["z", "x", "c", "v", "b", "n", "m"],
         1 => vec!["@", "|", "`", "˚", "€", "£", "¥"],

@@ -71,16 +71,16 @@ pub struct Text(Stack, BasicText, Option<TextCursor>);
 
 impl Text {
     /// Creates a new `Text` component with the given text, style, size, and alignment.
-    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
+    pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text, size, size*1.25, font, color)], None, align, None);
+        let text = BasicText::new(vec![Span::new(text.to_string(), size, size*1.25, font, color)], None, align, None);
         Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text, None)
     }
 
     /// Creates a new `Text` component with a cursor, along with the given text, style, size, and alignment.
-    pub fn new_with_cursor(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
+    pub fn new_with_cursor(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text, size, size*1.25, font, color)], None, align, Some(Cursor::default()));
+        let text = BasicText::new(vec![Span::new(text.to_string(), size, size*1.25, font, color)], None, align, Some(Cursor::default()));
         Text(
             Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()),
             text, Some(TextCursor::new(ctx, style, size)),
@@ -120,12 +120,12 @@ pub struct ExpandableText(pub Text);
 
 impl ExpandableText {
     /// Creates a new `ExpandableText` component with the given text, style, size, and alignment.
-    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
+    pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         ExpandableText(Text::new(ctx, text, style, size, align))
     }
 
     /// Creates a new `ExpandableText` component with a cursor, along with the given text, style, size, and alignment.
-    pub fn new_with_cursor(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
+    pub fn new_with_cursor(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         ExpandableText(Text::new_with_cursor(ctx, text, style, size, align))
     }
 
@@ -194,7 +194,7 @@ impl BulletedText {
     ///
     /// # Returns
     /// A new `BulletedText` component containing a row with a bullet and expandable text.
-    pub fn new(ctx: &mut Context, text: &'static str, style: TextStyle, size: f32, align: Align) -> Self {
+    pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, _) = style.get(ctx);
         BulletedText(
             Row::new(size*0.75, Offset::Center, Size::Fit, Padding::default()), // change this offset to be line_height - circle size / 2

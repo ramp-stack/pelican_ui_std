@@ -63,7 +63,7 @@ impl OnEvent for QRCodeScanner {
                 Ok(f) => {
                     if let Some(data) = self.find_code(f.clone()) {
                         println!("FOUND DATA, TRIGGERING EVENT");
-                        ctx.trigger_event(QRCodeScannedEvent(Box::leak(data.into_boxed_str())))
+                        ctx.trigger_event(QRCodeScannedEvent(data))
                     }
                     
                     *self.2.message() = None; *self.2.background() = None;
@@ -112,7 +112,7 @@ struct Message(Column, Image, Text);
 impl OnEvent for Message {}
 
 impl Message {
-    pub fn new(ctx: &mut Context, icon: &'static str, msg: &'static str) -> Self {
+    pub fn new(ctx: &mut Context, icon: &'static str, msg: &str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (color, font_size) = (theme.colors.shades.lighten, theme.fonts.size.sm);
         Message(Column::center(4.0), 

@@ -19,19 +19,6 @@ pub enum MessageType {
     Rooms,
 }
 
-/// Metadata for a user.
-#[derive(Debug, Clone)]
-pub struct Profile {
-    /// The display name of the user.
-    pub name: &'static str,
-    /// The decentralized identity (did) of the user.
-    pub nym: &'static str,
-    /// A short description written by the user.
-    pub about: &'static str,
-    /// Avatar image or content representing the user.
-    pub avatar: AvatarContent,
-}
-
 /// A UI component representing a chat message, including avatar and content.
 #[derive(Debug, Component)]
 pub struct Message(Row, Option<Avatar>, MessageContent);
@@ -57,12 +44,11 @@ impl Message {
     pub fn new(
         ctx: &mut Context,
         style: MessageType,
-        message: String,
-        sender: (String, AvatarContent), // name, biography, identifier, avatar
+        message: &str,
+        sender: (&str, AvatarContent), // name, biography, identifier, avatar
         time: Timestamp,
     ) -> Self {
-        let name = Box::leak(sender.0.into_boxed_str());
-        let message = Box::leak(message.into_boxed_str());
+        let name = sender.0;
 
         let (offset, avatar) = match style {
             MessageType::You => (Offset::End, false),
@@ -86,8 +72,8 @@ impl MessageContent {
     fn new(
         ctx: &mut Context,
         style: MessageType,
-        message: &'static str,
-        name: &'static str,
+        message: &str,
+        name: &str,
         time: Timestamp,
     ) -> Self {
         let name = match style {
@@ -121,7 +107,7 @@ impl MessageData {
     fn new(
         ctx: &mut Context,
         style: MessageType,
-        name: &'static str,
+        name: &str,
         time: Timestamp,
     ) -> Self {
         let text_size = ctx.get::<PelicanUI>().theme.fonts.size;
@@ -133,7 +119,7 @@ impl MessageData {
             Row::new(4.0, Offset::End, Size::Fit, Padding::default()),
             Text::new(ctx, name, title_style, title_size, Align::Left),
             divider.then(|| Text::new(ctx, "·", TextStyle::Secondary, text_size.sm, Align::Left)),
-            Text::new(ctx, time.friendly(), TextStyle::Secondary, text_size.sm, Align::Left),
+            Text::new(ctx, &time.friendly(), TextStyle::Secondary, text_size.sm, Align::Left),
         )
     }
 }
@@ -146,8 +132,8 @@ impl OnEvent for MessageBubbles {}
 impl MessageBubbles {
     fn new(
         ctx: &mut Context,
-        // messages: Vec<&'static str>,
-        message: &'static str,
+        // messages: Vec<&str>,
+        message: &str,
         style: MessageType,
     ) -> Self {
         // let messages = messages.iter().map(|m| MessageBubble::new(ctx, m, style)).collect();
@@ -162,7 +148,7 @@ impl OnEvent for MessageBubble {}
 impl MessageBubble {
     fn new(
         ctx: &mut Context,
-        message: &'static str,
+        message: &str,
         style: MessageType,
     ) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;

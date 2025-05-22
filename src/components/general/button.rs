@@ -4,7 +4,7 @@ use crate::PelicanUI;
 
 #[allow(clippy::module_inception)]
 mod button;
-pub use button::{Button, ButtonWidth, QuickActions, QuickDeselectButton};
+pub use button::{Button, ButtonWidth, QuickActions};
 
 mod icon;
 pub use icon::{IconButton, IconButtonRow};

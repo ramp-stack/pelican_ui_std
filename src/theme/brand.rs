@@ -108,7 +108,7 @@ impl Illustrations {
         illustrations.insert("toucan", ctx.add_svg(&ctx.load_file("brand/illustrations/toucan.svg").unwrap(), 8.0));
         illustrations.insert("emu", ctx.add_svg(&ctx.load_file("brand/illustrations/emu.svg").unwrap(), 8.0));
 
-        Self(illustrations)
+        Illustrations(illustrations)
     }
 
     /// Retrieves an illustration by its name.

@@ -30,14 +30,14 @@ struct ButtonRow(Row, Button, Button, Button);
 impl OnEvent for ButtonRow {}
 
 impl ButtonRow {
-    fn new(ctx: &mut Context, a: Option<&'static str>, b: Option<&'static str>, c: Option<&'static str>) -> Self {
-        let key = |ctx: &mut Context, a: Option<&'static str>| {
+    fn new(ctx: &mut Context, a: Option<&str>, b: Option<&str>, c: Option<&str>) -> Self {
+        let key = |ctx: &mut Context, a: Option<String>| {
             match a {
-                Some(txt) => Button::keypad(ctx, Some(txt), None, move |ctx: &mut Context| on_click(ctx, Key::Character(SmolStr::new_static(txt)))),
+                Some(txt) => Button::keypad(ctx, Some(&txt.clone()), None, move |ctx: &mut Context| on_click(ctx, Key::Character(SmolStr::new_inline(&txt)))),
                 None => Button::keypad(ctx, None, Some("back"), |ctx: &mut Context| on_click(ctx, Key::Named(NamedKey::Backspace)))
             }
         };
-        
+        let (a, b, c) = (a.map(|l| l.to_string()), b.map(|l| l.to_string()), c.map(|l| l.to_string()));
         ButtonRow(Row::center(16.0), key(ctx, a), key(ctx, b), key(ctx, c))        
     }
 }

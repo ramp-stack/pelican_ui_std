@@ -39,9 +39,9 @@ impl Card {
     pub fn new(
         ctx: &mut Context,
         avatar: AvatarContent, 
-        title: &'static str, 
-        subtitle: &'static str, 
-        description: &'static str,
+        title: &str, 
+        subtitle: &str, 
+        description: &str,
         on_click: fn(&mut Context) -> (),
     ) -> Self {
         let colors = ctx.get::<PelicanUI>().theme.colors;
@@ -81,9 +81,9 @@ impl CardContent {
     fn new(
         ctx: &mut Context, 
         avatar: AvatarContent, 
-        title: &'static str, 
-        subtitle: &'static str, 
-        description: &'static str
+        title: &str, 
+        subtitle: &str, 
+        description: &str
     ) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (font_size, color) = (theme.fonts.size, theme.colors.outline.secondary);

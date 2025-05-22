@@ -22,7 +22,7 @@ impl QRCode {
     /// ```
     /// let qr_code = QRCode::new(ctx, "https://example.com");
     /// ```
-    pub fn new(ctx: &mut Context, data: &'static str) -> Self {
+    pub fn new(ctx: &mut Context, data: &str) -> Self {
         let theme = &ctx.get::<PelicanUI>().theme;
         let (_app_icon, color) = (theme.brand.app_icon.clone(), theme.colors.shades.white);
         let qr_size = 275.0;
@@ -58,7 +58,7 @@ impl QRCode {
 // impl OnEvent for QRModules {}
 
 // impl QRModules {
-//     fn new(ctx: &mut Context, code_str: &'static str, qr_size: f32, logo_size: f32) -> Self {
+//     fn new(ctx: &mut Context, code_str: &str, qr_size: f32, logo_size: f32) -> Self {
 //         let code = QrCode::new(code_str).unwrap();
 //         let module_count = code.width() as u32;
 //         let module_size = qr_size / module_count as f32;
