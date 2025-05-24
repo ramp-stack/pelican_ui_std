@@ -149,7 +149,7 @@ impl Content {
 
 impl OnEvent for Content {
     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(MouseEvent{state: MouseState::Scroll(_, y), ..}) = event.downcast_ref::<MouseEvent>() {
+        if let Some(MouseEvent{state: MouseState::Scroll(_, y), position: Some(_)}) = event.downcast_ref::<MouseEvent>() {
             self.0.adjust_scroll(*y);
         }
         true
@@ -347,13 +347,14 @@ impl Bumper {
 
 #[derive(Debug, Component)]
 struct BumperContent (Row, Vec<Box<dyn Drawable>>);
-impl OnEvent for BumperContent {}
 
 impl BumperContent {
     fn new(content: Vec<Box<dyn Drawable>>) -> Self {
         BumperContent(Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)), content)
     }
 }
+
+impl OnEvent for BumperContent {}
 
 /// `NavigationButton` represents a button or an icon button used for navigation within a user interface.
 #[derive(Debug, Component)]

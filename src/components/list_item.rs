@@ -73,7 +73,7 @@ impl ListItem {
 impl OnEvent for ListItem {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
+            if let MouseEvent{state: MouseState::Released, position: Some(_)} = event {
                 if let Some(radio) = self.2.1.as_mut() {
                     radio.select(ctx);
                     ctx.trigger_event(ListItemSelect(self.5.expect("Selectable List Items Require ElementIDs")));
