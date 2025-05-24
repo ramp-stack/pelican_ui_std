@@ -136,15 +136,7 @@ impl ExpandableText {
     pub fn cursor(&mut self) -> &mut Option<TextCursor> { self.0.cursor() }
 }
 
-impl OnEvent for ExpandableText {
-    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if event.downcast_ref::<TickEvent>().is_some() && self.0.cursor().is_some() {
-                let s = break_all_ligatures(&self.0.text().spans[0].text.clone());
-                self.0.text().spans[0].text = s;
-        }
-        true
-    }
-}
+impl OnEvent for ExpandableText {}
 
 impl Component for ExpandableText {
     fn children_mut(&mut self) -> Vec<&mut dyn Drawable> { vec![&mut self.0] }

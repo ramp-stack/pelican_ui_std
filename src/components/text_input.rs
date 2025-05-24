@@ -167,26 +167,22 @@ impl OnEvent for InputField {
             if self.3 == InputState::Focus {
                 if let Some((i, _)) = self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::GetIndex) {
                     let mut new_text = self.2.text().text().spans[0].text.clone();
+                    // ALL THIS SHOULD BE MOVED TO AN EDITABLE TEXT COMPONENT 
                     match key {
                         Key::Named(NamedKey::Enter) => {
-                            new_text = insert_char(new_text, '\n', i as usize);
-                            self.2.text().text().spans[0].text = new_text;
+                            self.2.text().text().spans[0].text.insert_str(i as usize, "\n");
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveNewline);
                         },
                         Key::Named(NamedKey::Space) => {
-                            new_text = insert_char(new_text, ' ', i as usize);
-                            self.2.text().text().spans[0].text = new_text;
+                            self.2.text().text().spans[0].text.insert_str(i as usize, " ");
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
                         },
-                        Key::Named(NamedKey::Delete | NamedKey::Backspace) if (!new_text.is_empty() && i as usize != 0) => {
-                            new_text = remove_char(new_text, i as usize);
-                            self.2.text().text().spans[0].text = new_text;
+                        Key::Named(NamedKey::Delete | NamedKey::Backspace) => {
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveLeft);
+                            self.2.text().text().spans[0].text = remove_char(new_text, (i as usize).saturating_sub(1));
                         },
                         Key::Character(c) => {
-                            let new_char = c.to_string().chars().next().unwrap();
-                            new_text = insert_char(new_text, new_char, i as usize);
-                            self.2.text().text().spans[0].text = new_text;
+                            self.2.text().text().spans[0].text.insert_str(i as usize , c);
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
                         },
                         _ => {}
@@ -198,28 +194,13 @@ impl OnEvent for InputField {
     }
 }
 
-fn insert_char(text: String, new_char: char, i: usize) -> String {
-    const INVISIBLE: char = '\u{200C}'; 
-
-    let mut chars: Vec<char> = text.chars().collect();
-    if i >= chars.len() {
-        chars.push(new_char);
-        chars.push(INVISIBLE);
-    } else {
-        chars.insert(i, new_char);
-        chars.insert(i + 1, INVISIBLE);
-    }
-
-    chars.into_iter().collect()
-}
 
 fn remove_char(text: String, index: usize) -> String {
     let mut chars: Vec<char> = text.chars().collect();
     match chars.len() == 1 {
-        true => chars.clear(),
-        false if index == chars.len() => {chars.pop(); chars.pop();},
-        false if index < chars.len().saturating_sub(1) => {chars.drain(index..=index + 1);},
-        _ => {}
+        true => {chars.clear();},
+        false if index >= chars.len() => {chars.pop();},
+        false => {chars.remove(index);},
     }
 
     chars.into_iter().collect()
