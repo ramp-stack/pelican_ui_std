@@ -535,6 +535,9 @@ impl Scroll {
         *self.5.lock().unwrap() += val;
     }
 
+    pub fn set_scroll(&mut self, val: f32) {
+        *self.5.lock().unwrap() = val;
+    }
 
     pub fn offset(&mut self) -> &mut Offset { &mut self.1 }
 }

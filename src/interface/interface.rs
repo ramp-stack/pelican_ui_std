@@ -1,6 +1,7 @@
 use rust_on_rails::prelude::*;
 use crate::elements::shapes::{Rectangle};
 use crate::elements::text::TextStyle;
+use crate::events::TextInputSelect;
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Scroll};
 use crate::components::avatar::{AvatarContent, AvatarRow};
 use crate::components::button::{IconButton, Button};
@@ -148,8 +149,26 @@ impl Content {
 }
 
 impl OnEvent for Content {
-    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(MouseEvent{state: MouseState::Scroll(_, y), position: Some(_)}) = event.downcast_ref::<MouseEvent>() {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(TextInputSelect(id)) = event.downcast_ref::<TextInputSelect>() {
+            println!("TEXT INPUT WAS SELECTED");
+            let mut total_height = 0.0;
+            for item in self.items().into_iter() {
+                match item.as_any_mut().downcast_mut::<TextInput>() {
+                    Some(input) if input.get_id() == *id => {
+                        println!("FOUND INPUT FIELD, ADJUSTING SCROLL TO {:?}", total_height);
+                        self.0.set_scroll(total_height);
+                        break;
+                    }
+                    _ => {
+                        let size = item.request_size(ctx);
+                        println!("COULD NOT FIND INPUT FIELD, BUT MY SIZE WAS {:?}", size);
+                        total_height += size.max_height();
+                    }
+                }
+            }
+            
+        } else if let Some(MouseEvent{state: MouseState::Scroll(_, y), position: Some(_)}) = event.downcast_ref::<MouseEvent>() {
             self.0.adjust_scroll(*y);
         }
         true

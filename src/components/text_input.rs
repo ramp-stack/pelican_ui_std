@@ -2,9 +2,9 @@ use rust_on_rails::prelude::*;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{ExpandableText, Text, TextStyle};
 use crate::components::button::IconButton;
-use crate::events::{KeyboardActiveEvent, SetActiveInput};
+use crate::events::{KeyboardActiveEvent, SetActiveInput, TextInputSelect};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
-use crate::PelicanUI;
+use crate::{PelicanUI, ElementID};
 
 use std::sync::mpsc::{self, Receiver};
 /// A labeled text input with optional help or error messages and an optional icon button.
@@ -73,6 +73,8 @@ impl TextInput {
     pub fn set_value(&mut self, new: String) {
         *self.2.input() = new;
     }
+
+    pub fn get_id(&self) -> ElementID { self.2.5 }
 }
 
 impl OnEvent for TextInput {
@@ -87,7 +89,7 @@ impl OnEvent for TextInput {
 
 
 #[derive(Debug, Component)]
-struct InputField(Stack, OutlinedRectangle, InputContent, #[skip] InputState, #[skip] bool);
+struct InputField(Stack, OutlinedRectangle, InputContent, #[skip] InputState, #[skip] bool, #[skip] ElementID);
 
 impl InputField {
     pub fn new(
@@ -104,7 +106,7 @@ impl InputField {
             Offset::Start, Offset::Start, Size::fill(),
             Size::custom(|heights: Vec<(f32, f32)>| (heights[1].0.max(48.0), heights[1].1.max(48.0))),
             Padding::default()
-        ), background, content, InputState::Default, false)
+        ), background, content, InputState::Default, false, ElementID::new())
     }
 
     pub fn error(&mut self) -> &mut bool { &mut self.4 }
@@ -127,6 +129,12 @@ impl OnEvent for InputField {
             *self.2.focus() = self.3 == InputState::Focus;
         } else if let Some(SetActiveInput(s)) = event.downcast_ref::<SetActiveInput>() {
             *self.input() = s.to_string();
+        } else if let Some(TextInputSelect(id)) = event.downcast_ref::<TextInputSelect>() {
+            if *id != self.5 {
+                if self.3 == InputState::Focus {
+                    if self.4 { self.3 = InputState::Error } else { self.3 = InputState::Default }
+                }
+            }
         } else if let Some(KeyboardActiveEvent(enabled)) = event.downcast_ref::<KeyboardActiveEvent>() {
             if !enabled && self.3 == InputState::Focus {
                 if self.4 { self.3 = InputState::Error } else { self.3 = InputState::Default }
@@ -135,14 +143,21 @@ impl OnEvent for InputField {
             self.3 = match self.3 {
                 InputState::Default => {
                     match event {
-                        MouseEvent{state: MouseState::Pressed, position: Some(_)} => {ctx.trigger_event(KeyboardActiveEvent(true)); Some(InputState::Focus)},
+                        MouseEvent{state: MouseState::Pressed, position: Some(_)} => {
+                            ctx.trigger_event(TextInputSelect(self.5));
+                            ctx.trigger_event(KeyboardActiveEvent(true)); 
+                            Some(InputState::Focus)
+                        },
                         MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),
                         _ => None
                     }
                 },
                 InputState::Hover => {
                     match event {
-                        MouseEvent{state: MouseState::Pressed, position: Some(_)} => Some(InputState::Focus),
+                        MouseEvent{state: MouseState::Pressed, position: Some(_)} => {
+                            ctx.trigger_event(TextInputSelect(self.5));
+                            Some(InputState::Focus)
+                        },
                         MouseEvent{state: MouseState::Moved, position: None} if self.4 => Some(InputState::Error),
                         MouseEvent{state: MouseState::Moved, position: None} => Some(InputState::Default),
                         _ => None
@@ -170,11 +185,11 @@ impl OnEvent for InputField {
                     // ALL THIS SHOULD BE MOVED TO AN EDITABLE TEXT COMPONENT 
                     match key {
                         Key::Named(NamedKey::Enter) => {
-                            self.2.text().text().spans[0].text.insert_str(i as usize, "\n");
+                            self.2.text().text().spans[0].text = insert_char(new_text, '\n', i as usize);
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveNewline);
                         },
                         Key::Named(NamedKey::Space) => {
-                            self.2.text().text().spans[0].text.insert_str(i as usize, " ");
+                            self.2.text().text().spans[0].text = insert_char(new_text, ' ', i as usize);
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
                         },
                         Key::Named(NamedKey::Delete | NamedKey::Backspace) => {
@@ -182,7 +197,9 @@ impl OnEvent for InputField {
                             self.2.text().text().spans[0].text = remove_char(new_text, (i as usize).saturating_sub(1));
                         },
                         Key::Character(c) => {
-                            self.2.text().text().spans[0].text.insert_str(i as usize , c);
+                            // self.2.text().text().spans[0].text.insert_str(i as usize , c);
+                            let c = c.to_string().chars().next().unwrap();
+                            self.2.text().text().spans[0].text = insert_char(new_text, c, i as usize);
                             self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
                         },
                         _ => {}
@@ -194,6 +211,15 @@ impl OnEvent for InputField {
     }
 }
 
+fn insert_char(text: String, new: char, index: usize) -> String {
+    let mut chars: Vec<char> = text.chars().collect();
+    match index >= chars.len() {
+        true => chars.push(new),
+        false => chars.insert(index, new)
+    }
+
+    chars.into_iter().collect()
+}
 
 fn remove_char(text: String, index: usize) -> String {
     let mut chars: Vec<char> = text.chars().collect();

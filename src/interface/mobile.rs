@@ -77,10 +77,11 @@ impl OnEvent for MobileInterface {
         if let Some(_event) = event.downcast_ref::<TickEvent>() {
             // self.2.display(self.1.navigator_status());
         } else if let Some(KeyboardActiveEvent(enabled)) = event.downcast_ref::<KeyboardActiveEvent>() {
-            self.3 = match enabled {
-                true => Some(MobileKeyboard::new(ctx)),
-                false => None
-            };
+            match enabled {
+                true if self.3.is_some() => {},
+                true => self.3 = Some(MobileKeyboard::new(ctx)),
+                false => self.3 = None
+            }
         } else if let Some(NavigateEvent(page)) = event.downcast_ref::<NavigateEvent>() {
             let (new_page, display_nav) = page.get_page(ctx);
             self.2 = new_page;

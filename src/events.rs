@@ -31,6 +31,16 @@ impl Event for ListItemSelect {
     }
 }
 
+/// Event used to signal that a list item was selected.
+#[derive(Debug, Clone)]
+pub struct TextInputSelect(pub ElementID);
+
+impl Event for TextInputSelect {
+    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
+        children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
+    }
+}
+
 /// Event triggered when a navigation button is selected.
 #[derive(Debug, Clone)]
 pub struct NavigatorSelect(pub ElementID);
@@ -51,3 +61,4 @@ impl Event for SetActiveInput {
         children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
     }
 }
+
