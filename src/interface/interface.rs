@@ -1,7 +1,7 @@
 use rust_on_rails::prelude::*;
 use crate::elements::shapes::{Rectangle};
 use crate::elements::text::TextStyle;
-use crate::events::TextInputSelect;
+use crate::events::{TextInputSelect, NavigateEvent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Scroll};
 use crate::components::avatar::{AvatarContent, AvatarRow};
 use crate::components::button::{IconButton, Button};
@@ -14,56 +14,40 @@ use std::fmt::Debug;
 
 use super::{DesktopInterface, MobileInterface};
 
+pub type NavigateInfo = (&'static str, &'static str, Option<AvatarContent>, Box<dyn FnMut(&mut Context)>);
+
 /// Root interface component with both mobile and desktop layouts options.
 #[derive(Debug, Component)]
 pub struct Interface (Stack, Rectangle, Option<MobileInterface>, Option<DesktopInterface>);
-impl OnEvent for Interface {}
 
 impl Interface {
     /// Creates a new `Interface` component, which is used to initialize the main interface for the application.
-    /// The `Interface` is tailored based on the device type (mobile or desktop) and contains information like 
-    /// the start page, navigation, and user profile. Depending on the platform (mobile or desktop), it will create 
-    /// either a `MobileInterface` or a `DesktopInterface` to manage the layout and navigation of the application.
-    ///
-    /// # Parameters:
-    /// - **`ctx`**: The [`Context`] for accessing the app's theme.
-    /// - **`start_page`**: The starting page of the application, which should implement the `AppPage` trait. This will be the page shown when the app starts.
-    /// - **`navigation`**: A tuple containing:
-    ///   - An index `usize` representing the selected page for navigation.
-    ///   - A vector of tuples, where each tuple contains:
-    ///     - A static string for the label (e.g., the name of the page).
-    ///     - A static string for the description (e.g., additional info about the page).
-    ///     - A closure that takes a mutable reference to the context and performs actions when the navigation item is clicked.
-    /// - **`profile`**: A tuple containing:
-    ///   - A static string representing the username or profile identifier.
-    ///   - The content for the avatar, which is of type `AvatarContent` (this will be used for displaying the user's avatar).
-    ///   - A closure that takes a mutable reference to the context and allows modification of the profile information.
-    ///
-    /// # Returns:
-    /// - **`Interface`**: The constructed `Interface` component, containing the appropriate platform-specific interface (mobile or desktop).
-    ///
-    /// # Example:
-    /// ```rust
-    /// let navigation = (0, vec![
-    ///     ("Home", "Main page", Box::new(|ctx| { /* Navigate to home page */ })),
-    ///     ("Profile", "User profile", Box::new(|ctx| { /* Navigate to profile page */ }))
-    /// ]);
-    /// let profile = ("Ella Mae", AvatarContent::Icon("profile", AvatarIconStyle::Primary), Box::new(|ctx| { /* View profile */ }));
-    /// let interface = Interface::new(ctx, HomePage, navigation, profile);
-    /// ```
     pub fn new(
         ctx: &mut Context, 
         start_page: impl AppPage,
-        start_index: Option<usize>, 
-        navigation: Option<Vec<(&'static str, &str, Callback)>>,
-        profile: Option<(&'static str, AvatarContent, Callback)>,
+        navigation: Option<(usize, Vec<NavigateInfo>)>,
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
         let (mobile, desktop) = match crate::config::IS_MOBILE {
-            true => (Some(MobileInterface::new(ctx, start_page, start_index, navigation, profile)), None),
-            false => (None, Some(DesktopInterface::new(ctx, start_page, start_index, navigation, profile)))
+            true => (Some(MobileInterface::new(ctx, start_page, navigation)), None),
+            false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)))
         };
         Interface(Stack::default(), Rectangle::new(color), mobile, desktop)
+    }
+}
+
+impl OnEvent for Interface {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(NavigateEvent(page, has_nav)) = event.downcast_mut::<NavigateEvent>() {
+            let page = page.take().unwrap();
+
+            if let Some(mobile) = &mut self.2 {
+                mobile.set_page(page, *has_nav);
+            } else if let Some(desktop) = &mut self.3 {
+                desktop.set_page(page);
+            }
+        }
+        true
     }
 }
 
@@ -99,7 +83,7 @@ impl Page {
             Column::new(12.0, Offset::Center, width, Padding::default()),
             header,
             content,
-            bumper
+            bumper,
         )
     }
 

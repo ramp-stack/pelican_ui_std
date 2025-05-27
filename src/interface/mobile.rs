@@ -9,7 +9,7 @@ use crate::Callback;
 use crate::AppPage;
 use crate::ElementID;
 use std::fmt::Debug;
-use super::{NavigationButton, MobileKeyboard};
+use super::{NavigationButton, NavigateInfo, MobileKeyboard};
 
 #[cfg(target_os = "ios")]
 use crate::prelude::safe_area_insets;
@@ -50,12 +50,10 @@ impl MobileInterface {
     pub fn new(
         ctx: &mut Context, 
         start_page: impl AppPage,
-        start_index: Option<usize>,
-        navigation: Option<Vec<(&'static str, &str, Callback)>>,
-        profile: Option<(&'static str, AvatarContent, Callback)>,
+        navigation: Option<(usize, Vec<NavigateInfo>)>
     ) -> Self {
         let background = ctx.get::<PelicanUI>().theme.colors.background.primary;
-        let navigator = navigation.zip(profile).zip(start_index).map(|((nav, p), i)| Opt::new(MobileNavigator::new(ctx, i, nav, p), true));
+        let navigator = navigation.map(|n| Opt::new(MobileNavigator::new(ctx, n), true));
         #[cfg(target_os = "ios")] // move to rust_on_rails layer
         let insets = safe_area_insets();
         #[cfg(not(target_os = "ios"))]
@@ -70,6 +68,11 @@ impl MobileInterface {
             Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(insets.1), Padding::default()), Rectangle::new(background))
         )
     }
+
+    pub fn set_page(&mut self, page: Box<dyn AppPage>, has_nav: bool) {
+        if let Some(navigator) = &mut self.4 {navigator.display(has_nav);}
+        self.2 = page;
+    }
 }
 
 impl OnEvent for MobileInterface {
@@ -82,10 +85,6 @@ impl OnEvent for MobileInterface {
                 true => self.3 = Some(MobileKeyboard::new(ctx)),
                 false => self.3 = None
             }
-        } else if let Some(NavigateEvent(page)) = event.downcast_ref::<NavigateEvent>() {
-            let (new_page, display_nav) = page.get_page(ctx);
-            self.2 = new_page;
-            if let Some(navigator) = self.4.as_mut() { navigator.display(display_nav) }
         }
         true
     }
@@ -110,9 +109,7 @@ pub struct MobileNavigator(Stack, Rectangle, MobileNavigatorContent);
 impl MobileNavigator {
     pub fn new(
         ctx: &mut Context,
-        start_index: usize,
-        navigation: Vec<(&'static str, &str, Callback)>,
-        profile: (&'static str, AvatarContent, Callback)
+        navigation: (usize, Vec<NavigateInfo>)
     ) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         let height = Size::custom(move |heights: Vec<(f32, f32)>|(heights[1].0, heights[1].1));
@@ -120,7 +117,7 @@ impl MobileNavigator {
 
         MobileNavigator(
             Stack(Offset::Center, Offset::Start, width, height, Padding::default()), Rectangle::new(background),
-            MobileNavigatorContent::new(ctx, start_index, navigation, profile)
+            MobileNavigatorContent::new(ctx, navigation)
         )
     }
 }
@@ -133,31 +130,19 @@ struct MobileNavigatorContent(Row, Vec<NavigationButton>);
 impl MobileNavigatorContent {
     fn new(
         ctx: &mut Context,
-        start_index: usize,
-        navigation: Vec<(&'static str, &str, Callback)>,
-        mut profile: (&'static str, AvatarContent, Callback)
+        navigation: (usize, Vec<NavigateInfo>)
     ) -> Self {
-        if navigation.is_empty() {
-            panic!("MobileNavigator: Parameter 1 was empty. Navigator has no data.");
-        }
-        
-        let profile_id = ElementID::new();
-
-        let mut tabs: Vec<NavigationButton> = navigation.into_iter().enumerate().map(|(y, (i, _, mut c))| {
+        let mut tabs = Vec::new();
+        for (i, (icon, _, _, mut on_navigate)) in navigation.1.into_iter().enumerate() {
             let id = ElementID::new();
-            let ib = IconButton::tab_nav(ctx, i, y == start_index, move |ctx: &mut Context| {
+            let closure = move |ctx: &mut Context| {
                 ctx.trigger_event(NavigatorSelect(id));
-                (c)(ctx);
-            });
-            NavigationButton::new(id, None, Some(ib))
-        }).collect();
+                (on_navigate)(ctx)
+            };
 
-        let ib = IconButton::tab_nav(ctx, "profile", false, move |ctx: &mut Context| {
-            ctx.trigger_event(NavigatorSelect(profile_id));
-            (profile.2)(ctx);
-        });
-
-        tabs.push(NavigationButton::new(profile_id, None, Some(ib)));
+            let button = IconButton::tab_nav(ctx, icon, navigation.0 == i, closure);
+            tabs.push(NavigationButton::new(id, None, Some(button)));
+        }
 
         MobileNavigatorContent(
             Row::new(48.0, Offset::Center, Size::Fit, Padding(0.0, 8.0, 0.0, 8.0)),

@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use crate::elements::shapes::OutlinedRectangle;
-use crate::elements::text::{ExpandableText, Text, TextStyle};
+use crate::elements::text::{ExpandableText, Text, TextStyle, TextEditor};
 use crate::components::button::IconButton;
 use crate::events::{KeyboardActiveEvent, SetActiveInput, TextInputSelect};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
@@ -87,7 +87,6 @@ impl OnEvent for TextInput {
     }
 }
 
-
 #[derive(Debug, Component)]
 struct InputField(Stack, OutlinedRectangle, InputContent, #[skip] InputState, #[skip] bool, #[skip] ElementID);
 
@@ -116,7 +115,7 @@ impl InputField {
 impl OnEvent for InputField {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref() {
-            if let Some(c) = self.2.text().cursor().as_mut() { c.display(self.3 == InputState::Focus) }
+            self.2.text().display_cursor(self.3 == InputState::Focus);
             self.3 = match self.3 {
                 InputState::Default if self.4 => Some(InputState::Error),
                 InputState::Error if !self.4 => Some(InputState::Default),
@@ -180,58 +179,12 @@ impl OnEvent for InputField {
             }.unwrap_or(self.3);
         } else if let Some(KeyboardEvent{state: KeyboardState::Pressed, key}) = event.downcast_ref() {
             if self.3 == InputState::Focus {
-                if let Some((i, _)) = self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::GetIndex) {
-                    let mut new_text = self.2.text().text().spans[0].text.clone();
-                    // ALL THIS SHOULD BE MOVED TO AN EDITABLE TEXT COMPONENT 
-                    match key {
-                        Key::Named(NamedKey::Enter) => {
-                            self.2.text().text().spans[0].text = insert_char(new_text, '\n', i as usize);
-                            self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveNewline);
-                        },
-                        Key::Named(NamedKey::Space) => {
-                            self.2.text().text().spans[0].text = insert_char(new_text, ' ', i as usize);
-                            self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
-                        },
-                        Key::Named(NamedKey::Delete | NamedKey::Backspace) => {
-                            self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveLeft);
-                            self.2.text().text().spans[0].text = remove_char(new_text, (i as usize).saturating_sub(1));
-                        },
-                        Key::Character(c) => {
-                            // self.2.text().text().spans[0].text.insert_str(i as usize , c);
-                            let c = c.to_string().chars().next().unwrap();
-                            self.2.text().text().spans[0].text = insert_char(new_text, c, i as usize);
-                            self.2.text().text().cursor_action(ctx.as_canvas(), CursorAction::MoveRight);
-                        },
-                        _ => {}
-                    };
-                }
+                self.2.text().apply_edit(ctx, key);
             }
         }
         true
     }
 }
-
-fn insert_char(text: String, new: char, index: usize) -> String {
-    let mut chars: Vec<char> = text.chars().collect();
-    match index >= chars.len() {
-        true => chars.push(new),
-        false => chars.insert(index, new)
-    }
-
-    chars.into_iter().collect()
-}
-
-fn remove_char(text: String, index: usize) -> String {
-    let mut chars: Vec<char> = text.chars().collect();
-    match chars.len() == 1 {
-        true => {chars.clear();},
-        false if index >= chars.len() => {chars.pop();},
-        false => {chars.remove(index);},
-    }
-
-    chars.into_iter().collect()
-}
-
 
 /// `SubmitCallback` is triggered when the optional icon button within the text input is pressed.
 /// It has access to a mutable reference to the [`Context`] and the current input value as a `&mut &str`.
@@ -239,7 +192,7 @@ pub type SubmitCallback = Box<dyn FnMut(&mut Context, &mut String)>;
 
 #[derive(Component)]
 struct InputContent(
-    Row, Bin<Stack, EitherOr<ExpandableText, ExpandableText>>, Option<IconButton>,
+    Row, Bin<Stack, EitherOr<TextEditor, ExpandableText>>, Option<IconButton>,
     #[skip] bool, #[skip] Option<(Receiver<u8>, SubmitCallback)>
 );
 
@@ -264,7 +217,7 @@ impl InputContent {
             Bin(
                 Stack(Offset::default(), Offset::End, Size::fill(), Size::Fit, Padding(8.0, 8.0, 8.0, 8.0)),
                 EitherOr::new(
-                    ExpandableText::new_with_cursor(ctx, value.unwrap_or(""), TextStyle::Primary, font_size, Align::Left),
+                    TextEditor::new(ctx, value.unwrap_or(""), TextStyle::Primary, font_size, Align::Left, true),
                     ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size, Align::Left)
                 )
             ),
@@ -274,7 +227,7 @@ impl InputContent {
         )
     }
 
-    fn text(&mut self) -> &mut ExpandableText { self.1.inner().left() }
+    fn text(&mut self) -> &mut TextEditor { self.1.inner().left() }
     fn focus(&mut self) -> &mut bool {&mut self.3}
 }
 
@@ -283,11 +236,11 @@ impl OnEvent for InputContent {
         if let Some(TickEvent) = event.downcast_ref() {
             if let Some((receiver, on_submit)) = self.4.as_mut() {
                 if receiver.try_recv().is_ok() {
-                    on_submit(ctx, &mut self.1.inner().left().0.text().spans[0].text)
+                    on_submit(ctx, &mut self.1.inner().left().text().spans[0].text)
                 }
             }
 
-            let input = !self.1.inner().left().0.text().spans[0].text.is_empty();
+            let input = !self.1.inner().left().text().spans[0].text.is_empty();
             self.1.inner().display_left(input || self.3)
         }
         true

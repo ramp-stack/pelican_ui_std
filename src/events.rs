@@ -1,13 +1,13 @@
 use rust_on_rails::prelude::*;
-use crate::{AppFlow, ElementID};
+use crate::{ AppPage, ElementID};
 
 /// Event used to navigate between pages of the app.
-#[derive(Debug, Clone)]
-pub struct NavigateEvent(pub Box<dyn AppFlow>);
+#[derive(Debug)]
+pub struct NavigateEvent(pub Option<Box<dyn AppPage>>, pub bool);
 
 impl Event for NavigateEvent {
     fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
-        children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
+        vec![if self.0.is_some() {Some(self)} else {None}]
     }
 }
 

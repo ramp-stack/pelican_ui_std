@@ -81,42 +81,6 @@ impl Plugin for PelicanUI {
     }
 }
 
-/// A trait representing a page in an application.
-///
-/// This trait extends `Drawable` and `Debug`, which means any type that implements `AppPage` must
-/// be drawable and must support debugging output.
-pub trait AppPage: Drawable + std::fmt::Debug + 'static {}
-
-/// A trait representing a flow in an application.
-///
-/// This trait is used to navigate between pages, with the ability to get the current page and trigger page navigation.
-pub trait AppFlow: std::fmt::Debug + Send + Sync + dyn_clone::DynClone + 'static {
-    /// Returns the current page of the application flow.
-    ///
-    /// # Arguments
-    ///
-    /// * `ctx` -  The current context, used for accessing themes and UI elements.
-    ///
-    /// # Returns
-    ///
-    /// A boxed trait object implementing `AppPage`, which represents the current page.
-    fn get_page(&self, ctx: &mut Context) -> (Box<dyn crate::AppPage>, bool);
-
-    /// Navigates to a new page in the application flow.
-    ///
-    /// # Arguments
-    ///
-    /// * `self` - The flow object that defines the navigation action.
-    ///
-    /// This function triggers a `NavigateEvent` that updates the current flow of the app.
-    fn navigate(self, ctx: &mut Context) where Self: Sized {
-        ctx.trigger_event(crate::events::KeyboardActiveEvent(false));
-        ctx.trigger_event(crate::events::NavigateEvent(Box::new(self) as Box<dyn AppFlow>));
-    }
-}
-
-dyn_clone::clone_trait_object!(AppFlow);
-
 
 /// Represents a unique identifier for an element in the user interface.
 ///
@@ -151,11 +115,26 @@ impl Default for ElementID {
     }
 }
 
+pub trait AppPage: Drawable + std::fmt::Debug + 'static {
+    fn into_boxed(self) -> Box<dyn AppPage> where Self: Sized {
+        Box::new(self) as Box<dyn AppPage>
+    }
+}
+
+// dyn_clone::clone_trait_object!(AppPage);
+
+pub use pelican_macro::AppPage as derive_AppPage;
+
+pub mod macros {
+    pub use pelican_macro::AppPage;
+}
+
 /// A prelude module for easier access to the key components of the PelicanUI system.
 pub mod prelude {
+    pub use crate::AppPage; 
+    pub use crate::macros::AppPage;
+
     pub use crate::ElementID;
-    pub use crate::AppFlow;
-    pub use crate::AppPage;
     pub use crate::events::*;
     pub use crate::interface::*;
     pub use crate::layout::*;
