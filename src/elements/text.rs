@@ -2,7 +2,7 @@ use rust_on_rails::prelude::*;
 use rust_on_rails::prelude::Text as BasicText;
 use crate::layout::{Stack, Offset, Size, Padding, Opt, Row};
 use crate::elements::shapes::{Rectangle, Circle};
-use crate::PelicanUI;
+use crate::plugin::PelicanUI;
 
 /// Enumeration of text styles used in the UI.
 #[derive(Clone, Copy, Debug)]

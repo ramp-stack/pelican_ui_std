@@ -6,8 +6,8 @@ use crate::elements::shapes::Rectangle;
 use crate::components::button::ButtonState;
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size};
-use crate::{PelicanUI, ElementID}; // REMOVE ELEMENTID AND JUST USE UUID
-
+use crate::utils::ElementID; 
+use crate::plugin::PelicanUI;
 /// A List Item with various customizable components, such as a title, subtitle, description, 
 /// and other UI elements like a radio button or a circle icon. The item can be interacted with, triggering 
 /// a callback when clicked.

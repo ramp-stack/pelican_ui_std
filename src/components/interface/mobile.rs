@@ -4,10 +4,10 @@ use crate::layout::{Column, Row, Padding, Offset, Size, Opt, Stack, Bin};
 use crate::components::avatar::AvatarContent;
 use crate::components::button::{IconButton, ButtonState};
 use crate::elements::shapes::Rectangle;
-use crate::PelicanUI;
-use crate::Callback;
-use crate::AppPage;
-use crate::ElementID;
+use crate::plugin::PelicanUI;
+use crate::utils::Callback;
+use crate::pages::AppPage;
+use crate::utils::ElementID;
 use std::fmt::Debug;
 use super::{NavigationButton, NavigateInfo, MobileKeyboard};
 
@@ -49,7 +49,7 @@ impl MobileInterface {
     /// ```
     pub fn new(
         ctx: &mut Context, 
-        start_page: impl AppPage,
+        start_page: Box<dyn AppPage>,
         navigation: Option<(usize, Vec<NavigateInfo>)>
     ) -> Self {
         let background = ctx.get::<PelicanUI>().theme.colors.background.primary;
@@ -62,9 +62,7 @@ impl MobileInterface {
         MobileInterface(
             Column::new(0.0, Offset::Center, Size::Fit, Padding::default()), 
             Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(insets.0), Padding::default()), Rectangle::new(background)),
-            Box::new(start_page), 
-            None,
-            navigator,
+            start_page, None, navigator,
             Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(insets.1), Padding::default()), Rectangle::new(background))
         )
     }

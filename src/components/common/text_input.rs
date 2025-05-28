@@ -4,7 +4,8 @@ use crate::elements::text::{ExpandableText, Text, TextStyle, TextEditor};
 use crate::components::button::IconButton;
 use crate::events::{KeyboardActiveEvent, SetActiveInput, TextInputSelect};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
-use crate::{PelicanUI, ElementID};
+use crate::utils::ElementID; 
+use crate::plugin::PelicanUI;
 
 use std::sync::mpsc::{self, Receiver};
 /// A labeled text input with optional help or error messages and an optional icon button.

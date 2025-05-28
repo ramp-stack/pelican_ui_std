@@ -2,7 +2,7 @@ use rust_on_rails::prelude::*;
 use crate::elements::images::Icon;
 use crate::elements::text::{Text, TextStyle};
 use crate::layout::{Offset, Padding, Row, Size};
-use crate::PelicanUI;
+use crate::plugin::PelicanUI;
 
 /// A component that displays a warning message along with a warning icon.
 #[derive(Debug, Component)]

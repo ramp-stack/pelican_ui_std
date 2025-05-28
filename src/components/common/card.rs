@@ -4,7 +4,7 @@ use crate::elements::shapes::{OutlinedRectangle, Rectangle};
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::components::button::ButtonState;
 use crate::layout::{Column, Stack, Bin, Padding, Offset, Size};
-use crate::PelicanUI;
+use crate::plugin::PelicanUI;
 
 /// Represents a `Card` component, often used for marketing or promoting content.
 /// 

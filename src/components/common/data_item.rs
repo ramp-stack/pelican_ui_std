@@ -3,7 +3,7 @@ use crate::elements::text::{Text, ExpandableText, TextStyle};
 use crate::elements::shapes::{Circle, Rectangle};
 use crate::components::button::Button;
 use crate::layout::{Column, Bin, Row, Stack, Padding, Offset, Size};
-use crate::PelicanUI;
+use crate::plugin::PelicanUI;
 
 /// A `DataItem` component. Used to organize and display information.
 #[derive(Debug, Component)]

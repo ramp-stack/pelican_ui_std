@@ -1,5 +1,5 @@
 use rust_on_rails::prelude::*;
-use crate::PelicanUI;
+use crate::plugin::PelicanUI;
 
 /// A component representing an icon that can be displayed in the UI.
 ///

@@ -7,9 +7,9 @@ use crate::components::avatar::{AvatarContent, AvatarRow};
 use crate::components::button::{IconButton, Button};
 use crate::components::text_input::TextInput;
 use crate::elements::text::Text;
-use crate::{PelicanUI, Callback};
-use crate::AppPage;
-use crate::ElementID;
+use crate::plugin::PelicanUI;
+use crate::pages::AppPage;
+use crate::utils::{ElementID, Callback};
 use std::fmt::Debug;
 
 use super::{DesktopInterface, MobileInterface};
@@ -29,8 +29,8 @@ impl Interface {
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.background.primary;
         let (mobile, desktop) = match crate::config::IS_MOBILE {
-            true => (Some(MobileInterface::new(ctx, start_page, navigation)), None),
-            false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)))
+            true => (Some(MobileInterface::new(ctx, Box::new(start_page), navigation)), None),
+            false => (None, Some(DesktopInterface::new(ctx, Box::new(start_page), navigation)))
         };
         Interface(Stack::default(), Rectangle::new(color), mobile, desktop)
     }

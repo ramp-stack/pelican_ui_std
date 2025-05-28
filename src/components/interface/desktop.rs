@@ -5,9 +5,9 @@ use crate::events::{NavigateEvent, NavigatorSelect};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::components::avatar::AvatarContent;
 use crate::components::button::{Button, ButtonState};
-use crate::{PelicanUI, Callback};
-use crate::AppPage;
-use crate::ElementID;
+use crate::plugin::PelicanUI;
+use crate::pages::AppPage;
+use crate::utils::{ElementID, Callback};
 use std::fmt::Debug;
 use super::{NavigationButton, NavigateInfo};
 
@@ -20,7 +20,7 @@ impl DesktopInterface {
     /// Creates a new `DesktopInterface` with optional navigation and profile sections.
     pub fn new(
         ctx: &mut Context, 
-        start_page: impl AppPage,
+        start_page: Box<dyn AppPage>,
         navigation: Option<(usize, Vec<NavigateInfo>)>, // the start index, each button's info
     ) -> Self {
         let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
@@ -33,7 +33,7 @@ impl DesktopInterface {
                 Stack(Offset::default(), Offset::default(), Size::Static(1.0), Size::Fit, Padding::default()), 
                 Rectangle::new(color)
             ),
-            Box::new(start_page)
+            start_page
         )
     }
 

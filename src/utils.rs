@@ -1,3 +1,5 @@
+use rust_on_rails::prelude::*;
+
 use chrono::{DateTime, Local, Datelike, Timelike, TimeZone};
 use serde::{Serialize, Deserialize};
 
@@ -50,3 +52,52 @@ impl Timestamp {
     pub fn date(&self) -> String {self.0.clone()}
     pub fn time(&self) -> String {self.1.clone()}
 }
+
+pub type Callback = Box<dyn FnMut(&mut Context)>;
+
+#[cfg(target_os = "ios")]
+extern "C" {
+    fn trigger_haptic();
+}
+
+#[cfg(target_os = "ios")]
+fn vibrate()  {
+    unsafe {
+        trigger_haptic();
+    }
+}
+
+
+/// Represents a unique identifier for an element in the user interface.
+///
+/// This struct wraps a `Uuid` to ensure each UI element has a unique identifier, which is useful
+/// for tracking and referencing elements throughout the UI system.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ElementID(uuid::Uuid);
+
+impl ElementID {
+    /// Creates a new `ElementID` with a randomly generated UUID.
+    ///
+    /// # Returns
+    ///
+    /// A new `ElementID` with a random UUID.
+    pub fn new() -> Self {
+        ElementID(uuid::Uuid::new_v4())
+    }
+
+    /// Returns the underlying UUID of the `ElementID`.
+    ///
+    /// # Returns
+    ///
+    /// A `uuid::Uuid` representing the unique identifier of the element.
+    pub fn as_uuid(&self) -> uuid::Uuid {
+        self.0
+    }
+}
+
+impl Default for ElementID {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+

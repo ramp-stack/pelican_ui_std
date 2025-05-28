@@ -2,8 +2,8 @@ use rust_on_rails::prelude::*;
 use crate::elements::images::Icon;
 use crate::elements::shapes::{Outline, Circle};
 use crate::layout::{Stack, Offset, Size, Row, Padding};
-use crate::PelicanUI;
-use crate::Callback;
+use crate::plugin::PelicanUI;
+use crate::utils::Callback;
 
 /// A UI component that represents a user avatar, which can be either an icon or an image.
 ///

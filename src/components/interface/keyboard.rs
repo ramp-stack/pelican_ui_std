@@ -6,7 +6,7 @@ use crate::events::KeyboardActiveEvent;
 use crate::elements::text::{Text, TextStyle};
 use crate::components::button::{IconButton, ButtonState};
 use crate::layout::{Stack, Bin, Column, Row, Offset, Size, Padding};
-use crate::PelicanUI;
+use crate::plugin::PelicanUI;
 
 use std::sync::mpsc::{self, Receiver, Sender};
 

@@ -1,6 +1,6 @@
 use rust_on_rails::prelude::*;
 use crate::theme::colors::ButtonColorScheme;
-use crate::PelicanUI;
+use crate::plugin::PelicanUI;
 
 #[allow(clippy::module_inception)]
 mod button;

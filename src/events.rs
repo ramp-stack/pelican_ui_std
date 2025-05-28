@@ -1,5 +1,6 @@
 use rust_on_rails::prelude::*;
-use crate::{ AppPage, ElementID};
+use crate::pages::AppPage;
+use crate::utils::ElementID;
 
 /// Event used to navigate between pages of the app.
 #[derive(Debug)]
