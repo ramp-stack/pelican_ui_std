@@ -130,10 +130,8 @@ impl OnEvent for InputField {
         } else if let Some(SetActiveInput(s)) = event.downcast_ref::<SetActiveInput>() {
             *self.input() = s.to_string();
         } else if let Some(TextInputSelect(id)) = event.downcast_ref::<TextInputSelect>() {
-            if *id != self.5 {
-                if self.3 == InputState::Focus {
-                    if self.4 { self.3 = InputState::Error } else { self.3 = InputState::Default }
-                }
+            if *id != self.5 && self.3 == InputState::Focus {
+                if self.4 { self.3 = InputState::Error } else { self.3 = InputState::Default }
             }
         } else if let Some(KeyboardActiveEvent(enabled)) = event.downcast_ref::<KeyboardActiveEvent>() {
             if !enabled && self.3 == InputState::Focus {

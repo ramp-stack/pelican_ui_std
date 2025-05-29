@@ -2895,6 +2895,7 @@ version = "4.0.2"
 dependencies = [
  "android_logger",
  "async-trait",
+ "block",
  "cli-clipboard",
  "console_error_panic_hook",
  "console_log",

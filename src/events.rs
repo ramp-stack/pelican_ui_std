@@ -7,7 +7,7 @@ use crate::utils::ElementID;
 pub struct NavigateEvent(pub Option<Box<dyn AppPage>>, pub bool);
 
 impl Event for NavigateEvent {
-    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
+    fn pass(self: Box<Self>, _ctx: &mut Context, _children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
         vec![if self.0.is_some() {Some(self)} else {None}]
     }
 }

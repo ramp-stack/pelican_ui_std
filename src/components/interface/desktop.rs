@@ -1,13 +1,12 @@
 use rust_on_rails::prelude::*;
 use crate::elements::shapes::{Rectangle};
 use crate::elements::images::Brand;
-use crate::events::{NavigateEvent, NavigatorSelect};
+use crate::events::NavigatorSelect;
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
-use crate::components::avatar::AvatarContent;
 use crate::components::button::{Button, ButtonState};
 use crate::plugin::PelicanUI;
 use crate::plugin::AppPage;
-use crate::utils::{ElementID, Callback};
+use crate::utils::ElementID;
 use std::fmt::Debug;
 use super::{NavigationButton, NavigateInfo};
 
@@ -105,11 +104,8 @@ impl DesktopNavigator {
             }
         }
 
-        // if any NavigateInfo has an AvatarContent, create
-
         let theme = &ctx.get::<PelicanUI>().theme;
         let (wordmark, color) = (theme.brand.wordmark.clone(), theme.colors.shades.transparent);
-        let profile_id = ElementID::new();
 
         DesktopNavigator(
             Column::new(32.0, Offset::Center, Size::Fill(100.0, 200.0), Padding(16.0, 32.0, 16.0, 32.0)),

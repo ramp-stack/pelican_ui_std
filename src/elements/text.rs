@@ -101,7 +101,6 @@ pub struct TextEditor(Stack, Option<Text>, Option<ExpandableText>, TextCursor);
 
 impl TextEditor {
     pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align, can_expand: bool) -> Self {
-        let (color, font) = style.get(ctx);
         let (t, et) = match can_expand {
             true => (None, Some(ExpandableText::new_with_cursor(ctx, text, style, size, align))),
             false => (Some(Text::new_with_cursor(ctx, text, style, size, align)), None)
@@ -129,7 +128,7 @@ impl TextEditor {
 
     pub fn apply_edit(&mut self, ctx: &mut Context, key: &Key) {
         if let Some((i, _)) = self.text().cursor_action(ctx.as_canvas(), CursorAction::GetIndex) {
-            let mut new_text = self.text().spans[0].text.clone();
+            let new_text = self.text().spans[0].text.clone();
             println!("HERE {:?}", new_text);
             match key {
                 Key::Named(NamedKey::Enter) => {

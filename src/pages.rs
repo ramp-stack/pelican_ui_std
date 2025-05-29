@@ -16,7 +16,7 @@ impl Error {
         let text = Text::new(ctx, "Something went wrong.", TextStyle::Heading, text_size, Align::Left);
         let content = Content::new(Offset::Center, vec![Box::new(illustration), Box::new(text)]);
 
-        let button = Button::primary(ctx, "Try Again", move |ctx: &mut Context| {
+        let button = Button::primary(ctx, "Try Again", move |_ctx: &mut Context| {
             // ctx.state().get::<HomePage>().go()
         });
 

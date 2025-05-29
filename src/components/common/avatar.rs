@@ -119,7 +119,7 @@ impl MainAvatar {
 
                 self.1 = None;
             }
-            AvatarContent::Icon(name, style) => {/* to do */}
+            AvatarContent::Icon(_name, _style) => {/* to do */}
         };
     }
 }

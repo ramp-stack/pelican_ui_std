@@ -9,7 +9,7 @@ use crate::components::text_input::TextInput;
 use crate::elements::text::Text;
 use crate::plugin::PelicanUI;
 use crate::plugin::AppPage;
-use crate::utils::{ElementID, Callback};
+use crate::utils::ElementID;
 use std::fmt::Debug;
 
 use super::{DesktopInterface, MobileInterface};
@@ -37,7 +37,7 @@ impl Interface {
 }
 
 impl OnEvent for Interface {
-    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigateEvent(page, has_nav)) = event.downcast_mut::<NavigateEvent>() {
             let page = page.take().unwrap();
 
@@ -137,7 +137,7 @@ impl OnEvent for Content {
         if let Some(TextInputSelect(id)) = event.downcast_ref::<TextInputSelect>() {
             println!("TEXT INPUT WAS SELECTED");
             let mut total_height = 0.0;
-            for item in self.items().into_iter() {
+            for item in self.items().iter_mut() {
                 match item.as_any_mut().downcast_mut::<TextInput>() {
                     Some(input) if input.get_id() == *id => {
                         println!("FOUND INPUT FIELD, ADJUSTING SCROLL TO {:?}", total_height);
