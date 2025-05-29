@@ -6,7 +6,7 @@ use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::components::avatar::AvatarContent;
 use crate::components::button::{Button, ButtonState};
 use crate::plugin::PelicanUI;
-use crate::pages::AppPage;
+use crate::plugin::AppPage;
 use crate::utils::{ElementID, Callback};
 use std::fmt::Debug;
 use super::{NavigationButton, NavigateInfo};

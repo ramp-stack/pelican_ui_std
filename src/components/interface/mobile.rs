@@ -1,12 +1,10 @@
 use rust_on_rails::prelude::*;
-use crate::events::{KeyboardActiveEvent, NavigateEvent, NavigatorSelect};
+use crate::events::{KeyboardActiveEvent, NavigatorSelect};
 use crate::layout::{Column, Row, Padding, Offset, Size, Opt, Stack, Bin};
-use crate::components::avatar::AvatarContent;
 use crate::components::button::{IconButton, ButtonState};
 use crate::elements::shapes::Rectangle;
 use crate::plugin::PelicanUI;
-use crate::utils::Callback;
-use crate::pages::AppPage;
+use crate::plugin::AppPage;
 use crate::utils::ElementID;
 use std::fmt::Debug;
 use super::{NavigationButton, NavigateInfo, MobileKeyboard};

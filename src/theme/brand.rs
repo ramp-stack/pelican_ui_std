@@ -85,24 +85,10 @@ pub struct Illustrations(HashMap<&'static str, resources::Image>);
 
 impl Illustrations {
     /// Loads the default set of illustrations for the brand.
-    ///
-    /// This method loads a predefined set of illustrations from the application's resource folder. Illustrations can be
-    /// accessed by their name using the `get` method.
-    ///
-    /// # Parameters:
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    ///
-    /// # Returns
-    /// A new `Illustrations` instance with the default illustrations.
-    ///
-    /// # Example:
-    /// ```rust
-    /// let mut ctx = Context::new();
-    /// let default_illustrations = Illustrations::default(&mut ctx);
-    /// ```
     pub fn default(ctx: &mut Context) -> Self {
         let mut illustrations = HashMap::new();
 
+        illustrations.insert("error", ctx.add_svg(&ctx.load_file("brand/illustrations/error.svg").unwrap(), 8.0));
         illustrations.insert("dodo", ctx.add_svg(&ctx.load_file("brand/illustrations/dodo.svg").unwrap(), 8.0));
         illustrations.insert("hummingbird", ctx.add_svg(&ctx.load_file("brand/illustrations/hummingbird.svg").unwrap(), 8.0));
         illustrations.insert("toucan", ctx.add_svg(&ctx.load_file("brand/illustrations/toucan.svg").unwrap(), 8.0));
@@ -112,39 +98,11 @@ impl Illustrations {
     }
 
     /// Retrieves an illustration by its name.
-    ///
-    /// This method looks up an illustration by its name and returns a clone of the associated `resources::Image`.
-    /// If the illustration is not found, it will panic.
-    ///
-    /// # Parameters:
-    /// - `name`: The name of the illustration to retrieve.
-    ///
-    /// # Returns
-    /// A clone of the `resources::Image` associated with the given name.
-    ///
-    /// # Panics
-    /// If the illustration is not found, it will panic with a message indicating the missing illustration name.
-    ///
-    /// # Example:
-    /// ```rust
-    /// let illustration = illustrations.get("dodo");
-    /// ```
     pub fn get(&self, name: &'static str) -> resources::Image {
         self.0.get(name).unwrap_or_else(|| panic!("Could not find illustration {:?}", name)).clone()
     }
 
     /// Adds or updates an illustration in the collection.
-    ///
-    /// This method either inserts a new illustration or updates an existing one in the collection.
-    ///
-    /// # Parameters:
-    /// - `name`: The name of the illustration.
-    /// - `illustration`: The new or updated `resources::Image` to associate with the name.
-    ///
-    /// # Example:
-    /// ```rust
-    /// illustrations.add_illustration("new_icon", new_illustration);
-    /// ```
     pub fn add_illustration(&mut self, name: &'static str, illustration: resources::Image) {
         if let Some(existing) = self.0.get_mut(&name) {
             *existing = illustration; 

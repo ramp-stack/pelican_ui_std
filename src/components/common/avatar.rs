@@ -56,6 +56,8 @@ impl Avatar {
         )
     }
 
+    pub fn set_content(&mut self, content: AvatarContent)  {self.1.set_content(content)}
+
     /// Gets a mutable reference to the optional [`Flair`] component.
     pub fn flair(&mut self) -> &mut Option<Flair> {&mut self.2}
     /// Gets a mutable reference to the optional [`Outline`] component.
@@ -103,6 +105,22 @@ impl MainAvatar {
             Stack(Offset::Center, Offset::Center, Size::Fit, Size::Fit, Padding::default()),
             circle_icon, image, outline.then(|| Outline::circle(size, black)),
         )
+    }
+
+    fn set_content(&mut self, content: AvatarContent) {
+        match content {
+            AvatarContent::Image(image) => {
+                if let Some(avatar_image) = &mut self.2 {
+                    avatar_image.image = image;
+                } else {
+                    let size = self.1.as_mut().unwrap().1.shape.size().0 + 2.0;
+                    self.2 = Some(Image{shape: ShapeType::Ellipse(0.0, (size, size)), image, color: None});
+                }
+
+                self.1 = None;
+            }
+            AvatarContent::Icon(name, style) => {/* to do */}
+        };
     }
 }
 

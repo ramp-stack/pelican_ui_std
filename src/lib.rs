@@ -27,12 +27,10 @@ pub mod plugin;
 
 use crate::theme::Theme;
 
-
-
 /// A prelude module for easier access to the key components of the PelicanUI system.
 pub mod prelude {
-    pub use crate::pages::AppPage; 
-    pub use crate::pages::macros::AppPage;
+    pub use crate::plugin::AppPage; 
+    pub use crate::plugin::macros::AppPage;
     pub use crate::pages::*;
     pub use crate::events::*;
     pub use crate::layout::*;
@@ -44,3 +42,14 @@ pub mod prelude {
     pub use crate::plugin::*;
 }
 
+#[cfg(target_os = "ios")]
+extern "C" {
+    fn trigger_haptic();
+}
+
+#[cfg(target_os = "ios")]
+fn vibrate()  {
+    unsafe {
+        trigger_haptic();
+    }
+}

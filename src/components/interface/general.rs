@@ -8,7 +8,7 @@ use crate::components::button::{IconButton, Button};
 use crate::components::text_input::TextInput;
 use crate::elements::text::Text;
 use crate::plugin::PelicanUI;
-use crate::pages::AppPage;
+use crate::plugin::AppPage;
 use crate::utils::{ElementID, Callback};
 use std::fmt::Debug;
 

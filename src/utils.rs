@@ -55,17 +55,7 @@ impl Timestamp {
 
 pub type Callback = Box<dyn FnMut(&mut Context)>;
 
-#[cfg(target_os = "ios")]
-extern "C" {
-    fn trigger_haptic();
-}
 
-#[cfg(target_os = "ios")]
-fn vibrate()  {
-    unsafe {
-        trigger_haptic();
-    }
-}
 
 
 /// Represents a unique identifier for an element in the user interface.

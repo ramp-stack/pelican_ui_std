@@ -21,3 +21,19 @@ impl Plugin for PelicanUI {
         (PelicanUI { theme: Theme::default(ctx) }, vec![])
     }
 }
+
+// state that takes in a return page, stores it, then navigates to the error page and navigates to the stored page on 'try again'
+
+pub trait AppPage: Drawable + std::fmt::Debug + 'static {
+    fn into_boxed(self) -> Box<dyn AppPage> where Self: Sized {
+        Box::new(self) as Box<dyn AppPage>
+    }
+}
+
+// dyn_clone::clone_trait_object!(AppPage);
+
+pub use pelican_macro::AppPage as derive_AppPage;
+
+pub mod macros {
+    pub use pelican_macro::AppPage;
+}
