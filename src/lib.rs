@@ -41,15 +41,3 @@ pub mod prelude {
     pub use crate::config::*;
     pub use crate::plugin::*;
 }
-
-#[cfg(target_os = "ios")]
-extern "C" {
-    fn trigger_haptic();
-}
-
-#[cfg(target_os = "ios")]
-fn vibrate()  {
-    unsafe {
-        trigger_haptic();
-    }
-}

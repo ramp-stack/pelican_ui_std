@@ -68,8 +68,7 @@ impl OnEvent for Avatar {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(MouseEvent{state: MouseState::Pressed, position: Some(_)}) = event.as_any_mut().downcast_mut::<MouseEvent>() {
             if let Some(on_click) = &mut self.3 {
-                #[cfg(target_os = "ios")]
-                crate::vibrate();
+                ctx.vibrate();
                 (on_click)(ctx)
             }
         }

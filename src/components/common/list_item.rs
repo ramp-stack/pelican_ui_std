@@ -80,8 +80,7 @@ impl OnEvent for ListItem {
                 }
                 match self.3 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
-                        #[cfg(target_os = "ios")]
-                        crate::vibrate();
+                        ctx.vibrate();
                         (self.4)(ctx)
                     },
                     _ => {}

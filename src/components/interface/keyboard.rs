@@ -235,8 +235,7 @@ impl OnEvent for Key {
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.2 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
-                        #[cfg(target_os = "ios")]
-                        crate::vibrate();
+                        ctx.vibrate();
                         ctx.trigger_event(KeyboardEvent{state: KeyboardState::Pressed, key: self.3.clone()})
                     },
                     _ => {}
@@ -289,8 +288,7 @@ impl OnEvent for Capslock {
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.2 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
-                        #[cfg(target_os = "ios")]
-                        crate::vibrate();
+                        ctx.vibrate();
                         self.4.send(0).unwrap();
                     }
                     _ => {}
@@ -333,8 +331,7 @@ impl OnEvent for Paginator {
             };
 
             if event.state == MouseState::Pressed && event.position.is_some() {
-                #[cfg(target_os = "ios")]
-                crate::vibrate();
+                ctx.vibrate();
 
                 let (highlight, dim) = (colors.text.heading, colors.text.secondary);
                 let next = if self.3 == 2 { 0 } else { self.3 + 1 };

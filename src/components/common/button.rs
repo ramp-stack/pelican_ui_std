@@ -61,13 +61,12 @@ impl ButtonState {
     /// ```rust
     /// button_state.handle(&mut ctx, event);
     /// ```
-    pub fn handle(&mut self, _ctx: &mut Context, event: MouseEvent) -> Option<Self> {
+    pub fn handle(&mut self, ctx: &mut Context, event: MouseEvent) -> Option<Self> {
         let state = match self {
             ButtonState::Default | ButtonState::UnSelected if event.position.is_some() => {
                 match event.state {
                     MouseState::Pressed => {
-                        #[cfg(target_os = "ios")]
-                        crate::vibrate();
+                        ctx.vibrate();
                         Some(ButtonState::Pressed)
                     },
                     MouseState::Moved => Some(if crate::config::IS_MOBILE {ButtonState::Default} else {ButtonState::Hover}),
