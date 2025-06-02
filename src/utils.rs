@@ -1,4 +1,5 @@
 use rust_on_rails::prelude::*;
+use image::DynamicImage;
 
 use chrono::{DateTime, Local, Datelike, Timelike, TimeZone};
 use serde::{Serialize, Deserialize};
@@ -91,19 +92,3 @@ impl Default for ElementID {
     }
 }
 
-
-use image::{imageops, RgbaImage, DynamicImage};
-
-pub fn rotate_image_from(image: DynamicImage, orientation: ImageOrientation) -> DynamicImage {
-    println!("Image Orientation was {:?}", orientation);
-    match orientation {
-        ImageOrientation::Up => return image,
-        ImageOrientation::Down => return image.rotate180(),
-        ImageOrientation::Left => return image.rotate270(),
-        ImageOrientation::Right => return image.rotate90(),
-        ImageOrientation::UpMirrored => return image.fliph(),
-        ImageOrientation::DownMirrored => return image.fliph().rotate180(),
-        ImageOrientation::LeftMirrored => return image.fliph().rotate90(),
-        ImageOrientation::RightMirrored => return image.fliph().rotate270()
-    };
-}
