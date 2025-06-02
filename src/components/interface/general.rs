@@ -170,23 +170,6 @@ impl ContentChildren {
 }
 
 
-#[cfg(target_os = "ios")]
-extern "C" {
-    fn get_safe_area_insets() -> *const f64;
-}
-
-#[cfg(target_os = "ios")]
-pub fn safe_area_insets() -> (f32, f32, f32, f32) {
-    unsafe {
-        let ptr = get_safe_area_insets();
-        (
-            *ptr.add(0) as f32, // top
-            *ptr.add(1) as f32, // bottom
-            *ptr.add(2) as f32, // left
-            *ptr.add(3) as f32, // right
-        )
-    }
-}
 /// `Header` is a component that displays a header section with customizable icons and content.
 /// It allows different layouts, such as a home screen, a stack of buttons, or a chat interface.
 ///
