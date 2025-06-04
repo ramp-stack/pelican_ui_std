@@ -10,8 +10,6 @@
 pub mod events;
 /// Modular for config
 pub mod config;
-/// Modular for UI theme (fonts, icons, colors, etc.)
-pub mod theme;
 /// Modular for UI layouts (rows, columns, stacks, etc.)
 pub mod layout;
 /// Modular for UI primitive elements (text, images, shapes, etc.)
@@ -20,24 +18,14 @@ pub mod elements;
 pub mod components;
 /// Modular for helper functions and objects
 pub mod utils;
-
 pub mod pages;
 
-pub mod plugin;
-
-use crate::theme::Theme;
-
-/// A prelude module for easier access to the key components of the PelicanUI system.
-pub mod prelude {
-    pub use crate::plugin::AppPage; 
-    pub use crate::plugin::macros::AppPage;
-    pub use crate::pages::*;
-    pub use crate::events::*;
-    pub use crate::layout::*;
-    pub use crate::components::*;
-    pub use crate::elements::*;
-    pub use crate::theme::*;
-    pub use crate::utils::*;
-    pub use crate::config::*;
-    pub use crate::plugin::*;
-}
+pub use crate::utils::AppPage; 
+pub use crate::utils::macros::AppPage;
+pub use crate::pages::*;
+pub use crate::events::*;
+pub use crate::layout::*;
+pub use crate::components::*;
+pub use crate::elements::*;
+pub use crate::utils::*;
+pub use crate::config::*;

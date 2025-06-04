@@ -1,56 +1,29 @@
-use rust_on_rails::prelude::*;
+use pelican_ui::events::{OnEvent, Event, TickEvent};
+use pelican_ui::drawable::{Drawable, Component};
+use pelican_ui::layout::{Area, SizeRequest, Layout};
+use pelican_ui::{Context, Component};
+
 use crate::events::{KeyboardActiveEvent, NavigatorSelect};
 use crate::layout::{Column, Row, Padding, Offset, Size, Opt, Stack, Bin};
 use crate::components::button::{IconButton, ButtonState};
 use crate::elements::shapes::Rectangle;
-use crate::plugin::PelicanUI;
-use crate::plugin::AppPage;
+use crate::AppPage;
 use crate::utils::ElementID;
 use std::fmt::Debug;
 use super::{NavigationButton, NavigateInfo, MobileKeyboard};
 
-
-/// `MobileInterface` is a component that represents the mobile user interface. It consists of a column layout, a main 
-/// application page, an optional mobile navigator, and an optional mobile keyboard. This interface is ideal for 
-/// structuring mobile app UIs that need navigation and interactivity, supporting elements like profiles and app pages.
-///
-/// Example:
-/// ```rust
-/// let navigation = vec![
-///     ("home", "Home", Box::new(|ctx| { println!("Navigating to Home!"); })),
-///     ("settings", "Settings", Box::new(|ctx| { println!("Navigating to Settings!"); }))
-/// ];
-/// let profile = ("Profile", AvatarContent::new(), Box::new(|ctx| { println!("Opening profile..."); }));
-/// let mobile_interface = MobileInterface::new(&mut ctx, HomePage::new(), Some(0), Some(navigation), Some(profile));
-/// ```
 #[derive(Debug, Component)]
 pub struct MobileInterface (Column, Bin<Stack, Rectangle>, Box<dyn AppPage>, Option<MobileKeyboard>, Option<Opt<MobileNavigator>>, Bin<Stack, Rectangle>);
 
 impl MobileInterface {
-    /// Creates a new `MobileInterface` with the specified starting page, navigation, and optional profile.
-    ///
-    /// - `start_page`: The starting page of the app, which should implement the `AppPage` trait.
-    /// - `start_index`: The index of the starting navigation item (if provided).
-    /// - `navigation`: An optional vector of navigation items (ID, label, and callback function) to be used in the mobile navigator.
-    /// - `profile`: An optional tuple containing the profile label, avatar content, and callback function to open the profile view.
-    ///
-    /// Example usage:
-    /// ```rust
-    /// let navigation = vec![
-    ///     ("home", "Home", Box::new(|ctx| { println!("Navigating to Home!"); })),
-    ///     ("settings", "Settings", Box::new(|ctx| { println!("Navigating to Settings!"); }))
-    /// ];
-    /// let profile = ("Profile", AvatarContent::new(), Box::new(|ctx| { println!("Opening profile..."); }));
-    /// let mobile_interface = MobileInterface::new(&mut ctx, HomePage::new(), Some(0), Some(navigation), Some(profile));
-    /// ```
     pub fn new(
         ctx: &mut Context, 
         start_page: Box<dyn AppPage>,
         navigation: Option<(usize, Vec<NavigateInfo>)>
     ) -> Self {
-        let background = ctx.get::<PelicanUI>().theme.colors.background.primary;
+        let background = ctx.theme.colors.background.primary;
         let navigator = navigation.map(|n| Opt::new(MobileNavigator::new(ctx, n), true));
-        let insets = ctx.safe_area_insets();
+        let insets = (0.0, 0.0, 0.0, 0.0); // ctx.safe_area_insets();
         
         MobileInterface(
             Column::new(0.0, Offset::Center, Size::Fit, Padding::default()), 
@@ -81,19 +54,6 @@ impl OnEvent for MobileInterface {
     }
 }
 
-/// `MobileNavigator` is a component used for navigation in mobile interfaces. It displays a row of navigation buttons
-/// (either icons or text) that the user can interact with. The navigation buttons can be configured with different
-/// actions, such as switching pages or opening profile views.
-///
-/// Example:
-/// ```rust
-/// let navigation = vec![
-///     ("home", "Home", Box::new(|ctx| { println!("Navigating to Home!"); })),
-///     ("settings", "Settings", Box::new(|ctx| { println!("Navigating to Settings!"); }))
-/// ];
-/// let profile = ("Profile", AvatarContent::new(), Box::new(|ctx| { println!("Opening profile..."); }));
-/// let mobile_nav = MobileNavigator::new(&mut ctx, 0, navigation, profile);
-/// ```
 #[derive(Debug, Component)]
 pub struct MobileNavigator(Stack, Rectangle, MobileNavigatorContent);
 
@@ -104,7 +64,7 @@ impl MobileNavigator {
     ) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         let height = Size::custom(move |heights: Vec<(f32, f32)>|(heights[1].0, heights[1].1));
-        let background = ctx.get::<PelicanUI>().theme.colors.background.primary;
+        let background = ctx.theme.colors.background.primary;
 
         MobileNavigator(
             Stack(Offset::Center, Offset::Start, width, height, Padding::default()), Rectangle::new(background),

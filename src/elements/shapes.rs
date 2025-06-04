@@ -1,4 +1,8 @@
-use rust_on_rails::prelude::*;
+use pelican_ui::events::OnEvent;
+use pelican_ui::drawable::{Drawable, Component, ShapeType, Shape, Color};
+use pelican_ui::layout::{Area, SizeRequest, Layout};
+use pelican_ui::{Context, Component};
+
 use crate::layout::Stack;
 
 /// Represents a rectangle with a background and an outline, both of which are rounded.

@@ -1,8 +1,20 @@
-use rust_on_rails::prelude::*;
-use image::DynamicImage;
-
 use chrono::{DateTime, Local, Datelike, Timelike, TimeZone};
 use serde::{Serialize, Deserialize};
+
+use pelican_ui::drawable::Drawable;
+use pelican_ui::Context;
+
+pub trait AppPage: Drawable + std::fmt::Debug + 'static {
+    fn into_boxed(self) -> Box<dyn AppPage> where Self: Sized {
+        Box::new(self) as Box<dyn AppPage>
+    }
+}
+
+pub use pelican_macro::AppPage as derive_AppPage;
+
+pub mod macros {
+    pub use pelican_macro::AppPage;
+}
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Timestamp(String, String); // date, time (move to pelican)

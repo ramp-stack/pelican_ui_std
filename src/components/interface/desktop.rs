@@ -1,28 +1,29 @@
-use rust_on_rails::prelude::*;
+use pelican_ui::events::{OnEvent, Event};
+use pelican_ui::drawable::{Drawable, Component, Image};
+use pelican_ui::layout::{Area, SizeRequest, Layout};
+use pelican_ui::{Context, Component};
+
 use crate::elements::shapes::{Rectangle};
 use crate::elements::images::Brand;
 use crate::events::NavigatorSelect;
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::components::button::{Button, ButtonState};
-use crate::plugin::PelicanUI;
-use crate::plugin::AppPage;
+use crate::AppPage;
 use crate::utils::ElementID;
 use std::fmt::Debug;
 use super::{NavigationButton, NavigateInfo};
 
-/// Main layout for desktop views with optional navigation.
 #[derive(Debug, Component)]
 pub struct DesktopInterface (Row, Option<DesktopNavigator>, Bin<Stack, Rectangle>, Box<dyn AppPage>);
 impl OnEvent for DesktopInterface {}
 
 impl DesktopInterface {
-    /// Creates a new `DesktopInterface` with optional navigation and profile sections.
     pub fn new(
         ctx: &mut Context, 
         start_page: Box<dyn AppPage>,
-        navigation: Option<(usize, Vec<NavigateInfo>)>, // the start index, each button's info
+        navigation: Option<(usize, Vec<NavigateInfo>)>,
     ) -> Self {
-        let color = ctx.get::<PelicanUI>().theme.colors.outline.secondary;
+        let color = ctx.theme.colors.outline.secondary;
         let navigator = navigation.map(|n| DesktopNavigator::new(ctx, n));
 
         DesktopInterface(
@@ -41,49 +42,14 @@ impl DesktopInterface {
     }
 }
 
-/// `DesktopNavigator` is a component that displays a set of navigation buttons along with a profile button.
-/// It allows users to navigate between different sections of the app. Each navigation button can trigger a callback
-/// when clicked, and the profile button opens a profile page or performs some action.
-///
-/// Example:
-/// ```rust
-/// let navigation_items = vec![
-///     ("Home", "home_icon", Box::new(|ctx: &mut Context| { println!("Home clicked!"); })),
-///     ("Settings", "settings_icon", Box::new(|ctx: &mut Context| { println!("Settings clicked!"); })),
-///     ("Profile", "profile_icon", Box::new(|ctx: &mut Context| { println!("Profile clicked!"); })),
-/// ];
-///
-/// let profile_data = (
-///     "Profile", 
-///     AvatarContent::new("profile_image"), // Assuming AvatarContent::new() sets up an avatar image
-///     Box::new(|ctx: &mut Context| { println!("Profile button clicked!"); })
-/// );
-///
-/// let desktop_navigator = DesktopNavigator::new(
-///     &mut ctx,            // Context passed for UI initialization
-///     0,                   // Start with "Home" tab selected (index 0)
-///     navigation_items,    // List of navigation items
-///     profile_data         // Profile button data
-/// );
-/// ```
 #[derive(Debug, Component)]
 pub struct DesktopNavigator(Column, Image, ButtonColumn, Bin<Stack, Rectangle>, ButtonColumn);
 
 impl DesktopNavigator {
-    /// Creates a new `DesktopNavigator` with navigation tabs and a profile button.
-    ///
-    /// - `start_index`: initially selected navigation index.
-    /// - `navigation`: list of label/icon/callback tuples for nav items.
-    /// - `profile`: label, avatar, and callback for the profile button.
-    ///
-    /// # Panics
-    /// Panics if the `navigation` list is empty.
     pub fn new(
         ctx: &mut Context,
         navigation: (usize, Vec<NavigateInfo>),
     ) -> Self {
-        // pub type NavigateInfo = (&'static str, &str, Option<AvatarContent>, Box<dyn AppPage>);
-        // icon name, name, avatar, page link
 
         let mut top_col = Vec::new();
         let mut bot_col = Vec::new();
@@ -104,7 +70,7 @@ impl DesktopNavigator {
             }
         }
 
-        let theme = &ctx.get::<PelicanUI>().theme;
+        let theme = &ctx.theme;
         let (wordmark, color) = (theme.brand.wordmark.clone(), theme.colors.shades.transparent);
 
         DesktopNavigator(

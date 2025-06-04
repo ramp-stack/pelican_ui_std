@@ -1,41 +1,17 @@
-use rust_on_rails::prelude::*;
+use pelican_ui::events::{OnEvent, MouseState, Event, MouseEvent};
+use pelican_ui::drawable::{Drawable, Component, Align};
+use pelican_ui::layout::{Area, SizeRequest, Layout};
+use pelican_ui::{Context, Component};
+
 use crate::elements::text::{Text, TextStyle};
 use crate::elements::shapes::{OutlinedRectangle, Rectangle};
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::components::button::ButtonState;
 use crate::layout::{Column, Stack, Bin, Padding, Offset, Size};
-use crate::plugin::PelicanUI;
 
-/// Represents a `Card` component, often used for marketing or promoting content.
-/// 
-/// A `Card` is a UI element commonly used to display information with visual hierarchy. It typically
-/// includes elements like an avatar, title, subtitle, description, and a button to trigger actions
-/// like clicks for more information. The card is styled with a background and an outline, and has
-/// an on-click callback for interaction.
 #[derive(Debug, Component)]
 pub struct Card(Stack, OutlinedRectangle, CardContent, #[skip] ButtonState, #[skip] fn(&mut Context) -> ());
 impl Card {
-    /// Creates a new `Card` component.
-    ///
-    /// This method constructs a new card with an avatar, title, subtitle, description, and an
-    /// `on_click` callback. The card is styled with a background color and an outline, and is laid out
-    /// using a stack arrangement. This card can be used to promote or market content in a UI.
-    ///
-    /// # Parameters:
-    /// - **`ctx`**: The [`Context`] for accessing the app's theme.
-    /// - **`avatar`**: The avatar content to display in the card (can be an image or icon).
-    /// - **`title`**: The main title for the card (usually displayed prominently).
-    /// - **`subtitle`**: A secondary title or tagline that provides more context.
-    /// - **`description`**: A longer description or information about the content being promoted.
-    /// - **`on_click`**: A function that will be executed when the card is clicked.
-    ///
-    /// # Returns:
-    /// - **`Card`**: The constructed `Card` component.
-    ///
-    /// # Example:
-    /// ```rust
-    /// let card = Card::new(ctx, AvatarContent::Image(image), "My Title", "Subtitle", "This is a description", on_click_fn);
-    /// ```
     pub fn new(
         ctx: &mut Context,
         avatar: AvatarContent, 
@@ -44,7 +20,7 @@ impl Card {
         description: &str,
         on_click: fn(&mut Context) -> (),
     ) -> Self {
-        let colors = ctx.get::<PelicanUI>().theme.colors;
+        let colors = ctx.theme.colors;
         let (bg, oc) = (colors.background.primary, colors.outline.secondary);
         let background = OutlinedRectangle::new(bg, oc, 16.0, 1.0);
         let content = CardContent::new(ctx, avatar, title, subtitle, description);
@@ -85,7 +61,7 @@ impl CardContent {
         subtitle: &str, 
         description: &str
     ) -> Self {
-        let theme = &ctx.get::<PelicanUI>().theme;
+        let theme = &ctx.theme;
         let (font_size, color) = (theme.fonts.size, theme.colors.outline.secondary);
         CardContent(
             Column::new(8.0, Offset::Center, Size::Fit, Padding(16.0, 16.0, 16.0, 16.0)),

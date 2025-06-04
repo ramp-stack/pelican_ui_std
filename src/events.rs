@@ -1,5 +1,7 @@
-use rust_on_rails::prelude::*;
-use crate::plugin::AppPage;
+use pelican_ui::events::Event;
+use pelican_ui::Context;
+
+use crate::AppPage;
 use crate::utils::ElementID;
 
 /// Event used to navigate between pages of the app.

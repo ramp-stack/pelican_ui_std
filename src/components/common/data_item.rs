@@ -1,47 +1,18 @@
-use rust_on_rails::prelude::*;
+use pelican_ui::events::OnEvent;
+use pelican_ui::drawable::{Drawable, Component, Align, Shape};
+use pelican_ui::layout::{Area, SizeRequest, Layout};
+use pelican_ui::{Context, Component};
+
 use crate::elements::text::{Text, ExpandableText, TextStyle};
 use crate::elements::shapes::{Circle, Rectangle};
 use crate::components::button::Button;
 use crate::layout::{Column, Bin, Row, Stack, Padding, Offset, Size};
-use crate::plugin::PelicanUI;
 
-/// A `DataItem` component. Used to organize and display information.
 #[derive(Debug, Component)]
 pub struct DataItem(Row, Option<Number>, DataItemContent);
 impl OnEvent for DataItem {}
 
 impl DataItem {
-    /// Creates a new `DataItem` component.
-    ///
-    /// This method constructs a new `DataItem` with a number, label, optional text, secondary text,
-    /// a table of key-value pairs, and quick actions that can be performed (buttons).
-    ///
-    /// # Parameters:
-    /// - **`ctx`**: The [`Context`] for accessing the app's theme.
-    /// - **`number`**: An optional static string representing a number associated with the item (e.g., a count or value).
-    /// - **`label`**: The main label that represents the data item (e.g., the name of the item).
-    /// - **`text`**: An optional string representing additional text to display alongside the label.
-    /// - **`secondary`**: An optional string for secondary text to display under the label or text.
-    /// - **`table`**: An optional vector of tuples, each containing a pair of static strings, which can represent a table of key-value pairs.
-    /// - **`quick_actions`**: An optional vector of `Button` components representing actions that can be performed on the data item (e.g., buttons for editing, deleting, etc.).
-    ///
-    /// # Returns:
-    /// - **`DataItem`**: The constructed `DataItem` component, ready for display.
-    ///
-    /// # Example:
-    /// ```rust
-    /// let quick_actions = vec![Button::secondary(ctx, Some("edit"), "Edit", None)];
-    /// let table = vec![("Key1", "Value1"), ("Key2", "Value2")];
-    /// let data_item = DataItem::new(
-    ///     ctx, 
-    ///     Some("1"),
-    ///     "Item Label",
-    ///     Some("Some additional text"), 
-    ///     Some("Secondary Text"),
-    ///     Some(table),
-    ///     Some(quick_actions)
-    /// );
-    /// ```
     pub fn new(
         ctx: &mut Context,
         number: Option<&str>,
@@ -65,7 +36,7 @@ impl OnEvent for Number {}
 
 impl Number {
     pub fn new(ctx: &mut Context, txt: &str) -> Self {
-        let theme = &ctx.get::<PelicanUI>().theme;
+        let theme = &ctx.theme;
         let (color, font_size) = (theme.colors.background.secondary, theme.fonts.size.h5);
         Number(
             Stack::center(),
@@ -88,7 +59,7 @@ impl DataItemContent {
         table: Option<Vec<(&str, &str)>>,
         quick_actions: Option<Vec<Button>>,
     ) -> Self {
-        let font_size = ctx.get::<PelicanUI>().theme.fonts.size;
+        let font_size = ctx.theme.fonts.size;
         DataItemContent(
             Column::new(16.0, Offset::Start, Size::fill(), Padding::default()),
             Text::new(ctx, label, TextStyle::Heading, font_size.h5, Align::Left),
@@ -119,7 +90,7 @@ impl OnEvent for Tabular {}
 
 impl Tabular {
     fn new(ctx: &mut Context, name: &str, data: &str) -> Self {
-        let theme = &ctx.get::<PelicanUI>().theme;
+        let theme = &ctx.theme;
         let (font_size, color) = (theme.fonts.size.sm, theme.colors.shades.transparent);
         Tabular (
             Row::new(8.0, Offset::Start, Size::Fit, Padding(0.0, 4.0, 0.0, 4.0)),

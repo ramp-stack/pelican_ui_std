@@ -14,7 +14,7 @@ pub fn derive_app_page(input: TokenStream) -> TokenStream {
             pub fn navigate(ctx: &mut Context) {
                 let page = #name::new(ctx);
                 let has_nav = page.2;
-                ctx.trigger_event(NavigateEvent(Some(page.into_boxed()), has_nav));
+                ctx.trigger_event(crate::NavigateEvent(Some(page.into_boxed()), has_nav));
             }
         }        
     };

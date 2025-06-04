@@ -1,4 +1,8 @@
-use rust_on_rails::prelude::*;
+use pelican_ui::events::{MouseState, MouseEvent, OnEvent, Event};
+use pelican_ui::drawable::{Drawable, Component, Image, Color, Align};
+use pelican_ui::layout::{Area, SizeRequest, Layout};
+use pelican_ui::{Context, Component};
+
 use crate::components::avatar::{Avatar, AvatarContent};
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
@@ -7,17 +11,12 @@ use crate::layout::{Offset, Padding, Row, Size, Stack, Wrap};
 
 use super::{ButtonSize, ButtonState, ButtonStyle};
 
-/// Defines the width behavior for the button.
 #[derive(Debug, Clone, Copy)]
 pub enum ButtonWidth {
-    /// The button expands to fill the available space.
     Expand,
-    
-    /// The button's width hugs its content.
     Hug,
 }
 
-/// A clickable button component with customizable content, size, and styles.
 #[derive(Component)]
 pub struct Button(
     Stack, 
@@ -29,40 +28,6 @@ pub struct Button(
 );
 
 impl Button {
-    /// Creates a new `Button` component.
-    ///
-    /// # Parameters:
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `avatar`: An optional [`Avatar`] to display inside the button.
-    /// - `icon_l`: An optional [`Icon`] to display on the left side of the button.
-    /// - `label`: An optional [`Text`] label.
-    /// - `icon_r`: An optional [`Icon`] to display on the right side of the button.
-    /// - `size`: Defines the size of the button.
-    /// - `width`: Defines the width of the button.
-    /// - `style`: Defines the style of the button.
-    /// - `state`: Specifies the initial state of the button.
-    /// - `offset`: Specifies the button's content's offset. (usually [`Offset::Center`])
-    /// - `on_click`: A closure that will be executed when the button is clicked.
-    ///
-    /// # Returns:
-    /// A UI ready [`Button`] instance.
-    ///
-    /// # Example:
-    /// ```
-    /// let button = Button::new(
-    ///     ctx, 
-    ///     Some(avatar_data),
-    ///     Some("left"),
-    ///     Some("Click Me"),
-    ///     Some("right"),
-    ///     ButtonSize::Medium,
-    ///     ButtonWidth::Hug,
-    ///     ButtonStyle::Primary,
-    ///     ButtonState::Default,
-    ///     Offset::Center,
-    ///     |ctx: &mut Context| println!("Button clicked!"),
-    /// );
-    /// ```
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         ctx: &mut Context,
@@ -96,7 +61,6 @@ impl Button {
         Button(layout, background, content, style, state, Box::new(on_click))
     }
 
-    /// Updates the color of the button based on its current state and style.
     pub fn color(&mut self, ctx: &mut Context) {
         let colors = self.4.color(ctx, self.3);
         self.2.set_color(colors.label);
@@ -104,7 +68,6 @@ impl Button {
         *self.1.background() = colors.background;
     }
 
-    /// Returns a mutable reference to the current state of the button.
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
@@ -166,15 +129,6 @@ impl ButtonContent {
 }
 
 impl Button {
-    /// Creates a primary style button. Typically used for the main actions in the UI.
-    ///
-    /// # Parameters
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `label`: The text displayed on the button.
-    /// - `on_click`:  A closure that will be executed when the button is clicked.
-    ///
-    /// # Returns
-    /// A [`Button`] with style [`ButtonStyle::Primary`] and state [`ButtonState::Default`].
     pub fn primary (
         ctx: &mut Context,
         label: &str,
@@ -195,17 +149,6 @@ impl Button {
         )
     }
 
-    /// Creates a secondary style button with optional left and right icons.
-    ///
-    /// # Parameters
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `icon_l`: An optional [`Icon`] to display on the left side of the button.
-    /// - `label`: The text displayed on the button.
-    /// - `icon_r`: An optional [`Icon`] to display on the right side of the button.
-    /// - `on_click`: A closure that will be executed when the button is clicked.
-    ///
-    /// # Returns
-    /// A [`Button`] with style [`ButtonStyle::Secondary`] and state [`ButtonState::Default`].
     pub fn secondary(
         ctx: &mut Context,
         icon_l: Option<&'static str>,
@@ -228,15 +171,6 @@ impl Button {
         )
     }
 
-    /// Creates a ghost style button, typically used for non-intrusive actions.
-    ///
-    /// # Parameters
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `label`: The text displayed on the button.
-    /// - `on_click` A closure that will be executed when the button is clicked.
-    ///
-    /// # Returns
-    /// A [`Button`] with style [`ButtonStyle::Ghost`] and state [`ButtonState::Default`].
     pub fn ghost(
         ctx: &mut Context,
         label: &str,
@@ -257,15 +191,6 @@ impl Button {
         )
     }
 
-    /// Creates a disabled button, which cannot be interacted with.
-    ///
-    /// # Parameters
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `label`: The text displayed on the button.
-    /// - `on_click`: A closure that defines the action when the button is clicked (this will not be triggered as the button is disabled).
-    ///
-    /// # Returns
-    /// A [`Button`] with style [`ButtonStyle::Primary`] and state [`ButtonState::Disabled`].
     pub fn disabled(
         ctx: &mut Context,
         label: &str,
@@ -286,16 +211,6 @@ impl Button {
         )
     }
 
-    /// Creates a numeric keypad style button, typically used for numbers or symbols on a keypad.
-    ///
-    /// # Parameters
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `label`: The text displayed on the button.
-    /// - `icon`: An optional icon displayed on the button.
-    /// - `on_click` A closure that will be executed when the button is clicked.
-    ///
-    /// # Returns
-    /// A [`Button`] with style [`ButtonStyle::Ghost`], state [`ButtonState::Default`], and size [`ButtonSize::Large`].
     pub fn keypad(
         ctx: &mut Context,
         label: Option<&str>,
@@ -317,17 +232,6 @@ impl Button {
         )
     }
 
-    /// Creates a navigation button for desktop-style navigators, with optional selection.
-    ///
-    /// # Parameters
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `icon`: The icon to display on the button.
-    /// - `label`: The text displayed on the button.
-    /// - `selected`: A flag that determines if the button should be in the selected state.
-    /// - `on_click` A closure that will be executed when the button is clicked.
-    ///
-    /// # Returns
-    /// A [`Button`] with style [`ButtonStyle::Ghost`] and either state [`ButtonState::Selected`] or [`ButtonState::Default`].
     pub fn navigation(
         ctx: &mut Context,
         icon: &'static str,
@@ -350,17 +254,6 @@ impl Button {
         )
     }
 
-    /// Creates a profile photo button for desktop-style navigation with a photo.
-    ///
-    /// # Parameters
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `label`: The text displayed on the button.
-    /// - `photo`: The photo or avatar content for the button.
-    /// - `selected`: A flag that determines if the button should be in the pressed state.
-    /// - `on_click` A closure that will be executed when the button is clicked.
-    ///
-    /// # Returns
-    /// A [`Button`] with style [`ButtonStyle::Ghost`] and either state [`ButtonState::Selected`] or [`ButtonState::Default`].
     pub fn photo(
         ctx: &mut Context,
         label: &str,
@@ -383,15 +276,6 @@ impl Button {
         )
     }
 
-    /// Creates a close page button, typically used for closing dialogs or pages.
-    ///
-    /// # Parameters
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `label`: The text displayed on the button.
-    /// - `on_click` A closure that will be executed when the button is clicked.
-    ///
-    /// # Returns
-    /// A [`Button`] with style [`ButtonStyle::Secondary`] and state [`ButtonState::Default`].
     pub fn close(
         ctx: &mut Context,
         label: &str,
@@ -413,27 +297,12 @@ impl Button {
     }
 }
 
-/// A component that represents a set of quick action buttons displayed in a wrap layout.
-///
-/// The [`QuickActions`] component is used to display multiple buttons in a flexible wrap layout, where the buttons
-/// can be customized and interact with various events. The component is designed to allow easy addition and removal
-/// of buttons. Each button is displayed with a default margin between them for easy organization.
-///
-/// # Fields
-/// - `Wrap`: A layout component that arranges the buttons in a wrap style, with adjustable spacing and alignment.
-/// - `Vec<Button>`: A vector of buttons that represent the quick actions. Each button can trigger different actions when clicked.
-///
-/// # Example
-/// ```rust
-/// let quick_actions = QuickActions::new(vec![Button::primary(...), Button::secondary(...)]);
-/// ```
 #[derive(Debug, Component)]
 pub struct QuickActions(Wrap, Vec<Button>);
 
 impl OnEvent for QuickActions {}
 
 impl QuickActions {
-    /// Creates a new `QuickActions` component with a list of action buttons.
     pub fn new(buttons: Vec<Button>) -> Self {
         QuickActions(Wrap(8.0, 8.0, Offset::Start, Offset::Center, Padding::default()), buttons)
     }

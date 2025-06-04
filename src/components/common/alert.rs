@@ -1,25 +1,19 @@
-use rust_on_rails::prelude::*;
+use pelican_ui::events::OnEvent;
+use pelican_ui::drawable::{Drawable, Component, Align, Image};
+use pelican_ui::layout::{Area, SizeRequest, Layout};
+use pelican_ui::{Context, Component};
+
 use crate::elements::images::Icon;
 use crate::elements::text::{Text, TextStyle};
 use crate::layout::{Offset, Padding, Row, Size};
-use crate::plugin::PelicanUI;
 
-/// A component that displays a warning message along with a warning icon.
 #[derive(Debug, Component)]
 pub struct Alert(Row, Image, Text);
 impl OnEvent for Alert {}
 
 impl Alert {
-    /// Creates a new [`Alert`] with a warning message.
-    ///
-    /// # Parameters
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `message`: The warning message to display.
-    ///
-    /// # Returns
-    /// - A new [`Alert`] component with a warning icon and a message.
     pub fn new(ctx: &mut Context, message: &str) -> Self {
-        let theme = &ctx.get::<PelicanUI>().theme;
+        let theme = &ctx.theme;
         let (color, font_size) = (theme.colors.status.warning, theme.fonts.size.md);
 
         Alert(
