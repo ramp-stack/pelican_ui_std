@@ -287,37 +287,65 @@ impl Layout for Wrap {
             ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
         ).unzip();
 
-        let w_spacing = self.0*(min_w.len()-1) as f32;
-        let h_spacing = self.1*(min_h.len()-1) as f32;
+        println!("Children count: {}", min_w.len());
 
-        let min_width = min_w.into_iter().reduce(|s, i| s.max(i)).unwrap_or_default();
-        let max_width = max_w.into_iter().reduce(|s, i| s+i).unwrap_or_default();
+        let w_spacing = self.0 * (min_w.len().saturating_sub(1)) as f32;
+        let h_spacing = self.1 * (min_h.len().saturating_sub(1)) as f32;
 
-        let min_height = min_h.into_iter().reduce(|s, i| s.max(i)).unwrap_or_default();
-        let max_height = max_h.into_iter().sum();
+        println!("Horizontal spacing total: {}", w_spacing);
+        println!("Vertical spacing total: {}", h_spacing);
 
-        // println!("min: {:?} max: {:?}", min_height, max_height);
+        let min_width = min_w.iter().copied().reduce(f32::max).unwrap_or_default();
+        let max_width = max_w.iter().copied().reduce(|s, i| s + i).unwrap_or_default();
 
-        self.4.adjust_request(SizeRequest::new(min_width, min_height, max_width, max_height).add(w_spacing, h_spacing))
+        let min_height = min_h.iter().copied().reduce(f32::max).unwrap_or_default();
+        let max_height = max_h.iter().copied().sum();
+
+        println!("Min widths: {:?}", min_w);
+        println!("Max widths: {:?}", max_w);
+        println!("Min heights: {:?}", min_h);
+        println!("Max heights: {:?}", max_h);
+
+        println!("Calculated min_width: {}", min_width);
+        println!("Calculated max_width: {}", max_width);
+        println!("Calculated min_height: {}", min_height);
+        println!("Calculated max_height: {}", max_height);
+
+        let size_request = SizeRequest::new(min_width, min_height, max_width, max_height).add(w_spacing, h_spacing);
+        let adjusted = self.4.adjust_request(size_request);
+
+        println!("Adjusted SizeRequest: {:?}", adjusted);
+
+        adjusted
     }
 
+
     fn build(&self, _ctx: &mut Context, maximum_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
-        let mut taken_width = self.4.1;
-        let mut height_offset = self.4.2;
+        let mut taken_width = self.4.1; // padding.left
+        let mut height_offset = self.4.0; // padding.top
         let mut items: Vec<SizeRequest> = Vec::new();
-        children.iter().map(|child| {
-            if (taken_width + child.min_width()) > maximum_size.0 {
-                let heights: Vec<_> = items.iter().map(|c| c.min_height()).collect();
-                height_offset += heights.into_iter().reduce(|s, i| s.max(i)).unwrap_or_default() + self.1;
+        let mut areas: Vec<Area> = Vec::new();
+
+        for (i, child) in children.into_iter().enumerate() {
+            if (taken_width + child.min_width()) > maximum_size.0 && !items.is_empty() {
+                let line_height = items.iter().map(|c| c.min_height()).reduce(f32::max).unwrap_or(0.0);
+
+                height_offset += line_height + self.1;
                 taken_width = self.4.1;
+                items.clear();
+            }
+
+            let area = Area {
+                offset: (taken_width, height_offset),
+                size: (child.min_width(), child.min_height()),
             };
 
-            let area = Area {offset: (taken_width, height_offset), size: (child.min_width(), child.min_height())};
-            // println!("area: {:?}", area);
-            taken_width += child.min_width() + self.0; 
-            items.push(*child);
-            area
-        }).collect()
+            taken_width += child.min_width() + self.0; // horizontal spacing
+            items.push(child);
+            areas.push(area);
+        }
+
+        areas
     }
 }
 
