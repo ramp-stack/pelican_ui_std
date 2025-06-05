@@ -18,6 +18,7 @@ pub mod elements;
 pub mod components;
 /// Modular for helper functions and objects
 pub mod utils;
+
 pub mod pages;
 
 pub use crate::utils::AppPage; 

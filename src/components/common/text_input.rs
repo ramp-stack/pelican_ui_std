@@ -50,12 +50,8 @@ impl TextInput {
         self.2.error()
     }
 
-    pub fn get_value(&mut self) -> String {
-        self.2.input().replace('\u{200C}', "")
-    }
-
-    pub fn set_value(&mut self, new: String) {
-        *self.2.input() = new;
+    pub fn value(&mut self) -> &mut String {
+        self.2.input()
     }
 
     pub fn get_id(&self) -> ElementID { self.2.5 }
