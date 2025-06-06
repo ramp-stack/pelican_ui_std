@@ -40,13 +40,13 @@ impl OnEvent for Text {}
 impl Text {
     pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text, size, size*1.25, font, color)], None, align, None);
+        let text = BasicText::new(vec![Span::new(text.to_string(), size, size*1.25, font, color)], None, align, None);
         Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text)
     }
 
     pub fn new_with_cursor(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text, size, size*1.25, font, color)], None, align, Some(Cursor::default()));
+        let text = BasicText::new(vec![Span::new(text.to_string(), size, size*1.25, font, color)], None, align, Some(Cursor::default()));
         Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text)
     }
 
