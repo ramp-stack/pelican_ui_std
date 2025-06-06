@@ -8,6 +8,12 @@ use crate::utils::ElementID;
 #[derive(Debug)]
 pub struct NavigateEvent(pub Option<Box<dyn AppPage>>, pub bool);
 
+impl NavigateEvent {
+    pub fn new(page: (impl AppPage, bool)) -> Self {
+        NavigateEvent(Some(page.0.into_boxed()), page.1)
+    }
+}
+
 impl Event for NavigateEvent {
     fn pass(self: Box<Self>, _ctx: &mut Context, _children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
         vec![if self.0.is_some() {Some(self)} else {None}]

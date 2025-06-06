@@ -10,14 +10,14 @@ pub fn derive_app_page(input: TokenStream) -> TokenStream {
     let expanded = quote! {
         impl AppPage for #name {}
 
-        impl #name {
-            pub fn navigate(ctx: &mut Context) {
-                println!("Attempting to navigate");
-                let page = #name::new(ctx);
-                let has_nav = page.2;
-                ctx.trigger_event(crate::NavigateEvent(Some(page.into_boxed()), has_nav));
-            }
-        }        
+        // impl #name {
+        //     pub fn navigate(ctx: &mut Context) {
+        //         println!("Attempting to navigate");
+        //         let page = #name::new(ctx);
+        //         let has_nav = page.2;
+        //         ctx.trigger_event(crate::NavigateEvent(Some(page.into_boxed()), has_nav));
+        //     }
+        // }        
     };
 
     TokenStream::from(expanded)

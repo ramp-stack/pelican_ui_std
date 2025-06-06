@@ -82,9 +82,17 @@ impl Content {
         Content(
             Scroll::new(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0)),
             ContentChildren::new(content)
-        )
+        ) 
     }
     
+    pub fn find<T: std::any::Any>(&mut self) -> Option<&mut T> {
+        self.items().iter_mut().find_map(|item| item.as_any_mut().downcast_mut::<T>())
+    }
+
+    pub fn find_at<T: std::any::Any>(&mut self, i: usize) -> Option<&mut T> {
+        self.items().get_mut(i)?.as_any_mut().downcast_mut::<T>()
+    }
+
     pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.1.1}
     pub fn offset(&mut self) -> &mut Offset {self.0.offset()}
 }
@@ -92,24 +100,22 @@ impl Content {
 impl OnEvent for Content {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TextInputSelect(id)) = event.downcast_ref::<TextInputSelect>() {
-            println!("TEXT INPUT WAS SELECTED");
-            let mut total_height = 0.0;
-            for item in self.items().iter_mut() {
-                match item.as_any_mut().downcast_mut::<TextInput>() {
-                    Some(input) if input.get_id() == *id => {
-                        println!("FOUND INPUT FIELD, ADJUSTING SCROLL TO {:?}", total_height);
-                        self.0.set_scroll(total_height);
-                        break;
-                    }
-                    _ => {
-                        let size = item.request_size(ctx);
-                        println!("COULD NOT FIND INPUT FIELD, BUT MY SIZE WAS {:?}", size);
-                        total_height += size.max_height();
+            if crate::config::IS_MOBILE {
+                let mut total_height = 0.0;
+                for item in self.items().iter_mut() {
+                    match item.as_any_mut().downcast_mut::<TextInput>() {
+                        Some(input) if input.get_id() == *id => {
+                            self.0.set_scroll(total_height);
+                            break;
+                        }
+                        _ => {
+                            let size = item.request_size(ctx);
+                            total_height += size.max_height();
+                        }
                     }
                 }
             }
-            
-        } else if let Some(MouseEvent{state: MouseState::Scroll(_, y), position: Some(_)}) = event.downcast_ref::<MouseEvent>() {
+        } else if let Some(MouseEvent { state: MouseState::Scroll(_, y), position: Some(_) }) = event.downcast_ref::<MouseEvent>() {
             self.0.adjust_scroll(*y);
         }
         true
@@ -249,6 +255,14 @@ impl Bumper {
 
     pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {
         &mut self.2.1
+    }
+
+    pub fn find<T: std::any::Any>(&mut self) -> Option<&mut T> {
+        self.items().iter_mut().find_map(|item| item.as_any_mut().downcast_mut::<T>())
+    }
+
+    pub fn find_at<T: std::any::Any>(&mut self, i: usize) -> Option<&mut T> {
+        self.items().get_mut(i)?.as_any_mut().downcast_mut::<T>()
     }
 }
 
