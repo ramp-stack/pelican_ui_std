@@ -55,6 +55,7 @@ impl TextInput {
     }
 
     pub fn get_id(&self) -> ElementID { self.2.5 }
+    pub fn status(&mut self) -> &mut InputState {self.2.status()}
 }
 
 impl OnEvent for TextInput {
@@ -89,6 +90,7 @@ impl InputField {
 
     pub fn error(&mut self) -> &mut bool { &mut self.4 }
     pub fn input(&mut self) -> &mut String { &mut self.2.text().text().spans[0].text }
+    pub fn status(&mut self) -> &mut InputState {&mut self.3}
 }
 
 impl OnEvent for InputField {
@@ -229,7 +231,7 @@ impl std::fmt::Debug for InputContent {
 }
 
 #[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]
-enum InputState {
+pub enum InputState {
     Default,
     Hover,
     Focus,
