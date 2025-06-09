@@ -20,7 +20,7 @@ qrcode = "0.14.1"
 uuid = { version = "1.16.0", features = ["v4"] }
 dyn-clone = "1.0.19"
 #rust_on_rails = { path="../rust_on_rails" }
-pelican_ui = "0.1.2"
+pelican_ui = {path="../pelican_ui"}
 pelican_macro = "0.1.0"
 quircs = "0.10.2"
 image = "0.25.6"

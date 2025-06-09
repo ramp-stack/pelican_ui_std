@@ -6,7 +6,7 @@ use pelican_ui::{Context, Component};
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{ExpandableText, Text, TextStyle, TextEditor};
 use crate::components::button::IconButton;
-use crate::events::{KeyboardActiveEvent, SetActiveInput, TextInputSelect};
+use crate::events::{KeyboardActiveEvent, SetActiveInput, TextInputSelect, ClearActiveInput};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
 use crate::utils::ElementID;
 
@@ -107,6 +107,8 @@ impl OnEvent for InputField {
             *self.1.background() = background;
             *self.1.outline() = outline;
             *self.2.focus() = self.3 == InputState::Focus;
+        } else if let Some(ClearActiveInput) = event.downcast_ref::<ClearActiveInput>() {
+            // self.3 = if *self.error() { InputState::Error } else { InputState::Default };
         } else if let Some(SetActiveInput(s)) = event.downcast_ref::<SetActiveInput>() {
             *self.input() = s.to_string();
         } else if let Some(TextInputSelect(id)) = event.downcast_ref::<TextInputSelect>() {
@@ -219,6 +221,9 @@ impl OnEvent for InputContent {
 
             let input = !self.1.inner().left().text().spans[0].text.is_empty();
             self.1.inner().display_left(input || self.3)
+        } else if let Some(ClearActiveInput) = event.downcast_ref::<ClearActiveInput>() {
+            self.1.inner().left().text().spans[0].text = String::new();
+            // self.1.inner().display_left(false);
         }
         true
     }

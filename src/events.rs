@@ -30,6 +30,15 @@ impl Event for KeyboardActiveEvent {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct ClearActiveInput;
+
+impl Event for ClearActiveInput {
+    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
+        children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
+    }
+}
+
 /// Event used to signal that a list item was selected.
 #[derive(Debug, Clone)]
 pub struct ListItemSelect(pub ElementID);

@@ -5,7 +5,7 @@ use pelican_ui::{Context, Component};
 
 use std::sync::{Arc, Mutex};
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, PartialEq)]
 pub enum Offset {
     #[default]
     Start,
@@ -386,8 +386,11 @@ impl Layout for Scroll {
     fn build(&self, _ctx: &mut Context, scroll_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
         let scroll_size = self.4.adjust_size(scroll_size);
         let children_height: f32 = children.iter().map(|i| i.min_height()).sum();
-        let scroll_val = self.5.lock().unwrap().min(children_height - scroll_size.1).max(0.0);
+        let max_scroll = (children_height - scroll_size.1).max(0.0);
+        let scroll_val = self.5.lock().unwrap().clamp(0.0, max_scroll);
+
         *self.5.lock().unwrap() = scroll_val;
+        
         children.into_iter().map(|i| {
             let size = i.get(scroll_size);
             let offset = (self.0.get(scroll_size.0, size.0), self.1.get(scroll_size.1, size.1)-scroll_val);

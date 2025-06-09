@@ -79,10 +79,9 @@ impl Content {
     pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(375.0), 375.0));
         let height = Size::custom(move |_: Vec<(f32, f32)>|(0.0, f32::MAX));
-        Content(
-            Scroll::new(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0)),
-            ContentChildren::new(content)
-        ) 
+        let mut layout = Scroll::new(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0));
+        if offset == Offset::End { layout.set_scroll(f32::MAX); }
+        Content(layout, ContentChildren::new(content)) 
     }
     
     pub fn find<T: std::any::Any>(&mut self) -> Option<&mut T> {
@@ -91,6 +90,13 @@ impl Content {
 
     pub fn find_at<T: std::any::Any>(&mut self, i: usize) -> Option<&mut T> {
         self.items().get_mut(i)?.as_any_mut().downcast_mut::<T>()
+    }
+
+    pub fn remove<T: std::any::Any>(&mut self) {
+        if let Some(pos) = self.items().iter().position(|item| item.as_any().is::<T>()) {
+            self.items().remove(pos);
+        }
+        // self.items().iter_mut().find_map(|item| item.as_any_mut().downcast_mut::<T>())
     }
 
     pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.1.1}
@@ -137,6 +143,13 @@ pub struct Header(Row, HeaderIcon, HeaderContent, HeaderIcon);
 impl OnEvent for Header {}
 
 impl Header {
+    pub fn new(left: HeaderIcon, content: HeaderContent, right: HeaderIcon) -> Self {
+        Header(
+            Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
+            left, content, right,
+        )
+    }
+
     pub fn home(ctx: &mut Context, title: &str) -> Self {
         Header(
             Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
@@ -159,27 +172,21 @@ impl Header {
             HeaderIcon::new(right)
         )
     }
-
-    pub fn chat(
-        ctx: &mut Context, 
-        left: Option<IconButton>,
-        right: Option<IconButton>,
-        profiles: Vec<(String, AvatarContent)>,
-    ) -> Self {
-        Header(
-            Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
-            HeaderIcon::new(left), 
-            HeaderContent::chat(ctx, profiles), 
-            HeaderIcon::new(right)
-        )
-    }
 }
 
 #[derive(Debug, Component)]
-struct HeaderContent(Column, Option<AvatarRow>, Text);
+pub struct HeaderContent(Column, Option<AvatarRow>, Text);
 impl OnEvent for HeaderContent {}
 
 impl HeaderContent {
+    pub fn new(avatar_row: Option<AvatarRow>, text: Text) -> Self {
+        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
+        HeaderContent(
+            Column::new(10.0, Offset::Center, width, Padding::default()), 
+            avatar_row, text
+        )
+    }
+
     pub fn home(ctx: &mut Context, title: &str) -> Self {
         let text_size = ctx.theme.fonts.size.h3;
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
@@ -199,22 +206,10 @@ impl HeaderContent {
             Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
         )
     }
-
-    pub fn chat(ctx: &mut Context, profiles: Vec<(String, AvatarContent)>) -> Self {
-        let text_size = ctx.theme.fonts.size.h5;
-        let title = if profiles.len() == 1 {&profiles[0].0.clone()} else {"Group Message"};
-        let avatars = profiles.into_iter().map(|p| p.1).collect::<Vec<AvatarContent>>();
-        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
-        HeaderContent(
-            Column::new(10.0, Offset::Center, width, Padding::default()), 
-            Some(AvatarRow::new(ctx, avatars)),
-            Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
-        )
-    }
 }
 
 #[derive(Debug, Component)]
-struct HeaderIcon(Stack, Option<IconButton>);
+pub struct HeaderIcon(Stack, Option<IconButton>);
 impl OnEvent for HeaderIcon {}
 
 impl HeaderIcon {
