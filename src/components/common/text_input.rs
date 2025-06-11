@@ -54,6 +54,15 @@ impl TextInput {
         self.2.input()
     }
 
+    pub fn sync_input_value(&mut self, actual_value: &str) -> bool {
+        let current = self.value().to_string();
+        let changed = current != actual_value;
+        if *self.status() != InputState::Focus && !changed {
+            *self.value() = actual_value.to_string();
+        }
+        changed
+    }
+
     pub fn get_id(&self) -> ElementID { self.2.5 }
     pub fn status(&mut self) -> &mut InputState {self.2.status()}
 }

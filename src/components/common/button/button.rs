@@ -68,6 +68,15 @@ impl Button {
         *self.1.background() = colors.background;
     }
 
+    pub fn update_state(&mut self, ctx: &mut Context, should_disable: bool, should_enable: bool, status: &mut ButtonState) {
+        let disabled = *self.status() == ButtonState::Disabled;
+        let current_status = *self.status();
+        if !disabled {*status = current_status;}
+        if should_disable && !disabled {*self.status() = ButtonState::Disabled;}
+        if should_enable {*self.status() = *status;}
+        self.color(ctx);
+    }
+
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 
