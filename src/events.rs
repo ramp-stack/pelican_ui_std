@@ -1,6 +1,7 @@
 use pelican_ui::events::Event;
 use pelican_ui::Context;
 use crate::utils::ElementID;
+use crate::utils::AppPage;
 
 /// Event used to navigate between pages of the app.
 #[derive(Debug, Clone)]
@@ -63,6 +64,23 @@ impl Event for NavigatorSelect {
 
 
 /// Event used to set the content of the currently active input field.
+#[derive(Debug)]
+pub struct NavigatorEvent(pub Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>);
+
+impl Event for NavigatorEvent {
+    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
+        children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
+    }
+}
+
+impl std::fmt::Debug for NavigatorEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NavigatorEvent")
+            .field("callback", &"<dyn FnMut>")
+            .finish()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct SetActiveInput(pub String);
 

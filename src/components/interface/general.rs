@@ -17,7 +17,7 @@ use std::fmt::Debug;
 
 use super::{DesktopInterface, MobileInterface};
 
-pub type NavigateInfo = (&'static str, &'static str, Option<AvatarContent>, Box<dyn AppPage>);
+pub type NavigateInfo = (&'static str, &'static str, Option<AvatarContent>, Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>);
 
 #[derive(Debug, Component)]
 pub struct Interface (Stack, Rectangle, Option<MobileInterface>, Option<DesktopInterface>);

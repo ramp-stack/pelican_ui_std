@@ -5,7 +5,7 @@ use pelican_ui::{Context, Component};
 
 use crate::elements::shapes::{Rectangle};
 use crate::elements::images::Brand;
-use crate::events::{NavigatorSelect, NavigateEvent};
+use crate::events::{NavigatorSelect, NavigateEvent, NavigatorEvent};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::components::button::{Button, ButtonState};
 use crate::utils::{ElementID, AppPage};
@@ -15,7 +15,7 @@ use std::fmt::Debug;
 use super::{NavigationButton, NavigateInfo};
 
 #[derive(Debug, Component)]
-pub struct DesktopInterface (Row, Option<DesktopNavigator>, Bin<Stack, Rectangle>, Option<Box<dyn AppPage>>);
+pub struct DesktopInterface(Row, Option<DesktopNavigator>, Bin<Stack, Rectangle>, Option<Box<dyn AppPage>>);
 
 impl DesktopInterface {
     pub fn new(
@@ -45,6 +45,8 @@ impl OnEvent for DesktopInterface {
                 Ok(p) => Some(p),
                 Err(e) => Some(Box::new(Error::new(ctx, "404 Page Not Found", e)))
             };
+        } else if let Some(NavigatorEvent(on_click)) = event.downcast_mut::<NavigatorEvent>() {
+            self.3 = Some(on_click(ctx));
         }
         true
     }
@@ -62,12 +64,11 @@ impl DesktopNavigator {
         let mut top_col = Vec::new();
         let mut bot_col = Vec::new();
 
-        for (i, (icon, name, avatar, page)) in navigation.1.into_iter().enumerate() {
+        for (i, (icon, name, avatar, on_click)) in navigation.1.into_iter().enumerate() {
             let id = ElementID::new();
-            let mut page = Some(page);
             let closure = move |ctx: &mut Context| {
-                // ctx.trigger_event(NavigatorSelect(id));
-                // ctx.trigger_event(NavigateEvent(Some(page.take().unwrap())));
+                ctx.trigger_event(NavigatorSelect(id));
+                ctx.trigger_event(NavigatorEvent(on_click));
             };
 
             if let Some(avatar) = avatar {

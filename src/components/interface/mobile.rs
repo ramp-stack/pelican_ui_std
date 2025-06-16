@@ -3,7 +3,7 @@ use pelican_ui::drawable::{Drawable, Component};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
-use crate::events::{KeyboardActiveEvent, NavigatorSelect, NavigateEvent};
+use crate::events::{KeyboardActiveEvent, NavigatorSelect, NavigateEvent, NavigatorEvent};
 use crate::layout::{Column, Row, Padding, Offset, Size, Opt, Stack, Bin};
 use crate::components::button::{IconButton, ButtonState};
 use crate::elements::shapes::Rectangle;
@@ -42,8 +42,10 @@ impl OnEvent for MobileInterface {
                 Ok(p) => Some(p),
                 Err(e) => Some(Box::new(Error::new(ctx, "404 Page Not Found", e)))
             };
-            
+
             if let Some(navigator) = &mut self.4 {navigator.display(self.2.as_ref().map(|s| s.has_nav()).unwrap_or(false));}
+        } else if let Some(NavigatorEvent(on_click)) = event.downcast_mut::<NavigatorEvent>() {
+            self.2 = Some(on_click(ctx));
         } else if let Some(KeyboardActiveEvent(enabled)) = event.downcast_ref::<KeyboardActiveEvent>() {
             match enabled {
                 true if self.3.is_some() => {},
@@ -86,12 +88,11 @@ impl MobileNavigatorContent {
         navigation: (usize, Vec<NavigateInfo>)
     ) -> Self {
         let mut tabs = Vec::new();
-        for (i, (icon, _, _, page)) in navigation.1.into_iter().enumerate() {
+        for (i, (icon, _, _, on_click)) in navigation.1.into_iter().enumerate() {
             let id = ElementID::new();
-            let mut page = Some(page);
             let closure = move |ctx: &mut Context| {
-                // ctx.trigger_event(NavigatorSelect(id));
-                // ctx.trigger_event(NavigateEvent(Some(page.take().unwrap())));
+                ctx.trigger_event(NavigatorSelect(id));
+                ctx.trigger_event(NavigatorEvent(on_click));
             };
 
             let button = IconButton::tab_nav(ctx, icon, navigation.0 == i, closure);
