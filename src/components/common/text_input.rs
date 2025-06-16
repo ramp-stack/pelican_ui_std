@@ -105,7 +105,7 @@ impl InputField {
 impl OnEvent for InputField {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref::<TickEvent>() {
-            self.2.text().display_cursor(self.3 == InputState::Focus);
+            // self.2.text().display_cursor(self.3 == InputState::Focus);
             self.3 = match self.3 {
                 InputState::Default if self.4 => Some(InputState::Error),
                 InputState::Error if !self.4 => Some(InputState::Default),

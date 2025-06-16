@@ -1,6 +1,6 @@
 use pelican_ui::events::{MouseState, MouseEvent, OnEvent, Event, TickEvent, Key, NamedKey};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::drawable::{Drawable, Component, Shape, Color, Align, Span, CursorAction, Cursor};
+use pelican_ui::drawable::{Drawable, Component, Shape, Color, Align, Span, Cursor};
 use pelican_ui::drawable::Text as BasicText;
 use pelican_ui::{Context, Component, resources};
 
@@ -40,13 +40,13 @@ impl OnEvent for Text {}
 impl Text {
     pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(ctx,  vec![Span::new(text.to_string(), size, size*1.25, font, color)], None, align, None);
+        let text = BasicText::new(vec![Span::new(text.to_string(), size, Some(size*1.25), font, color)], None, align, None);
         Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text)
     }
 
     pub fn new_with_cursor(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(ctx, vec![Span::new(text.to_string(), size, size*1.25, font, color)], None, align, Some(Cursor::default()));
+        let text = BasicText::new(vec![Span::new(text.to_string(), size, Some(size*1.25), font, color)], None, align, Some(Cursor::default()));
         Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text)
     }
 
@@ -84,7 +84,7 @@ impl Component for ExpandableText {
 }
 
 #[derive(Component, Debug)]
-pub struct TextEditor(Stack, Option<Text>, Option<ExpandableText>, TextCursor);
+pub struct TextEditor(Stack, Option<Text>, Option<ExpandableText>);
 
 impl TextEditor {
     pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align, can_expand: bool) -> Self {
@@ -95,7 +95,7 @@ impl TextEditor {
 
         TextEditor(
             Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()),
-            t, et, TextCursor::new(ctx, style, size)
+            t, et, //TextCursor::new(ctx, style, size)
         )
     }
     
@@ -107,37 +107,44 @@ impl TextEditor {
         self.2.as_mut().unwrap().text()
     }
 
-    pub fn cursor(&mut self) -> &mut TextCursor { &mut self.3 }
+    // pub fn cursor(&mut self) -> &mut TextCursor { &mut self.3 }
 
-    pub fn display_cursor(&mut self, display: bool) {
-        self.3.display(display);
-    }
+    // pub fn display_cursor(&mut self, display: bool) {
+    //     self.3.display(display);
+    // }
 
     pub fn apply_edit(&mut self, ctx: &mut Context, key: &Key) {
-        if let Some((i, _)) = self.text().cursor_action(CursorAction::GetIndex) {
+        // if let Some((i, _)) = self.text().cursor_action(CursorAction::GetIndex) {
             let new_text = self.text().spans[0].text.clone();
             match key {
                 Key::Named(NamedKey::Enter) => {
-                    self.text().spans[0].text = Self::insert_char(new_text, '\n', i as usize);
-                    self.text().cursor_action(CursorAction::MoveNewline);
+                    new_text.chars().collect::<Vec<char>>().push('\n');
+                    self.text().spans[0].text = new_text;
+                    // self.text().spans[0].text = Self::insert_char(new_text, '\n', i as usize);
+                    // self.text().cursor_action(CursorAction::MoveNewline);
                 },
                 Key::Named(NamedKey::Space) => {
-                    self.text().spans[0].text = Self::insert_char(new_text, ' ', i as usize);
-                    self.text().cursor_action(CursorAction::MoveRight);
+                    new_text.chars().collect::<Vec<char>>().push(' ');
+                    self.text().spans[0].text = new_text;
+                    // self.text().spans[0].text = Self::insert_char(new_text, ' ', i as usize);
+                    // self.text().cursor_action(CursorAction::MoveRight);
                 },
                 Key::Named(NamedKey::Delete | NamedKey::Backspace) => {
-                    self.text().cursor_action(CursorAction::MoveLeft);
-                    self.text().spans[0].text = Self::remove_char(new_text, (i as usize).saturating_sub(1));
+                    // self.text().cursor_action(CursorAction::MoveLeft);
+                    let i = new_text.len().saturating_sub(1);
+                    self.text().spans[0].text = Self::remove_char(new_text, i);
                 },
                 Key::Character(c) => {
                     // self.2.text().text().spans[0].text.insert_str(i as usize , c);
                     let c = c.chars().next().unwrap();
-                    self.text().spans[0].text = Self::insert_char(new_text, c, i as usize);
-                    self.text().cursor_action(CursorAction::MoveRight);
+                    new_text.chars().collect::<Vec<char>>().push(c);
+                    self.text().spans[0].text = new_text;
+                    // self.text().spans[0].text = Self::insert_char(new_text, c, i as usize);
+                    // self.text().cursor_action(CursorAction::MoveRight);
                 },
                 _ => {}
             };
-        }
+        // }
     }
 
     fn insert_char(text: String, new: char, index: usize) -> String {
@@ -165,19 +172,19 @@ impl TextEditor {
 
 impl OnEvent for TextEditor {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        let mut text = self.text().clone();
+        // let mut text = self.text().clone();
         if event.downcast_ref::<TickEvent>().is_some() {
-            if let Some(cords) = text.cursor_action(CursorAction::GetPosition) {
-                *self.3.x_offset() = Offset::Static(cords.0);
-                *self.3.y_offset() = Offset::Static(cords.1-(text.spans[0].line_height/1.2));
-            }
+            // if let Some(cords) = text.cursor_action(CursorAction::GetPosition) {
+            //     *self.3.x_offset() = Offset::Static(cords.0);
+            //     *self.3.y_offset() = Offset::Static(cords.1-(text.spans[0].line_height/1.2));
+            // }
         } else if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            if event.state == MouseState::Pressed && event.position.is_some() {
-                text.set_cursor((event.position.unwrap().0, event.position.unwrap().1));
-                text.cursor_action(CursorAction::GetPosition);
-            }
+            // if event.state == MouseState::Pressed && event.position.is_some() {
+            //     text.set_cursor((event.position.unwrap().0, event.position.unwrap().1));
+            //     text.cursor_action(CursorAction::GetPosition);
+            // }
         }
-        *self.text() = text;
+        // *self.text() = text;
         
         true
     }
