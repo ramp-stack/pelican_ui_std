@@ -11,13 +11,13 @@ use crate::components::avatar::{AvatarContent, AvatarRow};
 use crate::components::button::{IconButton, Button};
 use crate::components::text_input::TextInput;
 use crate::elements::text::Text;
-use crate::AppPage;
-use crate::utils::ElementID;
+use crate::utils::{ElementID, AppPage};
 use std::fmt::Debug;
+
 
 use super::{DesktopInterface, MobileInterface};
 
-pub type NavigateInfo = (&'static str, &'static str, Option<AvatarContent>, Box<dyn FnMut(&mut Context)>);
+pub type NavigateInfo = (&'static str, &'static str, Option<AvatarContent>, Box<dyn AppPage>);
 
 #[derive(Debug, Component)]
 pub struct Interface (Stack, Rectangle, Option<MobileInterface>, Option<DesktopInterface>);
@@ -25,32 +25,19 @@ pub struct Interface (Stack, Rectangle, Option<MobileInterface>, Option<DesktopI
 impl Interface {
     pub fn new(
         ctx: &mut Context, 
-        start_page: impl AppPage,
+        start_page: Box<dyn AppPage>,
         navigation: Option<(usize, Vec<NavigateInfo>)>,
     ) -> Self {
         let color = ctx.theme.colors.background.primary;
         let (mobile, desktop) = match crate::config::IS_MOBILE {
-            true => (Some(MobileInterface::new(ctx, Box::new(start_page), navigation)), None),
-            false => (None, Some(DesktopInterface::new(ctx, Box::new(start_page), navigation)))
+            true => (Some(MobileInterface::new(ctx, start_page, navigation)), None),
+            false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)))
         };
         Interface(Stack::default(), Rectangle::new(color), mobile, desktop)
     }
 }
 
-impl OnEvent for Interface {
-    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(NavigateEvent(page, has_nav)) = event.downcast_mut::<NavigateEvent>() {
-            let page = page.take().unwrap();
-
-            if let Some(mobile) = &mut self.2 {
-                mobile.set_page(page, *has_nav);
-            } else if let Some(desktop) = &mut self.3 {
-                desktop.set_page(page);
-            }
-        }
-        true
-    }
-}
+impl OnEvent for Interface {}
 
 #[derive(Debug, Component)]
 pub struct Page(Column, Header, Content, Option<Bumper>);

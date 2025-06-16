@@ -21,8 +21,7 @@ pub mod utils;
 
 pub mod pages;
 
-pub use crate::utils::AppPage; 
-pub use crate::utils::macros::AppPage;
+// pub use crate::utils::macros::AppPage;
 pub use crate::pages::*;
 pub use crate::events::*;
 pub use crate::layout::*;

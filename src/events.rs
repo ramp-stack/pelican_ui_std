@@ -1,22 +1,14 @@
 use pelican_ui::events::Event;
 use pelican_ui::Context;
-
-use crate::AppPage;
 use crate::utils::ElementID;
 
 /// Event used to navigate between pages of the app.
-#[derive(Debug)]
-pub struct NavigateEvent(pub Option<Box<dyn AppPage>>, pub bool);
-
-impl NavigateEvent {
-    pub fn new(page: (impl AppPage, bool)) -> Self {
-        NavigateEvent(Some(page.0.into_boxed()), page.1)
-    }
-}
+#[derive(Debug, Clone)]
+pub struct NavigateEvent(pub usize);
 
 impl Event for NavigateEvent {
-    fn pass(self: Box<Self>, _ctx: &mut Context, _children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
-        vec![if self.0.is_some() {Some(self)} else {None}]
+    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
+        children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
     }
 }
 

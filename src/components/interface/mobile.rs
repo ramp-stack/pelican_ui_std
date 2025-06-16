@@ -3,17 +3,18 @@ use pelican_ui::drawable::{Drawable, Component};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
-use crate::events::{KeyboardActiveEvent, NavigatorSelect};
+use crate::events::{KeyboardActiveEvent, NavigatorSelect, NavigateEvent};
 use crate::layout::{Column, Row, Padding, Offset, Size, Opt, Stack, Bin};
 use crate::components::button::{IconButton, ButtonState};
 use crate::elements::shapes::Rectangle;
-use crate::AppPage;
-use crate::utils::ElementID;
+use crate::utils::{ElementID, AppPage};
+use crate::pages::Error;
+
 use std::fmt::Debug;
 use super::{NavigationButton, NavigateInfo, MobileKeyboard};
 
 #[derive(Debug, Component)]
-pub struct MobileInterface (Column, Bin<Stack, Rectangle>, Box<dyn AppPage>, Option<MobileKeyboard>, Option<Opt<MobileNavigator>>, Bin<Stack, Rectangle>);
+pub struct MobileInterface (Column, Bin<Stack, Rectangle>, Option<Box<dyn AppPage>>, Option<MobileKeyboard>, Option<Opt<MobileNavigator>>, Bin<Stack, Rectangle>);
 
 impl MobileInterface {
     pub fn new(
@@ -28,21 +29,21 @@ impl MobileInterface {
         MobileInterface(
             Column::new(0.0, Offset::Center, Size::Fit, Padding::default()), 
             Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(insets.0), Padding::default()), Rectangle::new(background)),
-            start_page, None, navigator,
+            Some(start_page), None, navigator,
             Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(insets.1), Padding::default()), Rectangle::new(background))
         )
-    }
-
-    pub fn set_page(&mut self, page: Box<dyn AppPage>, has_nav: bool) {
-        if let Some(navigator) = &mut self.4 {navigator.display(has_nav);}
-        self.2 = page;
     }
 }
 
 impl OnEvent for MobileInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(_event) = event.downcast_ref::<TickEvent>() {
-            // self.2.display(self.1.navigator_status());
+        if let Some(NavigateEvent(index)) = event.downcast_mut::<NavigateEvent>() {
+            self.2 = match self.2.take().unwrap().navigate(ctx, *index) {
+                Ok(p) => Some(p),
+                Err(e) => Some(Box::new(Error::new(ctx, "404 Page Not Found", e)))
+            };
+            
+            if let Some(navigator) = &mut self.4 {navigator.display(self.2.as_ref().map(|s| s.has_nav()).unwrap_or(false));}
         } else if let Some(KeyboardActiveEvent(enabled)) = event.downcast_ref::<KeyboardActiveEvent>() {
             match enabled {
                 true if self.3.is_some() => {},
@@ -67,7 +68,8 @@ impl MobileNavigator {
         let background = ctx.theme.colors.background.primary;
 
         MobileNavigator(
-            Stack(Offset::Center, Offset::Start, width, height, Padding::default()), Rectangle::new(background),
+            Stack(Offset::Center, Offset::Start, width, height, Padding::default()), 
+            Rectangle::new(background),
             MobileNavigatorContent::new(ctx, navigation)
         )
     }
@@ -84,11 +86,12 @@ impl MobileNavigatorContent {
         navigation: (usize, Vec<NavigateInfo>)
     ) -> Self {
         let mut tabs = Vec::new();
-        for (i, (icon, _, _, mut on_navigate)) in navigation.1.into_iter().enumerate() {
+        for (i, (icon, _, _, page)) in navigation.1.into_iter().enumerate() {
             let id = ElementID::new();
+            let mut page = Some(page);
             let closure = move |ctx: &mut Context| {
-                ctx.trigger_event(NavigatorSelect(id));
-                (on_navigate)(ctx)
+                // ctx.trigger_event(NavigatorSelect(id));
+                // ctx.trigger_event(NavigateEvent(Some(page.take().unwrap())));
             };
 
             let button = IconButton::tab_nav(ctx, icon, navigation.0 == i, closure);

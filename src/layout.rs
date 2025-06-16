@@ -349,7 +349,6 @@ impl Layout for Wrap {
     }
 }
 
-/// documentation tbd
 #[derive(Debug, Default)]
 pub struct Scroll(Offset, Offset, Size, Size, Padding, Arc<Mutex<f32>>); // allow for horizontal scroll (FUTURE)
 
@@ -390,7 +389,7 @@ impl Layout for Scroll {
         let scroll_val = self.5.lock().unwrap().clamp(0.0, max_scroll);
 
         *self.5.lock().unwrap() = scroll_val;
-        
+
         children.into_iter().map(|i| {
             let size = i.get(scroll_size);
             let offset = (self.0.get(scroll_size.0, size.0), self.1.get(scroll_size.1, size.1)-scroll_val);

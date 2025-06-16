@@ -5,17 +5,17 @@ use pelican_ui::{Context, Component};
 
 use crate::elements::shapes::{Rectangle};
 use crate::elements::images::Brand;
-use crate::events::NavigatorSelect;
+use crate::events::{NavigatorSelect, NavigateEvent};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::components::button::{Button, ButtonState};
-use crate::AppPage;
-use crate::utils::ElementID;
+use crate::utils::{ElementID, AppPage};
+use crate::pages::Error;
+
 use std::fmt::Debug;
 use super::{NavigationButton, NavigateInfo};
 
 #[derive(Debug, Component)]
-pub struct DesktopInterface (Row, Option<DesktopNavigator>, Bin<Stack, Rectangle>, Box<dyn AppPage>);
-impl OnEvent for DesktopInterface {}
+pub struct DesktopInterface (Row, Option<DesktopNavigator>, Bin<Stack, Rectangle>, Option<Box<dyn AppPage>>);
 
 impl DesktopInterface {
     pub fn new(
@@ -33,12 +33,20 @@ impl DesktopInterface {
                 Stack(Offset::default(), Offset::default(), Size::Static(1.0), Size::Fit, Padding::default()), 
                 Rectangle::new(color)
             ),
-            start_page
+            Some(start_page)
         )
     }
+}
 
-    pub fn set_page(&mut self, page: Box<dyn AppPage>) {
-        self.3 = page;
+impl OnEvent for DesktopInterface {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(NavigateEvent(index)) = event.downcast_mut::<NavigateEvent>() {
+            self.3 = match self.3.take().unwrap().navigate(ctx, *index) {
+                Ok(p) => Some(p),
+                Err(e) => Some(Box::new(Error::new(ctx, "404 Page Not Found", e)))
+            };
+        }
+        true
     }
 }
 
@@ -54,11 +62,12 @@ impl DesktopNavigator {
         let mut top_col = Vec::new();
         let mut bot_col = Vec::new();
 
-        for (i, (icon, name, avatar, mut on_navigate)) in navigation.1.into_iter().enumerate() {
+        for (i, (icon, name, avatar, page)) in navigation.1.into_iter().enumerate() {
             let id = ElementID::new();
+            let mut page = Some(page);
             let closure = move |ctx: &mut Context| {
-                ctx.trigger_event(NavigatorSelect(id));
-                (on_navigate)(ctx)
+                // ctx.trigger_event(NavigatorSelect(id));
+                // ctx.trigger_event(NavigateEvent(Some(page.take().unwrap())));
             };
 
             if let Some(avatar) = avatar {
