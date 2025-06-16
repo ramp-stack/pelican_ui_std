@@ -40,13 +40,13 @@ impl OnEvent for Text {}
 impl Text {
     pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text.to_string(), size, size*1.25, font, color)], None, align, None);
+        let text = BasicText::new(ctx,  vec![Span::new(text.to_string(), size, size*1.25, font, color)], None, align, None);
         Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text)
     }
 
     pub fn new_with_cursor(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text.to_string(), size, size*1.25, font, color)], None, align, Some(Cursor::default()));
+        let text = BasicText::new(ctx, vec![Span::new(text.to_string(), size, size*1.25, font, color)], None, align, Some(Cursor::default()));
         Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text)
     }
 
@@ -73,9 +73,8 @@ impl Component for ExpandableText {
     fn children_mut(&mut self) -> Vec<&mut dyn Drawable> { vec![&mut self.0] }
     fn children(&self) -> Vec<&dyn Drawable> { vec![&self.0] }
 
-    fn request_size(&self, ctx: &mut Context, _children: Vec<SizeRequest>) -> SizeRequest {
-        let height = self.0.1.size(ctx).1;
-        SizeRequest::new(0.0, height, f32::MAX, height)
+    fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
+        SizeRequest::new(0.0, children[0].min_height(), f32::MAX, children[0].max_height())
     }
 
     fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
@@ -115,27 +114,26 @@ impl TextEditor {
     }
 
     pub fn apply_edit(&mut self, ctx: &mut Context, key: &Key) {
-        if let Some((i, _)) = self.text().cursor_action(ctx, CursorAction::GetIndex) {
+        if let Some((i, _)) = self.text().cursor_action(CursorAction::GetIndex) {
             let new_text = self.text().spans[0].text.clone();
-            println!("HERE {:?}", new_text);
             match key {
                 Key::Named(NamedKey::Enter) => {
                     self.text().spans[0].text = Self::insert_char(new_text, '\n', i as usize);
-                    self.text().cursor_action(ctx, CursorAction::MoveNewline);
+                    self.text().cursor_action(CursorAction::MoveNewline);
                 },
                 Key::Named(NamedKey::Space) => {
                     self.text().spans[0].text = Self::insert_char(new_text, ' ', i as usize);
-                    self.text().cursor_action(ctx, CursorAction::MoveRight);
+                    self.text().cursor_action(CursorAction::MoveRight);
                 },
                 Key::Named(NamedKey::Delete | NamedKey::Backspace) => {
-                    self.text().cursor_action(ctx, CursorAction::MoveLeft);
+                    self.text().cursor_action(CursorAction::MoveLeft);
                     self.text().spans[0].text = Self::remove_char(new_text, (i as usize).saturating_sub(1));
                 },
                 Key::Character(c) => {
                     // self.2.text().text().spans[0].text.insert_str(i as usize , c);
                     let c = c.chars().next().unwrap();
                     self.text().spans[0].text = Self::insert_char(new_text, c, i as usize);
-                    self.text().cursor_action(ctx, CursorAction::MoveRight);
+                    self.text().cursor_action(CursorAction::MoveRight);
                 },
                 _ => {}
             };
@@ -169,14 +167,14 @@ impl OnEvent for TextEditor {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         let mut text = self.text().clone();
         if event.downcast_ref::<TickEvent>().is_some() {
-            if let Some(cords) = text.cursor_action(ctx, CursorAction::GetPosition) {
+            if let Some(cords) = text.cursor_action(CursorAction::GetPosition) {
                 *self.3.x_offset() = Offset::Static(cords.0);
                 *self.3.y_offset() = Offset::Static(cords.1-(text.spans[0].line_height/1.2));
             }
         } else if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if event.state == MouseState::Pressed && event.position.is_some() {
-                text.set_cursor(ctx, (event.position.unwrap().0, event.position.unwrap().1));
-                text.cursor_action(ctx, CursorAction::GetPosition);
+                text.set_cursor((event.position.unwrap().0, event.position.unwrap().1));
+                text.cursor_action(CursorAction::GetPosition);
             }
         }
         *self.text() = text;
