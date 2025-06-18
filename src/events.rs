@@ -42,7 +42,6 @@ impl Event for ListItemSelect {
     }
 }
 
-/// Event used to signal that a list item was selected.
 #[derive(Debug, Clone)]
 pub struct TextInputSelect(pub ElementID);
 
@@ -62,10 +61,8 @@ impl Event for NavigatorSelect {
     }
 }
 
-
-/// Event used to set the content of the currently active input field.
-#[derive(Debug)]
-pub struct NavigatorEvent(pub Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>);
+#[derive(Debug, Clone)]
+pub struct NavigatorEvent(pub usize);
 
 impl Event for NavigatorEvent {
     fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
@@ -73,13 +70,6 @@ impl Event for NavigatorEvent {
     }
 }
 
-impl std::fmt::Debug for NavigatorEvent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("NavigatorEvent")
-            .field("callback", &"<dyn FnMut>")
-            .finish()
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct SetActiveInput(pub String);

@@ -205,7 +205,7 @@ impl InputContent {
             Bin(
                 Stack(Offset::default(), Offset::End, Size::fill(), Size::Fit, Padding(8.0, 8.0, 8.0, 8.0)),
                 EitherOr::new(
-                    TextEditor::new(ctx, value.unwrap_or(""), TextStyle::Primary, font_size, Align::Left, true),
+                    TextEditor::new(ctx, value.unwrap_or(""), TextStyle::Primary, font_size, Align::Left),
                     ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size, Align::Left)
                 )
             ),

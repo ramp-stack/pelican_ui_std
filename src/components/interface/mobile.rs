@@ -13,24 +13,28 @@ use crate::pages::Error;
 use std::fmt::Debug;
 use super::{NavigationButton, NavigateInfo, MobileKeyboard};
 
-#[derive(Debug, Component)]
-pub struct MobileInterface (Column, Bin<Stack, Rectangle>, Option<Box<dyn AppPage>>, Option<MobileKeyboard>, Option<Opt<MobileNavigator>>, Bin<Stack, Rectangle>);
+#[derive(Component)]
+pub struct MobileInterface(Column, Bin<Stack, Rectangle>, Option<Box<dyn AppPage>>, Option<MobileKeyboard>, Option<Opt<MobileNavigator>>, Bin<Stack, Rectangle>,  #[skip] Option<Vec<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>>);
 
 impl MobileInterface {
     pub fn new(
         ctx: &mut Context, 
         start_page: Box<dyn AppPage>,
-        navigation: Option<(usize, Vec<NavigateInfo>)>
+        mut navigation: Option<(usize, Vec<NavigateInfo>)>
     ) -> Self {
         let background = ctx.theme.colors.background.primary;
+        let pages = navigation.as_mut().map(|mut navi| navi.1.iter_mut().map(|n| n.3.take().unwrap()).collect::<Vec<_>>());
         let navigator = navigation.map(|n| Opt::new(MobileNavigator::new(ctx, n), true));
         let insets = (0.0, 0.0, 0.0, 0.0); // ctx.safe_area_insets();
-        
+        let inset = |h: f32| Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(h), Padding::default()), Rectangle::new(background));
         MobileInterface(
             Column::new(0.0, Offset::Center, Size::Fit, Padding::default()), 
-            Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(insets.0), Padding::default()), Rectangle::new(background)),
-            Some(start_page), None, navigator,
-            Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(insets.1), Padding::default()), Rectangle::new(background))
+            inset(insets.0),
+            Some(start_page), 
+            None, 
+            navigator,
+            inset(insets.1),
+            pages
         )
     }
 }
@@ -44,8 +48,8 @@ impl OnEvent for MobileInterface {
             };
 
             if let Some(navigator) = &mut self.4 {navigator.display(self.2.as_ref().map(|s| s.has_nav()).unwrap_or(false));}
-        } else if let Some(NavigatorEvent(on_click)) = event.downcast_mut::<NavigatorEvent>() {
-            self.2 = Some(on_click(ctx));
+        } else if let Some(NavigatorEvent(index)) = event.downcast_mut::<NavigatorEvent>() {
+            self.6.as_mut().map(|mut nav| self.2 = Some(nav[*index](ctx)));
         } else if let Some(KeyboardActiveEvent(enabled)) = event.downcast_ref::<KeyboardActiveEvent>() {
             match enabled {
                 true if self.3.is_some() => {},
@@ -54,6 +58,12 @@ impl OnEvent for MobileInterface {
             }
         }
         true
+    }
+}
+
+impl std::fmt::Debug for MobileInterface {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Mobile")
     }
 }
 
@@ -92,7 +102,7 @@ impl MobileNavigatorContent {
             let id = ElementID::new();
             let closure = move |ctx: &mut Context| {
                 ctx.trigger_event(NavigatorSelect(id));
-                ctx.trigger_event(NavigatorEvent(on_click));
+                ctx.trigger_event(NavigatorEvent(i));
             };
 
             let button = IconButton::tab_nav(ctx, icon, navigation.0 == i, closure);

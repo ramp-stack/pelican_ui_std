@@ -1,6 +1,6 @@
 [package]
 name = "pelican_ui_std"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Ella Mae <ellaammae@email.com>"]
 edition = "2021"
 description = "A modern UI/UX toolkit optimized for the RAMP stack."
@@ -20,8 +20,7 @@ qrcode = "0.14.1"
 uuid = { version = "1.16.0", features = ["v4"] }
 dyn-clone = "1.0.19"
 pelican_ui = {path="../pelican_ui"}
-#pelican_ui = "0.1.4"
-pelican_macro = "0.1.0"
+#pelican_ui = "0.1.5"
 quircs = "0.10.2"
 image = "0.25.6"
 chrono = "0.4.41"

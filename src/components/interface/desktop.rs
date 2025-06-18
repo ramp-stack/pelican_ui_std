@@ -14,16 +14,17 @@ use crate::pages::Error;
 use std::fmt::Debug;
 use super::{NavigationButton, NavigateInfo};
 
-#[derive(Debug, Component)]
-pub struct DesktopInterface(Row, Option<DesktopNavigator>, Bin<Stack, Rectangle>, Option<Box<dyn AppPage>>);
+#[derive(Component)]
+pub struct DesktopInterface(Row, Option<DesktopNavigator>, Bin<Stack, Rectangle>, Option<Box<dyn AppPage>>, #[skip] Option<Vec<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>>);
 
 impl DesktopInterface {
     pub fn new(
         ctx: &mut Context, 
         start_page: Box<dyn AppPage>,
-        navigation: Option<(usize, Vec<NavigateInfo>)>,
+        mut navigation: Option<(usize, Vec<NavigateInfo>)>,
     ) -> Self {
         let color = ctx.theme.colors.outline.secondary;
+        let pages = navigation.as_mut().map(|mut navi| navi.1.iter_mut().map(|n| n.3.take().unwrap()).collect::<Vec<_>>());
         let navigator = navigation.map(|n| DesktopNavigator::new(ctx, n));
 
         DesktopInterface(
@@ -33,7 +34,8 @@ impl DesktopInterface {
                 Stack(Offset::default(), Offset::default(), Size::Static(1.0), Size::Fit, Padding::default()), 
                 Rectangle::new(color)
             ),
-            Some(start_page)
+            Some(start_page),
+            pages
         )
     }
 }
@@ -45,10 +47,16 @@ impl OnEvent for DesktopInterface {
                 Ok(p) => Some(p),
                 Err(e) => Some(Box::new(Error::new(ctx, "404 Page Not Found", e)))
             };
-        } else if let Some(NavigatorEvent(on_click)) = event.downcast_mut::<NavigatorEvent>() {
-            self.3 = Some(on_click(ctx));
+        } else if let Some(NavigatorEvent(index)) = event.downcast_mut::<NavigatorEvent>() {
+            self.4.as_mut().map(|mut nav| self.3 = Some(nav[*index](ctx)));
         }
         true
+    }
+}
+
+impl std::fmt::Debug for DesktopInterface {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Desktop")
     }
 }
 
@@ -68,7 +76,7 @@ impl DesktopNavigator {
             let id = ElementID::new();
             let closure = move |ctx: &mut Context| {
                 ctx.trigger_event(NavigatorSelect(id));
-                ctx.trigger_event(NavigatorEvent(on_click));
+                ctx.trigger_event(NavigatorEvent(i));
             };
 
             if let Some(avatar) = avatar {

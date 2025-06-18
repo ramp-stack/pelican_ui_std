@@ -17,11 +17,11 @@ use std::fmt::Debug;
 
 use super::{DesktopInterface, MobileInterface};
 
-pub type NavigateInfo = (&'static str, &'static str, Option<AvatarContent>, Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>);
+pub type NavigateInfo = (&'static str, &'static str, Option<AvatarContent>, Option<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>);
 
 #[derive(Debug, Component)]
 pub struct Interface (Stack, Rectangle, Option<MobileInterface>, Option<DesktopInterface>);
-
+impl OnEvent for Interface {}
 impl Interface {
     pub fn new(
         ctx: &mut Context, 
@@ -35,9 +35,7 @@ impl Interface {
         };
         Interface(Stack::default(), Rectangle::new(color), mobile, desktop)
     }
-}
-
-impl OnEvent for Interface {}
+}  
 
 #[derive(Debug, Component)]
 pub struct Page(Column, Header, Content, Option<Bumper>);
