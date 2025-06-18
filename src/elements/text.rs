@@ -40,13 +40,7 @@ impl OnEvent for Text {}
 impl Text {
     pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text.to_string(), size, Some(size*1.25), font, color)], None, align, None);
-        Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text)
-    }
-
-    pub fn new_with_cursor(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
-        let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text.to_string(), size, Some(size*1.25), font, color)], None, align, Some(Cursor::default()));
+        let text = BasicText::new(vec![Span::new(text.to_string(), size, Some(size*1.25), font, color)], None, align);
         Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text)
     }
 
@@ -60,10 +54,6 @@ impl OnEvent for ExpandableText {}
 impl ExpandableText {
     pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         ExpandableText(Text::new(ctx, text, style, size, align))
-    }
-
-    pub fn new_with_cursor(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
-        ExpandableText(Text::new_with_cursor(ctx, text, style, size, align))
     }
 
     pub fn text(&mut self) -> &mut BasicText { self.0.text() }
@@ -84,88 +74,61 @@ impl Component for ExpandableText {
 }
 
 #[derive(Component, Debug)]
-pub struct TextEditor(Stack, Option<Text>, Option<ExpandableText>);
+pub struct TextEditor(Stack, ExpandableText, TextCursor);
 
 impl TextEditor {
-    pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align, can_expand: bool) -> Self {
-        let (t, et) = match can_expand {
-            true => (None, Some(ExpandableText::new_with_cursor(ctx, text, style, size, align))),
-            false => (Some(Text::new_with_cursor(ctx, text, style, size, align)), None)
-        };
-
-        TextEditor(
-            Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()),
-            t, et, //TextCursor::new(ctx, style, size)
-        )
-    }
-    
-    pub fn text(&mut self) -> &mut BasicText {
-        if let Some(text) = &mut self.1 {
-            return text.text();
-        }
-
-        self.2.as_mut().unwrap().text()
+    pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
+        let mut text = ExpandableText::new(ctx, text, style, size, align);
+        text.text().cursor = Some(Cursor::default());
+        TextEditor(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text, TextCursor::new(ctx, style, size))
     }
 
-    // pub fn cursor(&mut self) -> &mut TextCursor { &mut self.3 }
-
-    // pub fn display_cursor(&mut self, display: bool) {
-    //     self.3.display(display);
-    // }
+    pub fn text(&mut self) -> &mut BasicText { self.1.text() }
 
     pub fn apply_edit(&mut self, ctx: &mut Context, key: &Key) {
-        // if let Some((i, _)) = self.text().cursor_action(CursorAction::GetIndex) {
-            let new_text = self.text().spans[0].text.clone();
-            match key {
-                Key::Named(NamedKey::Enter) => {
-                    new_text.chars().collect::<Vec<char>>().push('\n');
-                    self.text().spans[0].text = new_text;
-                    // self.text().spans[0].text = Self::insert_char(new_text, '\n', i as usize);
-                    // self.text().cursor_action(CursorAction::MoveNewline);
-                },
-                Key::Named(NamedKey::Space) => {
-                    new_text.chars().collect::<Vec<char>>().push(' ');
-                    self.text().spans[0].text = new_text;
-                    // self.text().spans[0].text = Self::insert_char(new_text, ' ', i as usize);
-                    // self.text().cursor_action(CursorAction::MoveRight);
-                },
-                Key::Named(NamedKey::Delete | NamedKey::Backspace) => {
-                    // self.text().cursor_action(CursorAction::MoveLeft);
-                    let i = new_text.len().saturating_sub(1);
-                    self.text().spans[0].text = Self::remove_char(new_text, i);
-                },
-                Key::Character(c) => {
-                    // self.2.text().text().spans[0].text.insert_str(i as usize , c);
-                    let c = c.chars().next().unwrap();
-                    new_text.chars().collect::<Vec<char>>().push(c);
-                    self.text().spans[0].text = new_text;
-                    // self.text().spans[0].text = Self::insert_char(new_text, c, i as usize);
-                    // self.text().cursor_action(CursorAction::MoveRight);
-                },
-                _ => {}
-            };
-        // }
+        let index = self.text().cursor.unwrap();
+        match key {
+            Key::Named(NamedKey::Enter) => {
+                match index >= self.text().spans[0].text.len() {
+                    true => self.text().spans[0].text.push('\n'),
+                    false => self.text().spans[0].text.insert(index, '\n'),
+                };
+                self.text().cursor.as_mut().map(|c| *c += 1);
+            },
+            Key::Named(NamedKey::Space) => {
+                match index >= self.text().spans[0].text.len() {
+                    true => self.text().spans[0].text.push(' '),
+                    false => self.text().spans[0].text.insert(index, ' '),
+                };
+                self.text().cursor.as_mut().map(|c| *c += 1);
+            },
+            Key::Named(NamedKey::Delete | NamedKey::Backspace) => {
+                self.text().spans[0].text = {
+                    let mut chars: Vec<char> = self.text().spans[0].text.chars().collect();
+
+                    match chars.len() {
+                        1 => chars.clear(),
+                        _ if index >= chars.len() => {chars.pop();},
+                        _ => {chars.remove(index);}
+                    }
+
+                    chars.into_iter().collect()
+                };
+                self.text().cursor.as_mut().map(|c| *c = c.saturating_sub(1));
+            },
+            Key::Character(c) => {
+                match index >= self.text().spans[0].text.len() {
+                    true => c.chars().next().map(|ch| self.text().spans[0].text.push(ch)),
+                    false => c.chars().next().map(|ch| self.text().spans[0].text.insert(index, ch)),
+                };
+                self.text().cursor.as_mut().map(|c| *c += 1);
+            },
+            _ => {}
+        };
     }
 
-    fn insert_char(text: String, new: char, index: usize) -> String {
-        let mut chars: Vec<char> = text.chars().collect();
-        match index >= chars.len() {
-            true => chars.push(new),
-            false => chars.insert(index, new)
-        }
-    
-        chars.into_iter().collect()
-    }
-    
-    fn remove_char(text: String, index: usize) -> String {
-        let mut chars: Vec<char> = text.chars().collect();
-        match chars.len() == 1 {
-            true => {chars.clear();},
-            false if index >= chars.len() => {chars.pop();},
-            false => {chars.remove(index);},
-        }
-    
-        chars.into_iter().collect()
+    pub fn display_cursor(&mut self, display: bool) {
+        self.2.1.display(display)
     }
 }
 
@@ -173,16 +136,15 @@ impl TextEditor {
 impl OnEvent for TextEditor {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         // let mut text = self.text().clone();
-        if event.downcast_ref::<TickEvent>().is_some() {
-            // if let Some(cords) = text.cursor_action(CursorAction::GetPosition) {
-            //     *self.3.x_offset() = Offset::Static(cords.0);
-            //     *self.3.y_offset() = Offset::Static(cords.1-(text.spans[0].line_height/1.2));
-            // }
+        if let Some(TickEvent) = event.downcast_ref::<TickEvent>() {
+            let cursor_pos = self.text().cursor_position();
+            // println!("Cursor Position {:?} while at index {:?}", cursor_pos, self.text().cursor);
+            *self.2.x_offset() = Offset::Static(cursor_pos.0);
+            *self.2.y_offset() = Offset::Static(cursor_pos.1+2.0);
         } else if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            // if event.state == MouseState::Pressed && event.position.is_some() {
-            //     text.set_cursor((event.position.unwrap().0, event.position.unwrap().1));
-            //     text.cursor_action(CursorAction::GetPosition);
-            // }
+            if event.state == MouseState::Pressed && event.position.is_some() {
+                self.text().cursor_click(event.position.unwrap().0, event.position.unwrap().1)
+            }
         }
         // *self.text() = text;
         
@@ -204,7 +166,6 @@ impl TextCursor {
         )
     }
 
-    pub fn display(&mut self, display: bool) { self.1.display(display) }
     pub fn x_offset(&mut self) -> &mut Offset { &mut self.0.0 }
     pub fn y_offset(&mut self) -> &mut Offset { &mut self.0.1 }
 }

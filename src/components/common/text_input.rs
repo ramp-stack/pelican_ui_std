@@ -105,7 +105,7 @@ impl InputField {
 impl OnEvent for InputField {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref::<TickEvent>() {
-            // self.2.text().display_cursor(self.3 == InputState::Focus);
+            self.2.text().display_cursor(self.3 == InputState::Focus);
             self.3 = match self.3 {
                 InputState::Default if self.4 => Some(InputState::Error),
                 InputState::Error if !self.4 => Some(InputState::Default),
@@ -205,7 +205,7 @@ impl InputContent {
             Bin(
                 Stack(Offset::default(), Offset::End, Size::fill(), Size::Fit, Padding(8.0, 8.0, 8.0, 8.0)),
                 EitherOr::new(
-                    TextEditor::new(ctx, value.unwrap_or(""), TextStyle::Primary, font_size, Align::Left, true),
+                    TextEditor::new(ctx, value.unwrap_or(""), TextStyle::Primary, font_size, Align::Left),
                     ExpandableText::new(ctx, placeholder, TextStyle::Secondary, font_size, Align::Left)
                 )
             ),
