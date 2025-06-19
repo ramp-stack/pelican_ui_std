@@ -85,7 +85,7 @@ impl TextEditor {
 
     pub fn text(&mut self) -> &mut BasicText { self.1.text() }
 
-    pub fn apply_edit(&mut self, ctx: &mut Context, key: &Key) {
+    pub fn apply_edit(&mut self, _ctx: &mut Context, key: &Key) {
         let index = self.text().cursor.unwrap();
         match key {
             Key::Named(NamedKey::Enter) => {
@@ -93,14 +93,14 @@ impl TextEditor {
                     true => self.text().spans[0].text.push('\n'),
                     false => self.text().spans[0].text.insert(index, '\n'),
                 };
-                self.text().cursor.as_mut().map(|c| *c += 1);
+                if let Some(c) = self.text().cursor.as_mut() {*c += 1};
             },
             Key::Named(NamedKey::Space) => {
                 match index >= self.text().spans[0].text.len() {
                     true => self.text().spans[0].text.push(' '),
                     false => self.text().spans[0].text.insert(index, ' '),
                 };
-                self.text().cursor.as_mut().map(|c| *c += 1);
+                if let Some(c) = self.text().cursor.as_mut() {*c += 1};
             },
             Key::Named(NamedKey::Delete | NamedKey::Backspace) => {
                 self.text().spans[0].text = {
@@ -114,14 +114,14 @@ impl TextEditor {
 
                     chars.into_iter().collect()
                 };
-                self.text().cursor.as_mut().map(|c| *c = c.saturating_sub(1));
+                if let Some(c) = self.text().cursor.as_mut() { *c = c.saturating_sub(1); }
             },
             Key::Character(c) => {
                 match index >= self.text().spans[0].text.len() {
                     true => c.chars().next().map(|ch| self.text().spans[0].text.push(ch)),
                     false => c.chars().next().map(|ch| self.text().spans[0].text.insert(index, ch)),
                 };
-                self.text().cursor.as_mut().map(|c| *c += 1);
+                if let Some(c) = self.text().cursor.as_mut() {*c += 1;}
             },
             _ => {}
         };
@@ -134,11 +134,9 @@ impl TextEditor {
 
 
 impl OnEvent for TextEditor {
-    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        // let mut text = self.text().clone();
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref::<TickEvent>() {
             let cursor_pos = self.text().cursor_position();
-            // println!("Cursor Position {:?} while at index {:?}", cursor_pos, self.text().cursor);
             *self.2.x_offset() = Offset::Static(cursor_pos.0);
             *self.2.y_offset() = Offset::Static(cursor_pos.1+2.0);
         } else if let Some(event) = event.downcast_ref::<MouseEvent>() {
@@ -146,7 +144,6 @@ impl OnEvent for TextEditor {
                 self.text().cursor_click(event.position.unwrap().0, event.position.unwrap().1)
             }
         }
-        // *self.text() = text;
         
         true
     }

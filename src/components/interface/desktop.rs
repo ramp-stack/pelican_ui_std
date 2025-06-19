@@ -12,10 +12,10 @@ use crate::utils::{ElementID, AppPage};
 use crate::pages::Error;
 
 use std::fmt::Debug;
-use super::{NavigationButton, NavigateInfo};
+use super::{NavigationButton, NavigateInfo, PageBuilder};
 
 #[derive(Component)]
-pub struct DesktopInterface(Row, Option<DesktopNavigator>, Bin<Stack, Rectangle>, Option<Box<dyn AppPage>>, #[skip] Option<Vec<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>>);
+pub struct DesktopInterface(Row, Option<DesktopNavigator>, Bin<Stack, Rectangle>, Option<Box<dyn AppPage>>, #[skip] PageBuilder);
 
 impl DesktopInterface {
     pub fn new(
@@ -24,7 +24,7 @@ impl DesktopInterface {
         mut navigation: Option<(usize, Vec<NavigateInfo>)>,
     ) -> Self {
         let color = ctx.theme.colors.outline.secondary;
-        let pages = navigation.as_mut().map(|mut navi| navi.1.iter_mut().map(|n| n.3.take().unwrap()).collect::<Vec<_>>());
+        let pages = navigation.as_mut().map(|navi| navi.1.iter_mut().map(|n| n.3.take().unwrap()).collect::<Vec<_>>());
         let navigator = navigation.map(|n| DesktopNavigator::new(ctx, n));
 
         DesktopInterface(
@@ -48,7 +48,7 @@ impl OnEvent for DesktopInterface {
                 Err(e) => Some(Box::new(Error::new(ctx, "404 Page Not Found", e)))
             };
         } else if let Some(NavigatorEvent(index)) = event.downcast_mut::<NavigatorEvent>() {
-            self.4.as_mut().map(|mut nav| self.3 = Some(nav[*index](ctx)));
+            if let Some(nav) = self.4.as_mut() { self.3 = Some(nav[*index](ctx)); }
         }
         true
     }
@@ -72,7 +72,7 @@ impl DesktopNavigator {
         let mut top_col = Vec::new();
         let mut bot_col = Vec::new();
 
-        for (i, (icon, name, avatar, on_click)) in navigation.1.into_iter().enumerate() {
+        for (i, (icon, name, avatar, _)) in navigation.1.into_iter().enumerate() {
             let id = ElementID::new();
             let closure = move |ctx: &mut Context| {
                 ctx.trigger_event(NavigatorSelect(id));

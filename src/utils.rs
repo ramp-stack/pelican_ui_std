@@ -1,7 +1,7 @@
 use chrono::{DateTime, Local, Datelike, Timelike, TimeZone};
 use serde::{Serialize, Deserialize};
 
-use pelican_ui::drawable::{Drawable, Component};
+use pelican_ui::drawable::Drawable;
 use pelican_ui::Context;
 
 pub trait AppPage: Drawable + std::fmt::Debug + 'static {

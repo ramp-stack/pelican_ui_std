@@ -1,7 +1,6 @@
 use pelican_ui::events::Event;
 use pelican_ui::Context;
 use crate::utils::ElementID;
-use crate::utils::AppPage;
 
 /// Event used to navigate between pages of the app.
 #[derive(Debug, Clone)]

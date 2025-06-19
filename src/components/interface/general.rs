@@ -5,7 +5,7 @@ use pelican_ui::{Context, Component};
 
 use crate::elements::shapes::{Rectangle};
 use crate::elements::text::TextStyle;
-use crate::events::{TextInputSelect, NavigateEvent};
+use crate::events::TextInputSelect;
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Scroll};
 use crate::components::avatar::{AvatarContent, AvatarRow};
 use crate::components::button::{IconButton, Button};
@@ -18,6 +18,7 @@ use std::fmt::Debug;
 use super::{DesktopInterface, MobileInterface};
 
 pub type NavigateInfo = (&'static str, &'static str, Option<AvatarContent>, Option<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>);
+pub type PageBuilder = Option<Vec<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>>;
 
 #[derive(Debug, Component)]
 pub struct Interface (Stack, Rectangle, Option<MobileInterface>, Option<DesktopInterface>);

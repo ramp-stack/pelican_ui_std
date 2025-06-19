@@ -1,4 +1,4 @@
-use pelican_ui::events::{OnEvent, Event, TickEvent};
+use pelican_ui::events::{OnEvent, Event};
 use pelican_ui::drawable::{Drawable, Component};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
@@ -11,10 +11,10 @@ use crate::utils::{ElementID, AppPage};
 use crate::pages::Error;
 
 use std::fmt::Debug;
-use super::{NavigationButton, NavigateInfo, MobileKeyboard};
+use super::{NavigationButton, NavigateInfo, MobileKeyboard, PageBuilder};
 
 #[derive(Component)]
-pub struct MobileInterface(Column, Bin<Stack, Rectangle>, Option<Box<dyn AppPage>>, Option<MobileKeyboard>, Option<Opt<MobileNavigator>>, Bin<Stack, Rectangle>,  #[skip] Option<Vec<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>>);
+pub struct MobileInterface(Column, Bin<Stack, Rectangle>, Option<Box<dyn AppPage>>, Option<MobileKeyboard>, Option<Opt<MobileNavigator>>, Bin<Stack, Rectangle>,  #[skip] PageBuilder);
 
 impl MobileInterface {
     pub fn new(
@@ -23,7 +23,7 @@ impl MobileInterface {
         mut navigation: Option<(usize, Vec<NavigateInfo>)>
     ) -> Self {
         let background = ctx.theme.colors.background.primary;
-        let pages = navigation.as_mut().map(|mut navi| navi.1.iter_mut().map(|n| n.3.take().unwrap()).collect::<Vec<_>>());
+        let pages = navigation.as_mut().map(|nav| nav.1.iter_mut().map(|n| n.3.take().unwrap()).collect::<Vec<_>>());
         let navigator = navigation.map(|n| Opt::new(MobileNavigator::new(ctx, n), true));
         let insets = (0.0, 0.0, 0.0, 0.0); // ctx.safe_area_insets();
         let inset = |h: f32| Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(h), Padding::default()), Rectangle::new(background));
@@ -49,7 +49,7 @@ impl OnEvent for MobileInterface {
 
             if let Some(navigator) = &mut self.4 {navigator.display(self.2.as_ref().map(|s| s.has_nav()).unwrap_or(false));}
         } else if let Some(NavigatorEvent(index)) = event.downcast_mut::<NavigatorEvent>() {
-            self.6.as_mut().map(|mut nav| self.2 = Some(nav[*index](ctx)));
+            if let Some(nav) = self.6.as_mut() { self.2 = Some(nav[*index](ctx)); }
         } else if let Some(KeyboardActiveEvent(enabled)) = event.downcast_ref::<KeyboardActiveEvent>() {
             match enabled {
                 true if self.3.is_some() => {},
@@ -98,7 +98,7 @@ impl MobileNavigatorContent {
         navigation: (usize, Vec<NavigateInfo>)
     ) -> Self {
         let mut tabs = Vec::new();
-        for (i, (icon, _, _, on_click)) in navigation.1.into_iter().enumerate() {
+        for (i, (icon, _, _, _)) in navigation.1.into_iter().enumerate() {
             let id = ElementID::new();
             let closure = move |ctx: &mut Context| {
                 ctx.trigger_event(NavigatorSelect(id));

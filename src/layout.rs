@@ -326,7 +326,7 @@ impl Layout for Wrap {
         let mut items: Vec<SizeRequest> = Vec::new();
         let mut areas: Vec<Area> = Vec::new();
 
-        for (i, child) in children.into_iter().enumerate() {
+        for child in children.into_iter() {
             if (taken_width + child.min_width()) > maximum_size.0 && !items.is_empty() {
                 let line_height = items.iter().map(|c| c.min_height()).reduce(f32::max).unwrap_or(0.0);
 

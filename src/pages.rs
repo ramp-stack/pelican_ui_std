@@ -5,16 +5,13 @@ use pelican_ui::{Context, Component};
 
 use crate::{Stack, Content, Header, Bumper, Page, Button, Offset, TextStyle, Text, Brand, NavigateEvent, AppPage};
 
-use std::any::Any;
-use std::collections::HashMap;
-
 #[derive(Debug, Component)]
 pub struct Error(Stack, Page, #[skip] Box<dyn AppPage>);
 impl OnEvent for Error {}
 
 impl AppPage for Error {
     fn has_nav(&self) -> bool { false }
-    fn navigate(self: Box<Self>, ctx: &mut Context, _index: usize) -> Result<Box<dyn AppPage>, Box<dyn AppPage>> { Ok(self.2) }
+    fn navigate(self: Box<Self>, _ctx: &mut Context, _index: usize) -> Result<Box<dyn AppPage>, Box<dyn AppPage>> { Ok(self.2) }
 }
 
 impl Error {
