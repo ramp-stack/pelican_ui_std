@@ -36,6 +36,9 @@ impl Interface {
         };
         Interface(Stack::default(), Rectangle::new(color), mobile, desktop)
     }
+
+    pub fn desktop(&mut self) -> &mut Option<DesktopInterface> { &mut self.3 }
+    pub fn mobile(&mut self) -> &mut Option<MobileInterface> { &mut self.2 }
 }  
 
 #[derive(Debug, Component)]

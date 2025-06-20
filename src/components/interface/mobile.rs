@@ -37,6 +37,8 @@ impl MobileInterface {
             pages
         )
     }
+
+    pub fn navigator(&mut self) -> &mut Option<Opt<MobileNavigator>> { &mut self.4 }
 }
 
 impl OnEvent for MobileInterface {

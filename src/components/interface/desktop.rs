@@ -8,6 +8,7 @@ use crate::elements::images::Brand;
 use crate::events::{NavigatorSelect, NavigateEvent, NavigatorEvent};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::components::button::{Button, ButtonState};
+use crate::components::avatar::{Avatar, AvatarContent};
 use crate::utils::{ElementID, AppPage};
 use crate::pages::Error;
 
@@ -38,6 +39,8 @@ impl DesktopInterface {
             pages
         )
     }
+
+    pub fn navigator(&mut self) -> &mut Option<DesktopNavigator> { &mut self.1 }
 }
 
 impl OnEvent for DesktopInterface {
@@ -102,6 +105,23 @@ impl DesktopNavigator {
             ButtonColumn::new(bot_col)
         )
     }
+
+    pub fn update_avatar(&mut self, avatar_content: AvatarContent) {
+        self.avatar().map(|avatar| {
+            if avatar.avatar().image().is_none() {
+                avatar.set_content(avatar_content)
+            } else if let AvatarContent::Image(ref image) = avatar_content {
+                if avatar.avatar().image().as_ref().unwrap().image != *image {
+                    avatar.set_content(avatar_content)
+                }
+            }
+        });
+    }
+
+    pub fn avatar(&mut self) -> Option<&mut Avatar> {
+        self.4.buttons().iter_mut().map(|nb| nb.button()).flatten().map(|button| button.avatar()).flatten().next()
+    }
+
 }
 
 impl OnEvent for DesktopNavigator {

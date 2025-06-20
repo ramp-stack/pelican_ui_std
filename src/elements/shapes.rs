@@ -37,6 +37,8 @@ impl OutlinedRectangle {
 
     /// Returns a mutable reference to the outline color of the `OutlinedRectangle`.
     pub fn outline(&mut self) -> &mut Color {&mut self.2.shape().color}
+
+    pub fn size(&self) -> (f32, f32) {self.2.0.shape.size()}
 }
 
 /// Represents a rounded rectangle with a stroke and corner radius.

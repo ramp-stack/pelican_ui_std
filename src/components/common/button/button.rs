@@ -77,6 +77,7 @@ impl Button {
         self.color(ctx);
     }
 
+    pub fn avatar(&mut self) -> &mut Option<Avatar> { &mut self.2.1 }
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
 }
 

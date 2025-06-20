@@ -9,7 +9,7 @@ use crate::layout::{Stack, Offset, Size, Row, Padding};
 use crate::utils::Callback;
 
 #[derive(Component)]
-pub struct Avatar(Stack, MainAvatar, Option<Flair>, #[skip] pub Option<Callback>);
+pub struct Avatar(Stack, PrimaryAvatar, Option<Flair>, #[skip] pub Option<Callback>);
 
 impl Avatar {
     pub fn new(
@@ -24,7 +24,7 @@ impl Avatar {
 
         Avatar(
             Stack(Offset::End, Offset::End, Size::Fit, Size::Fit, Padding::default()),
-            MainAvatar::new(ctx, content, outline, size),
+            PrimaryAvatar::new(ctx, content, outline, size),
             flair.map(|(name, style)| Flair::new(ctx, name, style, size / 3.0, black)),
             on_click
         )
@@ -33,6 +33,7 @@ impl Avatar {
     pub fn set_content(&mut self, content: AvatarContent)  {self.1.set_content(content)}
     pub fn flair(&mut self) -> &mut Option<Flair> {&mut self.2}
     pub fn outline(&mut self) -> &mut Option<Shape> {&mut self.1.3}
+    pub fn avatar(&mut self) -> &mut PrimaryAvatar {&mut self.1}
 }
 
 impl OnEvent for Avatar {
@@ -54,16 +55,11 @@ impl std::fmt::Debug for Avatar {
 }
 
 #[derive(Component, Debug)]
-struct MainAvatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>);
-impl OnEvent for MainAvatar {}
+pub struct PrimaryAvatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>);
+impl OnEvent for PrimaryAvatar {}
 
-impl MainAvatar {
-    fn new(
-        ctx: &mut Context, 
-        content: AvatarContent,
-        outline: bool, 
-        size: f32,
-    ) -> Self {
+impl PrimaryAvatar {
+    fn new(ctx: &mut Context, content: AvatarContent, outline: bool, size: f32) -> Self {
         let black = ctx.theme.colors.shades.black;
 
         let (circle_icon, image) = match content {
@@ -71,13 +67,13 @@ impl MainAvatar {
             AvatarContent::Icon(name, style) => (Some(AvatarIcon::new(ctx, name, style, size)), None)
         };
 
-        MainAvatar(
+        PrimaryAvatar(
             Stack(Offset::Center, Offset::Center, Size::Fit, Size::Fit, Padding::default()),
             circle_icon, image, outline.then(|| Outline::circle(size, black)),
         )
     }
 
-    fn set_content(&mut self, content: AvatarContent) {
+    pub fn set_content(&mut self, content: AvatarContent) {
         match content {
             AvatarContent::Image(image) => {
                 if let Some(avatar_image) = &mut self.2 {
@@ -92,6 +88,9 @@ impl MainAvatar {
             AvatarContent::Icon(_name, _style) => {/* to do */}
         };
     }
+
+    pub fn image(&mut self) -> &mut Option<Image> { &mut self.2 }
+    pub fn icon(&mut self) -> &mut Option<AvatarIcon> { &mut self.1 }
 }
 
 
