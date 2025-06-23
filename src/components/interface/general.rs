@@ -42,12 +42,12 @@ impl Interface {
 }  
 
 #[derive(Debug, Component)]
-pub struct Page(Column, Header, Content, Option<Bumper>);
+pub struct Page(Column, Option<Header>, Content, Option<Bumper>);
 impl OnEvent for Page {}
 
 impl Page {
-    pub fn new(header: Header, content: Content, bumper: Option<Bumper>) -> Self {
-        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[1].0, f32::MAX));
+    pub fn new(header: Option<Header>, content: Content, bumper: Option<Bumper>) -> Self {
+        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         Page(
             Column::new(12.0, Offset::Center, width, Padding::default()),
             header,
@@ -56,7 +56,7 @@ impl Page {
         )
     }
 
-    pub fn header(&mut self) -> &mut Header {&mut self.1}
+    pub fn header(&mut self) -> &mut Option<Header> {&mut self.1}
     pub fn content(&mut self) -> &mut Content {&mut self.2}
     pub fn bumper(&mut self) -> &mut Option<Bumper> {&mut self.3}
 }

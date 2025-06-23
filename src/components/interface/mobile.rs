@@ -38,6 +38,7 @@ impl MobileInterface {
         )
     }
 
+    pub fn page(&mut self) -> &mut Option<Box<dyn AppPage>> { &mut self.2 }
     pub fn navigator(&mut self) -> &mut Option<Opt<MobileNavigator>> { &mut self.4 }
 }
 

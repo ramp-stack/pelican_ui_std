@@ -40,6 +40,7 @@ impl DesktopInterface {
         )
     }
 
+    pub fn page(&mut self) -> &mut Option<Box<dyn AppPage>> { &mut self.3 }
     pub fn navigator(&mut self) -> &mut Option<DesktopNavigator> { &mut self.1 }
 }
 

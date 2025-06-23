@@ -26,24 +26,23 @@ impl Error {
         let button = Button::primary(ctx, "Go Home", move |ctx: &mut Context| ctx.trigger_event(NavigateEvent(0)));
         let bumper = Bumper::single_button(ctx, button);
         let header = Header::stack(ctx, None, "", None);
-        Error(Stack::default(), Page::new(header, content, Some(bumper)), home)
+        Error(Stack::default(), Page::new(Some(header), content, Some(bumper)), home)
     }
 }
 
-// #[derive(Debug, Component)]
-// pub struct Splash(Stack, Page, #[skip] ApplicationPage);
-// impl OnEvent for Splash {}
-// impl AppPage for Splash {
-//     fn navigate(self, _index: u8) -> ApplicationPage {self.2}
-// }
+#[derive(Debug, Component)]
+pub struct Splash(Stack, Page);
+impl OnEvent for Splash {}
+impl AppPage for Splash {
+    fn has_nav(&self) -> bool { false }
+    fn navigate(self: Box<Self>, _ctx: &mut Context, _index: usize) -> Result<Box<dyn AppPage>, Box<dyn AppPage>> { Ok(self) }
+}
 
-// impl Splash {
-//     pub fn new(ctx: &mut Context, home: Box<dyn AppPage>) -> ApplicationPage {
-//         let wordmark = ctx.theme.brand.wordmark.clone();
-//         let wordmark = Brand::new(wordmark, (300.0, 150.0));
-//         let content = Content::new(Offset::Center, vec![Box::new(wordmark)]);
+impl Splash {
+    pub fn new(ctx: &mut Context) -> Self {
+        let wordmark = ctx.theme.brand.wordmark.clone();
+        let content = Content::new(Offset::Center, vec![Box::new(Brand::new(wordmark, (162.0, 34.5)))]);
 
-//         let header = Header::stack(ctx, None, "", None);
-//         Error(Stack::default(), Page::new(header, content, None))
-//     }
-// }
+        Splash(Stack::default(), Page::new(None, content, None))
+    }
+}
