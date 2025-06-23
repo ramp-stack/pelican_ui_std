@@ -5,7 +5,9 @@ use pelican_ui::{Context, Component};
 
 use std::sync::{Arc, Mutex};
 
-#[derive(Clone, Copy, Default, Debug, PartialEq)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Offset {
     #[default]
     Start,

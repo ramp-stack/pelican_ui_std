@@ -67,11 +67,7 @@ impl std::fmt::Debug for DesktopInterface {
 pub struct DesktopNavigator(Column, Image, ButtonColumn, Bin<Stack, Rectangle>, ButtonColumn);
 
 impl DesktopNavigator {
-    pub fn new(
-        ctx: &mut Context,
-        navigation: (usize, Vec<NavigateInfo>),
-    ) -> Self {
-
+    pub fn new(ctx: &mut Context, navigation: (usize, Vec<NavigateInfo>)) -> Self {
         let mut top_col = Vec::new();
         let mut bot_col = Vec::new();
 
@@ -96,7 +92,7 @@ impl DesktopNavigator {
 
         DesktopNavigator(
             Column::new(32.0, Offset::Center, Size::Fill(100.0, 200.0), Padding(16.0, 32.0, 16.0, 32.0)),
-            Brand::new(wordmark, (80.0, 44.0)),
+            Brand::new(wordmark, (108.0, 23.0)),
             ButtonColumn::new(top_col),
             Bin (
                 Stack(Offset::Center, Offset::Center, Size::Fill(100.0, 200.0), Size::Fill(100.0, f32::MAX), Padding::default()), 
