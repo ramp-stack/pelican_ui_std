@@ -17,7 +17,7 @@ use std::fmt::Debug;
 
 use super::{DesktopInterface, MobileInterface};
 
-pub type NavigateInfo = (&'static str, &'static str, Option<AvatarContent>, Option<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>);
+pub type NavigateInfo = (&'static str, String, Option<AvatarContent>, Option<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>);
 pub type PageBuilder = Option<Vec<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>>;
 
 #[derive(Debug, Component)]

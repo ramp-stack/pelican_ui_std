@@ -79,6 +79,7 @@ impl Button {
 
     pub fn avatar(&mut self) -> &mut Option<Avatar> { &mut self.2.1 }
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
+    pub fn label(&mut self) -> &mut Option<Text> {&mut self.2.3}
 }
 
 impl OnEvent for Button {

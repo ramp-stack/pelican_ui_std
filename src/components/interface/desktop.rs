@@ -80,10 +80,10 @@ impl DesktopNavigator {
             };
 
             if let Some(avatar) = avatar {
-                let profile = Button::photo(ctx, name, avatar, navigation.0 == i, closure);
+                let profile = Button::photo(ctx, &name, avatar, navigation.0 == i, closure);
                 bot_col.push(NavigationButton::new(id, Some(profile), None))
             } else {
-                let button = Button::navigation(ctx, icon, name, navigation.0 == i, closure);
+                let button = Button::navigation(ctx, icon, &name, navigation.0 == i, closure);
                 top_col.push(NavigationButton::new(id, Some(button), None))
             }
         }
@@ -113,6 +113,10 @@ impl DesktopNavigator {
                 }
             }
         });
+    }
+
+    pub fn update_username(&mut self, username: String) {
+        self.4.buttons()[0].button().as_mut().unwrap().label().as_mut().unwrap().text().spans[0].text = username;
     }
 
     pub fn avatar(&mut self) -> Option<&mut Avatar> {
