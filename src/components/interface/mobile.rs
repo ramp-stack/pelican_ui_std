@@ -25,7 +25,7 @@ impl MobileInterface {
         let background = ctx.theme.colors.background.primary;
         let pages = navigation.as_mut().map(|nav| nav.1.iter_mut().map(|n| n.3.take().unwrap()).collect::<Vec<_>>());
         let navigator = navigation.map(|n| Opt::new(MobileNavigator::new(ctx, n), true));
-        let insets = (0.0, 0.0, 0.0, 0.0); // ctx.safe_area_insets();
+        let insets = ctx.hardware.safe_area_insets();
         let inset = |h: f32| Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(h), Padding::default()), Rectangle::new(background));
         MobileInterface(
             Column::new(0.0, Offset::Center, Size::Fit, Padding::default()), 

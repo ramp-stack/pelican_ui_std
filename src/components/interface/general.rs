@@ -255,7 +255,7 @@ struct BumperContent (Row, Vec<Box<dyn Drawable>>);
 
 impl BumperContent {
     fn new(content: Vec<Box<dyn Drawable>>) -> Self {
-        BumperContent(Row::new(16.0, Offset::Center, Size::Fit, Padding(0.0, 24.0, 0.0, 24.0)), content)
+        BumperContent(Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 24.0, 24.0, 24.0)), content)
     }
 }
 

@@ -15,6 +15,9 @@ pub trait AppPage: Drawable + std::fmt::Debug + 'static {
 //     pub use pelican_macro::AppPage;
 // }
 
+#[derive(Clone, Copy, Deserialize, Serialize, Debug)]
+pub struct InternetConnection(pub bool);
+
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct Timestamp(String, String); // date, time (move to pelican)
 

@@ -289,13 +289,13 @@ impl Layout for Wrap {
             ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
         ).unzip();
 
-        println!("Children count: {}", min_w.len());
+        // println!("Children count: {}", min_w.len());
 
         let w_spacing = self.0 * (min_w.len().saturating_sub(1)) as f32;
         let h_spacing = self.1 * (min_h.len().saturating_sub(1)) as f32;
 
-        println!("Horizontal spacing total: {}", w_spacing);
-        println!("Vertical spacing total: {}", h_spacing);
+        // println!("Horizontal spacing total: {}", w_spacing);
+        // println!("Vertical spacing total: {}", h_spacing);
 
         let min_width = min_w.iter().copied().reduce(f32::max).unwrap_or_default();
         let max_width = max_w.iter().copied().reduce(|s, i| s + i).unwrap_or_default();
@@ -303,20 +303,20 @@ impl Layout for Wrap {
         let min_height = min_h.iter().copied().reduce(f32::max).unwrap_or_default();
         let max_height = max_h.iter().copied().sum();
 
-        println!("Min widths: {:?}", min_w);
-        println!("Max widths: {:?}", max_w);
-        println!("Min heights: {:?}", min_h);
-        println!("Max heights: {:?}", max_h);
+        // println!("Min widths: {:?}", min_w);
+        // println!("Max widths: {:?}", max_w);
+        // println!("Min heights: {:?}", min_h);
+        // println!("Max heights: {:?}", max_h);
 
-        println!("Calculated min_width: {}", min_width);
-        println!("Calculated max_width: {}", max_width);
-        println!("Calculated min_height: {}", min_height);
-        println!("Calculated max_height: {}", max_height);
+        // println!("Calculated min_width: {}", min_width);
+        // println!("Calculated max_width: {}", max_width);
+        // println!("Calculated min_height: {}", min_height);
+        // println!("Calculated max_height: {}", max_height);
 
         let size_request = SizeRequest::new(min_width, min_height, max_width, max_height).add(w_spacing, h_spacing);
         let adjusted = self.4.adjust_request(size_request);
 
-        println!("Adjusted SizeRequest: {:?}", adjusted);
+        // println!("Adjusted SizeRequest: {:?}", adjusted);
 
         adjusted
     }
