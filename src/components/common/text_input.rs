@@ -89,12 +89,14 @@ impl InputField {
         let (background, outline) = InputState::Default.get_color(ctx);
         let content = InputContent::new(ctx, value, placeholder, icon_button);
         let background = OutlinedRectangle::new(background, outline, 8.0, 1.0);
+        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, widths[0].1));            
+        let height = Size::custom(|heights: Vec<(f32, f32)>| (heights[1].0.max(48.0), heights[1].1.max(48.0)));
 
-        InputField(Stack(
-            Offset::Start, Offset::Start, Size::fill(),
-            Size::custom(|heights: Vec<(f32, f32)>| (heights[1].0.max(48.0), heights[1].1.max(48.0))),
-            Padding::default()
-        ), background, content, InputState::Default, false, ElementID::new())
+
+        InputField(
+            Stack(Offset::Start, Offset::Start, width, height, Padding::default()), 
+            background, content, InputState::Default, false, ElementID::new()
+        )
     }
 
     pub fn error(&mut self) -> &mut bool { &mut self.4 }

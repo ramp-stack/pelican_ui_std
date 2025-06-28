@@ -217,12 +217,10 @@ impl OnEvent for Bumper {}
 impl Bumper {
     pub fn new(ctx: &mut Context, content: Vec<Box<dyn Drawable>>) -> Self {
         let background = ctx.theme.colors.background.primary;
-        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, 375.0));
+        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(375.0), 375.0));
         let height = Size::custom(move |heights: Vec<(f32, f32)>|(heights[1].0, heights[1].1));
-        Bumper(
-            Stack(Offset::Center, Offset::Start, width, height, Padding::default()),
-            Rectangle::new(background), BumperContent::new(content)
-        )
+        let layout = Stack(Offset::Center, Offset::Start, width, height, Padding(24.0, 0.0, 24.0, 0.0));
+        Bumper(layout, Rectangle::new(background), BumperContent::new(content))
     }
 
     pub fn double_button(ctx: &mut Context, a: Button, b: Button) -> Self {
@@ -255,7 +253,7 @@ struct BumperContent (Row, Vec<Box<dyn Drawable>>);
 
 impl BumperContent {
     fn new(content: Vec<Box<dyn Drawable>>) -> Self {
-        BumperContent(Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 24.0, 24.0, 24.0)), content)
+        BumperContent(Row::new(16.0, Offset::Center, Size::Fit, Padding(0.0, 16.0, 0.0, 16.0)), content)
     }
 }
 
