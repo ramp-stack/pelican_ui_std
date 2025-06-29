@@ -6,7 +6,7 @@ use pelican_ui::{Context, Component};
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{ExpandableText, Text, TextStyle, TextEditor};
 use crate::components::button::IconButton;
-use crate::events::{KeyboardActiveEvent, SetActiveInput, TextInputSelect, ClearActiveInput};
+use crate::events::{SearchEvent, InputEditedEvent, KeyboardActiveEvent, SetActiveInput, TextInputSelect, ClearActiveInput};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
 use crate::utils::ElementID;
 
@@ -173,6 +173,7 @@ impl OnEvent for InputField {
             if self.3 == InputState::Focus {
                 self.2.text().apply_edit(ctx, key);
             }
+            ctx.trigger_event(InputEditedEvent);
         }
         true
     }
@@ -263,5 +264,24 @@ impl InputState {
             InputState::Focus => (colors.shades.transparent, colors.outline.primary),
             InputState::Error => (colors.shades.transparent, colors.status.danger)
         }
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct Searchbar(Stack, TextInput);
+impl Searchbar {
+    pub fn new(input: TextInput) -> Self {
+        Searchbar(Stack::default(), input)
+    }
+}
+
+impl OnEvent for Searchbar {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(event) = event.downcast_ref::<InputEditedEvent>() {
+            if self.1.2.3 == InputState::Focus {
+                ctx.trigger_event(SearchEvent(self.1.value().clone()))
+            }
+        }
+        true
     }
 }

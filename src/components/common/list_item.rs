@@ -9,7 +9,7 @@ use crate::elements::text::{Text, ExpandableText, TextStyle};
 use crate::elements::shapes::Rectangle;
 use crate::components::button::ButtonState;
 use crate::components::avatar::{Avatar, AvatarContent};
-use crate::layout::{Column, Stack, Row, Padding, Offset, Size};
+use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Opt};
 use crate::utils::ElementID;
 
 #[derive(Component)]
@@ -45,6 +45,10 @@ impl ListItem {
 
         ListItem(layout, Rectangle::new(color), content, ButtonState::Default, Box::new(on_click), element_id)
     }
+
+    pub fn title(&mut self) -> &mut Text {&mut self.2.data().left().title().1}
+    pub fn subtitle(&mut self) -> &mut Option<ExpandableText> {self.2.data().left().subtitle()}
+
 
     pub fn is_selected(&self) -> bool {
         self.2.1.as_ref().map(|r| r.2).unwrap_or(false)
@@ -113,6 +117,8 @@ impl ListItemContent {
             caret.then(|| Icon::new(ctx, "forward", color, 16.0)),
         )
     }
+
+    fn data(&mut self) -> &mut ListItemData {&mut self.3}
 }
 
 #[derive(Debug, Component)]
@@ -159,6 +165,8 @@ impl ListItemData {
             right_title.map(|r_title| RightData::new(ctx, r_title, right_subtitle)), 
         )
     }
+
+    fn left(&mut self) -> &mut LeftData {&mut self.1}
 }
 #[derive(Debug, Component)]
 struct TitleRow(Row, Text, Option<Image>);
@@ -195,6 +203,9 @@ impl LeftData {
             description.map(|text| ExpandableText::new(ctx, &text, TextStyle::Secondary, font_size, Align::Left, Some(2))),
         )
     }
+
+    fn title(&mut self) -> &mut TitleRow {&mut self.1}
+    fn subtitle(&mut self) -> &mut Option<ExpandableText> {&mut self.2}
 }
 
 #[derive(Debug, Component)]
@@ -264,11 +275,18 @@ impl ListItemSelector {
 }
 
 #[derive(Debug, Component)]
-pub struct ListItemGroup(Column, Vec<ListItem>);
+pub struct ListItemGroup(Column, Vec<Opt<ListItem>>);
 impl OnEvent for ListItemGroup {}
 
 impl ListItemGroup {
     pub fn new(list_items: Vec<ListItem>) -> Self {
+        let list_items = list_items.into_iter().map(|item| Opt::new(item, true)).collect();
         ListItemGroup(Column::center(0.0), list_items)
+    }
+
+    pub fn items(&mut self) -> &mut Vec<Opt<ListItem>> {&mut self.1}
+    pub fn hide(&mut self, show: bool, i: usize) {
+        println!("hiding {:?}", i);
+        self.items().get_mut(i).map(|item| item.display(!show));
     }
 }

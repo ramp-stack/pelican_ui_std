@@ -135,7 +135,6 @@ impl TextEditor {
     }
 }
 
-
 impl OnEvent for TextEditor {
     fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref::<TickEvent>() {

@@ -69,11 +69,29 @@ impl Event for NavigatorEvent {
     }
 }
 
-
 #[derive(Debug, Clone)]
 pub struct SetActiveInput(pub String);
 
 impl Event for SetActiveInput {
+    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
+        children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct SearchEvent(pub String);
+
+impl Event for SearchEvent {
+    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
+        children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
+    }
+}
+
+
+#[derive(Debug, Clone)]
+pub struct InputEditedEvent;
+
+impl Event for InputEditedEvent {
     fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
         children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
     }
