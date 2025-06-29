@@ -191,12 +191,8 @@ impl LeftData {
         LeftData (
             Column::new(4.0, Offset::Start, Size::custom(|widths: Vec<(f32, f32)>| (widths[0].0, f32::MAX)), Padding::default()),
             TitleRow::new(ctx, title, flair),
-            subtitle.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, Align::Left)),
-            description.map(|text| {
-                let limit = if crate::config::IS_MOBILE {80} else {100};
-                let trimmed = if text.len() > limit { format!("{}...", &text[..(limit-3)]) } else { text.to_string() };
-                ExpandableText::new(ctx, &trimmed, TextStyle::Secondary, font_size, Align::Left)
-            }),
+            subtitle.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, Align::Left, Some(2))),
+            description.map(|text| ExpandableText::new(ctx, &text, TextStyle::Secondary, font_size, Align::Left, Some(2))),
         )
     }
 }

@@ -45,6 +45,7 @@ impl MobileInterface {
 impl OnEvent for MobileInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigateEvent(index)) = event.downcast_mut::<NavigateEvent>() {
+            self.3 = None;
             self.2 = match self.2.take().unwrap().navigate(ctx, *index) {
                 Ok(p) => Some(p),
                 Err(e) => Some(Box::new(Error::new(ctx, "404 Page Not Found", e)))

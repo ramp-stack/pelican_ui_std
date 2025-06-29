@@ -14,7 +14,6 @@ use crate::elements::text::Text;
 use crate::utils::{ElementID, AppPage};
 use std::fmt::Debug;
 
-
 use super::{DesktopInterface, MobileInterface};
 
 pub type NavigateInfo = (&'static str, String, Option<AvatarContent>, Option<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>);

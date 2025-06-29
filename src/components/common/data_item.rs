@@ -64,9 +64,9 @@ impl DataItemContent {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[1].0, f32::MAX));
         DataItemContent(
             Column::new(16.0, Offset::Start, width, Padding::default()),
-            ExpandableText::new(ctx, label, TextStyle::Heading, font_size.h5, Align::Left),
-            text.map(|t| ExpandableText::new(ctx, t, TextStyle::Primary, font_size.md, Align::Left)),
-            secondary.map(|t|ExpandableText::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left)),
+            ExpandableText::new(ctx, label, TextStyle::Heading, font_size.h5, Align::Left, None),
+            text.map(|t| ExpandableText::new(ctx, t, TextStyle::Primary, font_size.md, Align::Left, None)),
+            secondary.map(|t|ExpandableText::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left, None)),
             table.map(|tabulars| Table::new(ctx, tabulars)),
             quick_actions.map(QuickActions::new)
         )

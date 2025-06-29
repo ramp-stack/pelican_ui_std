@@ -38,9 +38,10 @@ pub struct Text(Stack, BasicText);
 impl OnEvent for Text {}
 
 impl Text {
+    // TODO add max lines to this as well
     pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text.to_string(), size, Some(size*1.25), font, color)], None, align);
+        let text = BasicText::new(vec![Span::new(text.to_string(), size, Some(size*1.25), font, color)], None, align, None);
         Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text)
     }
 
@@ -52,8 +53,10 @@ pub struct ExpandableText(pub Text);
 impl OnEvent for ExpandableText {}
 
 impl ExpandableText {
-    pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
-        ExpandableText(Text::new(ctx, text, style, size, align))
+    pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align, max_lines: Option<u32>) -> Self {
+        let (color, font) = style.get(ctx);
+        let text = BasicText::new(vec![Span::new(text.to_string(), size, Some(size*1.25), font, color)], None, align, max_lines);
+        ExpandableText(Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text))
     }
 
     pub fn text(&mut self) -> &mut BasicText { self.0.text() }
@@ -78,7 +81,7 @@ pub struct TextEditor(Stack, ExpandableText, TextCursor);
 
 impl TextEditor {
     pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
-        let mut text = ExpandableText::new(ctx, text, style, size, align);
+        let mut text = ExpandableText::new(ctx, text, style, size, align, None);
         text.text().cursor = Some(Cursor::default());
         TextEditor(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text, TextCursor::new(ctx, style, size))
     }
@@ -178,7 +181,7 @@ impl BulletedText {
         BulletedText(
             Row::new(size*0.75, Offset::Center, Size::Fit, Padding::default()), // change this offset to be line_height - circle size / 2
             Circle::new(size*0.5, color),
-            ExpandableText::new(ctx, text, style, size, align)
+            ExpandableText::new(ctx, text, style, size, align, None)
         )
     }
     pub fn text(&mut self) -> &mut BasicText { self.2.text() }

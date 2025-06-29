@@ -40,6 +40,30 @@ impl Timestamp {
         Local.from_local_datetime(&naive).unwrap()
     }
 
+    pub fn direct(&self) -> String {
+        let dt = self.to_datetime();
+        let today = Local::now().date_naive();
+        let date = dt.date_naive();
+        let hour = dt.hour();
+        let minute = dt.minute();
+        let (hour12, am_pm) = match hour == 0 {
+            true => (12, "am"),
+            false if hour < 12 => (hour, "am"),
+            false if hour == 12 => (12, "pm"),
+            false => (hour - 12, "pm")
+        };
+
+        let the_time = format!("{}:{:02} {}", hour12, minute, am_pm);
+
+        match date == today {
+            true => the_time,
+            false if date == today.pred_opt().unwrap_or(today) => format!("{} {}", "Yesterday,".to_string(), the_time),
+            false if date.iso_week() == today.iso_week() => format!("{}", dt.format("%A")),
+            false if date.year() == today.year() => format!("{}", dt.format("%B %-d")),
+            false => format!("{}", dt.format("%m/%d/%y"))
+        }
+    }
+
     pub fn friendly(&self) -> String {
         let dt = self.to_datetime();
         let today = Local::now().date_naive();
@@ -55,7 +79,7 @@ impl Timestamp {
                     false if hour == 12 => (12, "PM"),
                     false => (hour - 12, "PM")
                 };
-                format!("{:02}:{:02} {}", hour12, minute, am_pm)
+                format!("{}:{:02} {}", hour12, minute, am_pm)
             },
             false if date == today.pred_opt().unwrap_or(today) => "Yesterday".to_string(),
             false if date.iso_week() == today.iso_week() => format!("{}", dt.format("%A")),
