@@ -172,4 +172,10 @@ impl AvatarRow {
             avatars.into_iter().take(5).map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0, None)).collect()
         )
     }
+
+    pub fn update(&mut self, ctx: &mut Context, avatars: Vec<AvatarContent>) {
+        self.1 = avatars.into_iter().take(5).map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0, None)).collect()
+    }
+
+    pub fn count(&mut self) -> usize {self.1.len()}
 }

@@ -22,9 +22,8 @@ impl DataItem {
         table: Option<Vec<(&str, &str)>>,
         quick_actions: Option<Vec<Button>>,
     ) -> Self {
-        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         DataItem (
-            Row::new(32.0, Offset::Start, width, Padding::default()),
+            Row::new(32.0, Offset::Start, Size::Fit, Padding::default()),
             number.map(|n| Number::new(ctx, n)),
             DataItemContent::new(ctx, label, text, secondary, table, quick_actions)
         )
@@ -48,7 +47,7 @@ impl Number {
 }
 
 #[derive(Debug, Component)]
-struct DataItemContent(Column, ExpandableText, Option<ExpandableText>, Option<ExpandableText>, Option<Table>, Option<QuickActions>);
+struct DataItemContent(Column, Text, Option<ExpandableText>, Option<ExpandableText>, Option<Table>, Option<QuickActions>);
 impl OnEvent for DataItemContent {}
 
 impl DataItemContent {
@@ -64,7 +63,7 @@ impl DataItemContent {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[1].0, f32::MAX));
         DataItemContent(
             Column::new(16.0, Offset::Start, width, Padding::default()),
-            ExpandableText::new(ctx, label, TextStyle::Heading, font_size.h5, Align::Left, None),
+            Text::new(ctx, label, TextStyle::Heading, font_size.h5, Align::Left),
             text.map(|t| ExpandableText::new(ctx, t, TextStyle::Primary, font_size.md, Align::Left, None)),
             secondary.map(|t|ExpandableText::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left, None)),
             table.map(|tabulars| Table::new(ctx, tabulars)),

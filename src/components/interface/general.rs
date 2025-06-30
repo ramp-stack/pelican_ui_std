@@ -160,6 +160,8 @@ impl Header {
             HeaderIcon::new(right)
         )
     }
+
+    pub fn content(&mut self) -> &mut HeaderContent {&mut self.2}
 }
 
 #[derive(Debug, Component)]
@@ -194,6 +196,8 @@ impl HeaderContent {
             Text::new(ctx, title, TextStyle::Heading, text_size, Align::Left),
         )
     }
+
+    pub fn avatars(&mut self) -> &mut Option<AvatarRow> {&mut self.1}
 }
 
 #[derive(Debug, Component)]

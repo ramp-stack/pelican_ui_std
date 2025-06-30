@@ -285,8 +285,7 @@ impl ListItemGroup {
     }
 
     pub fn items(&mut self) -> &mut Vec<Opt<ListItem>> {&mut self.1}
-    pub fn hide(&mut self, show: bool, i: usize) {
-        println!("hiding {:?}", i);
-        self.items().get_mut(i).map(|item| item.display(!show));
+    pub fn hide(&mut self, hide: bool, i: usize) {
+        self.items().get_mut(i).map(|item| item.display(!hide));
     }
 }
