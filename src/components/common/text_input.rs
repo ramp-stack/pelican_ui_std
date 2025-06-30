@@ -135,6 +135,7 @@ impl OnEvent for InputField {
                 InputState::Default => {
                     match event {
                         MouseEvent{state: MouseState::Pressed, position: Some(_)} => {
+                            ctx.hardware.haptic();
                             ctx.trigger_event(TextInputSelect(self.5));
                             ctx.trigger_event(KeyboardActiveEvent(true)); 
                             Some(InputState::Focus)

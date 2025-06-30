@@ -65,7 +65,7 @@ impl OnEvent for ListItem {
                 }
                 match self.3 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
-                        // ctx.hardware.vibrate();
+                        ctx.hardware.haptic();
                         (self.4)(ctx)
                     },
                     _ => {}

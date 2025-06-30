@@ -58,7 +58,10 @@ impl OnEvent for IconButton {
             }
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {
-                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => (self.5)(ctx),
+                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
+                        ctx.hardware.haptic();
+                        (self.5)(ctx)
+                    },
                     _ => {}
                 }
             }
