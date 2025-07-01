@@ -22,13 +22,14 @@ impl TextInput {
         placeholder: &str,
         help_text: Option<&str>,
         icon_button: Option<(&'static str, impl FnMut(&mut Context, &mut String) + 'static)>,
+        keyboard_actions: bool,
     ) -> Self {
         let font_size = ctx.theme.fonts.size;
 
         TextInput(
             Column::new(16.0, Offset::Start, Size::fill(), Padding::default()),
             label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5, Align::Left)),
-            InputField::new(ctx, value, placeholder, icon_button),
+            InputField::new(ctx, value, placeholder, icon_button, keyboard_actions),
             help_text.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left)),
             None
         )
@@ -77,7 +78,7 @@ impl OnEvent for TextInput {
 }
 
 #[derive(Debug, Component)]
-struct InputField(Stack, OutlinedRectangle, InputContent, #[skip] InputState, #[skip] bool, #[skip] ElementID);
+struct InputField(Stack, OutlinedRectangle, InputContent, #[skip] InputState, #[skip] bool, #[skip] ElementID, #[skip] bool);
 
 impl InputField {
     pub fn new(
@@ -85,6 +86,7 @@ impl InputField {
         value: Option<&str>,
         placeholder: &str,
         icon_button: Option<(&'static str, impl FnMut(&mut Context, &mut String) + 'static)>,
+        keyboard_actions: bool,
     ) -> Self {
         let (background, outline) = InputState::Default.get_color(ctx);
         let content = InputContent::new(ctx, value, placeholder, icon_button);
@@ -95,7 +97,7 @@ impl InputField {
 
         InputField(
             Stack(Offset::Start, Offset::Start, width, height, Padding::default()), 
-            background, content, InputState::Default, false, ElementID::new()
+            background, content, InputState::Default, false, ElementID::new(), keyboard_actions,
         )
     }
 
@@ -126,8 +128,8 @@ impl OnEvent for InputField {
             if *id != self.5 && self.3 == InputState::Focus {
                 if self.4 { self.3 = InputState::Error } else { self.3 = InputState::Default }
             }
-        } else if let Some(KeyboardActiveEvent(enabled)) = event.downcast_ref::<KeyboardActiveEvent>() {
-            if !enabled && self.3 == InputState::Focus {
+        } else if let Some(KeyboardActiveEvent(keyboard)) = event.downcast_ref::<KeyboardActiveEvent>() {
+            if keyboard.is_none() && self.3 == InputState::Focus {
                 if self.4 { self.3 = InputState::Error } else { self.3 = InputState::Default }
             }
         } else if let Some(event) = event.downcast_ref::<MouseEvent>() {
@@ -137,7 +139,7 @@ impl OnEvent for InputField {
                         MouseEvent{state: MouseState::Pressed, position: Some(_)} => {
                             ctx.hardware.haptic();
                             ctx.trigger_event(TextInputSelect(self.5));
-                            ctx.trigger_event(KeyboardActiveEvent(true)); 
+                            ctx.trigger_event(KeyboardActiveEvent(Some(self.6))); 
                             Some(InputState::Focus)
                         },
                         MouseEvent{state: MouseState::Moved, position: Some(_)} => Some(InputState::Hover),

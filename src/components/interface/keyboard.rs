@@ -1,33 +1,32 @@
 use pelican_ui::events::Key as WinitKey;
+use pelican_ui::hardware::ImageOrientation;
 use pelican_ui::events::{MouseState, TickEvent, KeyboardState, KeyboardEvent, MouseEvent, OnEvent, Event, NamedKey, SmolStr};
 use pelican_ui::drawable::{Drawable, Component, Align, Image, Color};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
 use crate::elements::shapes::{Rectangle, RoundedRectangle};
-use crate::elements::images::Icon;
-use crate::events::KeyboardActiveEvent;
+use crate::elements::images::{Icon, EncodedImage};
+use crate::events::{KeyboardActiveEvent, AttachmentEvent};
 use crate::elements::text::{Text, TextStyle};
 use crate::components::button::{IconButton, ButtonState};
 use crate::layout::{Stack, Bin, Column, Row, Offset, Size, Padding};
 
 use std::sync::mpsc::{self, Receiver, Sender};
+use std::io::BufWriter;
+use image::codecs::png::PngEncoder;
 
 #[derive(Component, Debug)]
 pub struct MobileKeyboard(Stack, Rectangle, KeyboardContent);
 impl OnEvent for MobileKeyboard {}
 
 impl MobileKeyboard {
-    pub fn new(ctx: &mut Context) -> Self {
-        let color = ctx.theme.colors.background.secondary;
+    pub fn new(ctx: &mut Context, actions: bool) -> Self {
+        let height = Size::custom(|heights: Vec<(f32, f32)>| heights[1]);
         MobileKeyboard(
-            Stack(
-                Offset::Start, Offset::Start, 
-                Size::Fill(200.0, f32::MAX), Size::custom(|heights: Vec<(f32, f32)>| heights[1]), 
-                Padding::default()
-            ), 
-            Rectangle::new(color),
-            KeyboardContent::new(ctx)
+            Stack(Offset::Start, Offset::Start, Size::Fill(200.0, f32::MAX), height, Padding::default()), 
+            Rectangle::new(ctx.theme.colors.background.secondary),
+            KeyboardContent::new(ctx, actions)
         )
     }
 }
@@ -37,50 +36,68 @@ struct KeyboardHeader(Column, KeyboardIcons, Bin<Stack, Rectangle>);
 impl OnEvent for KeyboardHeader {}
 
 impl KeyboardHeader {
-    fn new(ctx: &mut Context) -> Self {
-        let color = ctx.theme.colors.outline.secondary;
+    fn new(ctx: &mut Context, actions: bool) -> Self {
+        let layout = Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1.0), Padding(0.0,0.0,0.0,2.0));
         KeyboardHeader(
             Column::new(0.0, Offset::Start, Size::Fit, Padding::default()),
-            KeyboardIcons::new(ctx),
-            Bin (
-                Stack(Offset::default(), Offset::default(), Size::Fit, Size::Static(1.0), Padding(0.0,0.0,0.0,2.0)), 
-                Rectangle::new(color)
-            )
+            KeyboardIcons::new(ctx, actions),
+            Bin(layout, Rectangle::new(ctx.theme.colors.outline.secondary))
         )
     }
 }
 
 #[derive(Component, Debug)]
-struct KeyboardIcons(Row, IconButton, IconButton, IconButton, IconButton, Bin<Stack, Rectangle>, IconButton );
-impl OnEvent for KeyboardIcons {}
+pub struct KeyboardActions(Stack, Vec<IconButton>);
+impl OnEvent for KeyboardActions {}
+
+#[derive(Component, Debug)]
+struct KeyboardIcons(Row, Option<KeyboardActions>, Bin<Stack, Rectangle>, IconButton, #[skip] Receiver<(Vec<u8>, ImageOrientation)>);
 
 impl KeyboardIcons {
-    fn new(ctx: &mut Context) -> Self {
+    fn new(ctx: &mut Context, icons: bool) -> Self {
+        let (sender, receiver) = mpsc::channel();
         let color = ctx.theme.colors.shades.transparent;
+        let actions = vec![
+            // IconButton::keyboard(ctx, "emoji", |_ctx: &mut Context| ()),
+            // IconButton::keyboard(ctx, "gif", |_ctx: &mut Context| ()),
+            IconButton::keyboard(ctx, "photos", move |ctx: &mut Context| ctx.hardware.open_photo_picker(sender.clone())),
+            // IconButton::keyboard(ctx, "camera", |_ctx: &mut Context| ()),
+        ];
+
         KeyboardIcons(
             Row::new(16.0, Offset::Start, Size::Fit, Padding(12.0, 6.0, 12.0, 6.0)), 
-            IconButton::keyboard(ctx, "emoji", |_ctx: &mut Context| ()),
-            IconButton::keyboard(ctx, "gif", |_ctx: &mut Context| ()),
-            IconButton::keyboard(ctx, "photos", |_ctx: &mut Context| ()),
-            IconButton::keyboard(ctx, "camera", |_ctx: &mut Context| ()),
+            icons.then(|| KeyboardActions(Stack::default(), actions)),
             Bin (
                 Stack(Offset::Center, Offset::Center, Size::Fill(1.0, f32::MAX), Size::Static(1.0),  Padding::default()), 
                 Rectangle::new(color)
             ),
-            IconButton::keyboard(ctx, "down_arrow", |ctx: &mut Context| ctx.trigger_event(KeyboardActiveEvent(false))),
+            IconButton::keyboard(ctx, "down_arrow", |ctx: &mut Context| ctx.trigger_event(KeyboardActiveEvent(None))),
+            receiver
         )
     }
 }
+
+impl OnEvent for KeyboardIcons {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(_) = event.downcast_ref::<TickEvent>() {
+            if let Ok((bytes, orientation)) = self.4.try_recv() {
+                EncodedImage::encode(bytes, orientation).map(|s| ctx.trigger_event(AttachmentEvent(s)));
+            }
+        }
+        true
+    }
+}
+
 
 #[derive(Component, Debug)]
 struct KeyboardContent(Column, KeyboardHeader, KeyboardRow, KeyboardRow, KeyboardRow, KeyboardRow, #[skip] Receiver<u8>);
 
 impl KeyboardContent {
-    fn new(ctx: &mut Context) -> Self {
+    fn new(ctx: &mut Context, actions: bool) -> Self {
         let (sender, receiver) = mpsc::channel();
         KeyboardContent(
             Column::new(0.0, Offset::Center, Size::Fit, Padding(8.0, 8.0, 8.0, 8.0)),
-            KeyboardHeader::new(ctx),
+            KeyboardHeader::new(ctx, actions),
             KeyboardRow::top(ctx),
             KeyboardRow::middle(ctx),
             KeyboardRow::bottom(ctx, sender.clone()),
@@ -235,7 +252,7 @@ impl OnEvent for Key {
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.2 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
-                        // ctx.hardware.vibrate();
+                        ctx.hardware.haptic();
                         ctx.trigger_event(KeyboardEvent{state: KeyboardState::Pressed, key: self.3.clone()})
                     },
                     _ => {}

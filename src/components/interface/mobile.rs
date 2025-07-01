@@ -53,12 +53,13 @@ impl OnEvent for MobileInterface {
 
             if let Some(navigator) = &mut self.4 {navigator.display(self.2.as_ref().map(|s| s.has_nav()).unwrap_or(false));}
         } else if let Some(NavigatorEvent(index)) = event.downcast_mut::<NavigatorEvent>() {
+            self.3 = None;
             if let Some(nav) = self.6.as_mut() { self.2 = Some(nav[*index](ctx)); }
-        } else if let Some(KeyboardActiveEvent(enabled)) = event.downcast_ref::<KeyboardActiveEvent>() {
-            match enabled {
-                true if self.3.is_some() => {},
-                true => self.3 = Some(MobileKeyboard::new(ctx)),
-                false => self.3 = None
+        } else if let Some(KeyboardActiveEvent(keyboard)) = event.downcast_ref::<KeyboardActiveEvent>() {
+            match keyboard {
+                Some(_) if self.3.is_some() => {},
+                Some(a) => self.3 = Some(MobileKeyboard::new(ctx, *a)),
+                None => self.3 = None
             }
         }
         true

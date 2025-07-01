@@ -13,7 +13,7 @@ use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Opt};
 use crate::utils::ElementID;
 
 #[derive(Component)]
-pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] Option<ElementID>);
+pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] Option<ElementID>, #[skip] bool);
 
 impl ListItem {
     #[allow(clippy::too_many_arguments)]
@@ -43,7 +43,7 @@ impl ListItem {
             Padding(0.0, 16.0, 0.0, 16.0)
         );
 
-        ListItem(layout, Rectangle::new(color), content, ButtonState::Default, Box::new(on_click), element_id)
+        ListItem(layout, Rectangle::new(color), content, ButtonState::Default, Box::new(on_click), element_id, false)
     }
 
     pub fn title(&mut self) -> &mut Text {&mut self.2.data().left().title().1}
@@ -58,17 +58,22 @@ impl ListItem {
 impl OnEvent for ListItem {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            if let MouseEvent{state: MouseState::Released, position: Some(_)} = event {
-                if let Some(radio) = self.2.1.as_mut() {
-                    radio.select(ctx);
-                    ctx.trigger_event(ListItemSelect(self.5.expect("Selectable List Items Require ElementIDs")));
-                }
-                match self.3 {
-                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
-                        ctx.hardware.haptic();
-                        (self.4)(ctx)
-                    },
-                    _ => {}
+            if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
+                self.6 = true;
+            } else if let MouseEvent{state: MouseState::Released, position: Some(_)} = event {
+                if self.6 {
+                    if let Some(radio) = self.2.1.as_mut() {
+                        radio.select(ctx);
+                        ctx.trigger_event(ListItemSelect(self.5.expect("Selectable List Items Require ElementIDs")));
+                    }
+                    match self.3 {
+                        ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
+                            ctx.hardware.haptic();
+                            (self.4)(ctx)
+                        },
+                        _ => {}
+                    }
+                    self.6 = false;
                 }
             }
         } else if let Some(ListItemSelect(id)) = event.downcast_ref::<ListItemSelect>() {

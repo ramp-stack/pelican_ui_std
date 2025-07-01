@@ -14,7 +14,7 @@ impl Event for NavigateEvent {
 
 /// Event indicating whether the keyboard is visible or not.
 #[derive(Debug, Clone)]
-pub struct KeyboardActiveEvent(pub bool);
+pub struct KeyboardActiveEvent(pub Option<bool>);
 
 impl Event for KeyboardActiveEvent {
     fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
@@ -87,6 +87,14 @@ impl Event for SearchEvent {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct AttachmentEvent(pub String);
+
+impl Event for AttachmentEvent {
+    fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {
+        children.into_iter().map(|_| Some(self.clone() as Box<dyn Event>)).collect()
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct InputEditedEvent;
