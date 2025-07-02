@@ -92,7 +92,7 @@ impl ButtonState {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ButtonSize {
     Large,
     Medium,

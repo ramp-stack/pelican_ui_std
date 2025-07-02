@@ -181,7 +181,7 @@ impl TitleRow {
     fn new(ctx: &mut Context, title: &str, flair: Option<(&'static str, Color)>) -> Self {
         let font_size = ctx.theme.fonts.size.h5;
         TitleRow(
-            Row::new(8.0, Offset::Start, Size::Fit, Padding::default()),
+            Row::new(4.0, Offset::End, Size::Fit, Padding::default()),
             Text::new(ctx, title, TextStyle::Heading, font_size, Align::Left),
             flair.map(|(name, color)| Icon::new(ctx, name, color, 20.0)),
         )

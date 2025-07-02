@@ -275,102 +275,88 @@ impl Layout for Stack {
 }
 
 #[derive(Debug)]
-pub struct Wrap(pub f32, pub f32, pub Offset, pub Offset, pub Padding);
+pub struct Wrap(pub f32, pub f32, pub Offset, pub Offset, pub Padding, Arc<Mutex<f32>>);
 
 impl Wrap {
     pub fn new(w_spacing: f32, h_spacing: f32) -> Self {
-        Wrap(w_spacing, h_spacing, Offset::Center, Offset::Center, Padding::default())
+        Wrap(w_spacing, h_spacing, Offset::Start, Offset::Center, Padding::default(), Arc::new(Mutex::new(0.0)))
     }
 }
 
 impl Layout for Wrap {
     fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
-        let ((min_w, max_w), (min_h, max_h)): ((Vec<_>, Vec<_>), (Vec<_>, Vec<_>)) = children.into_iter().map(|i|
-            ((i.min_width(), i.max_width()), (i.min_height(), i.max_height()))
-        ).unzip();
-
-        // println!("Children count: {}", min_w.len());
-
-        let w_spacing = self.0 * (min_w.len().saturating_sub(1)) as f32;
-        let h_spacing = self.1 * (min_h.len().saturating_sub(1)) as f32;
-
-        // println!("Horizontal spacing total: {}", w_spacing);
-        // println!("Vertical spacing total: {}", h_spacing);
-
-        let min_width = min_w.iter().copied().reduce(f32::max).unwrap_or_default();
-        let max_width = max_w.iter().copied().reduce(|s, i| s + i).unwrap_or_default();
-
-        let min_height = min_h.iter().copied().reduce(f32::max).unwrap_or_default();
-        let max_height = max_h.iter().copied().sum();
-
-        // println!("Min widths: {:?}", min_w);
-        // println!("Max widths: {:?}", max_w);
-        // println!("Min heights: {:?}", min_h);
-        // println!("Max heights: {:?}", max_h);
-
-        // println!("Calculated min_width: {}", min_width);
-        // println!("Calculated max_width: {}", max_width);
-        // println!("Calculated min_height: {}", min_height);
-        // println!("Calculated max_height: {}", max_height);
-
-        let size_request = SizeRequest::new(min_width, min_height, max_width, max_height).add(w_spacing, h_spacing);
-        let adjusted = self.4.adjust_request(size_request);
-
-        // println!("Adjusted SizeRequest: {:?}", adjusted);
-
-        adjusted
+        let mut lw = self.4.1;
+        let mut lh = 0.0;
+        let mut th = self.4.0;
+        let mut max_lw: f32 = 0.0;
+        for child in children {
+            let (w, h) = (child.min_width(), child.min_height());
+            if lw + w > *self.5.lock().unwrap() && lw > self.4.1 {
+                th += lh + self.1;
+                max_lw = max_lw.max(lw - self.0);
+                lw = self.4.1;
+                lh = 0.0;
+            }
+            lw += w + self.0;
+            lh = lh.max(h);
+        }
+        if lw > self.4.1 {
+            th += lh;
+            max_lw = max_lw.max(lw - self.0);
+        }
+        SizeRequest::new(max_lw + self.4.2, th + self.4.3, f32::MAX, f32::MAX)
     }
 
-
     fn build(&self, _ctx: &mut Context, maximum_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
-        let mut taken_width = self.4.1; // padding.left
-        let mut height_offset = self.4.0; // padding.top
-        let mut items: Vec<SizeRequest> = Vec::new();
+        *self.5.lock().unwrap() = maximum_size.0;
+        let mut tw = self.4.1;
+        let mut ho = self.4.0;
+        let mut lh = 0.0;
         let mut areas: Vec<Area> = Vec::new();
 
-        for child in children.into_iter() {
-            if (taken_width + child.min_width()) > maximum_size.0 && !items.is_empty() {
-                let line_height = items.iter().map(|c| c.min_height()).reduce(f32::max).unwrap_or(0.0);
-
-                height_offset += line_height + self.1;
-                taken_width = self.4.1;
-                items.clear();
+        children.into_iter().for_each(|child| {
+            let (w, h) = (child.min_width(), child.min_height());
+            if (tw + w) > maximum_size.0 && tw > self.4.1 {
+                ho += lh + self.1;
+                tw = self.4.1;
+                lh = 0.0;
             }
-
-            let area = Area {
-                offset: (taken_width, height_offset),
-                size: (child.min_width(), child.min_height()),
-            };
-
-            taken_width += child.min_width() + self.0; // horizontal spacing
-            items.push(child);
-            areas.push(area);
-        }
-
+            areas.push(Area {offset: (tw, ho), size: (w, h)});
+            tw += w + self.0;
+            lh = lh.max(h);
+        });
         areas
     }
 }
 
-#[derive(Debug, Default)]
-pub struct Scroll(Offset, Offset, Size, Size, Padding, Arc<Mutex<f32>>); // allow for horizontal scroll (FUTURE)
+#[derive(Debug, Clone, Copy)]
+pub enum ScrollAnchor {
+    Start,
+    End,
+}
+
+#[derive(Debug)]
+pub struct Scroll(Offset, Offset, Size, Size, Padding, Arc<Mutex<f32>>, ScrollAnchor);
+
+impl Default for Scroll {
+    fn default() -> Self {
+        Scroll::new(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default(), ScrollAnchor::Start)
+    }
+}
 
 impl Scroll {
-    pub fn new(offset_x: Offset, offset_y: Offset, size_x: Size, size_y: Size, padding: Padding) -> Self {
-        Scroll(offset_x, offset_y, size_x, size_y, padding, Arc::new(Mutex::new(0.0)))
+    pub fn new(offset_x: Offset, offset_y: Offset, size_x: Size, size_y: Size, padding: Padding, anchor: ScrollAnchor) -> Self {
+        Scroll(offset_x, offset_y, size_x, size_y, padding, Arc::new(Mutex::new(0.0)), anchor)
     }
 
-    pub fn center() -> Self {
-        Scroll(Offset::Center, Offset::Center, Size::Fit, Size::Fit, Padding::default(), Arc::new(Mutex::new(0.0)))
+    pub fn adjust_scroll(&mut self, val: f32) { 
+        match self.6 {
+            ScrollAnchor::Start => *self.5.lock().unwrap() += val,
+            ScrollAnchor::End => *self.5.lock().unwrap() -= val,
+        }
     }
 
-    pub fn adjust_scroll(&mut self, val: f32) {
-        *self.5.lock().unwrap() += val;
-    }
-
-    pub fn set_scroll(&mut self, val: f32) {
-        *self.5.lock().unwrap() = val;
-    }
-
+    pub fn set_scroll(&mut self, val: f32) { *self.5.lock().unwrap() = val; }
     pub fn offset(&mut self) -> &mut Offset { &mut self.1 }
 }
 
@@ -384,18 +370,38 @@ impl Layout for Scroll {
         self.4.adjust_request(SizeRequest::new(width.0, height.0, width.1, height.1))
     }
 
+    // fn build(&self, _ctx: &mut Context, scroll_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
+    //     let scroll_size = self.4.adjust_size(scroll_size);
+    //     let children_height: f32 = children.iter().map(|i| i.min_height()).sum();
+    //     let max_scroll = (children_height - scroll_size.1).max(0.0);
+    //     let scroll_val = self.5.lock().unwrap().clamp(0.0, max_scroll);
+
+    //     *self.5.lock().unwrap() = scroll_val;
+
+    //     children.into_iter().map(|i| {
+    //         let size = i.get(scroll_size);
+    //         let offset = (self.0.get(scroll_size.0, size.0), self.1.get(scroll_size.1, size.1)-scroll_val);
+    //         Area{offset: self.4.adjust_offset(offset), size}
+    //     }).collect()
+    // }
+
     fn build(&self, _ctx: &mut Context, scroll_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
         let scroll_size = self.4.adjust_size(scroll_size);
         let children_height: f32 = children.iter().map(|i| i.min_height()).sum();
         let max_scroll = (children_height - scroll_size.1).max(0.0);
-        let scroll_val = self.5.lock().unwrap().clamp(0.0, max_scroll);
 
-        *self.5.lock().unwrap() = scroll_val;
+        let mut scroll_val = self.5.lock().unwrap();
+        *scroll_val = scroll_val.clamp(0.0, max_scroll);
 
         children.into_iter().map(|i| {
             let size = i.get(scroll_size);
-            let offset = (self.0.get(scroll_size.0, size.0), self.1.get(scroll_size.1, size.1)-scroll_val);
-            Area{offset: self.4.adjust_offset(offset), size}
+            let mut y_offset = match self.6 {
+                ScrollAnchor::Start => self.1.get(scroll_size.1, size.1)-*scroll_val,
+                ScrollAnchor::End => scroll_size.1 - children_height + *scroll_val,
+            };
+            let offset = (self.0.get(scroll_size.0, size.0), y_offset);
+            y_offset += size.1;
+            Area {offset: self.4.adjust_offset(offset), size }
         }).collect()
     }
 }

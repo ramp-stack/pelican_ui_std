@@ -90,6 +90,8 @@ impl MobileNavigator {
             MobileNavigatorContent::new(ctx, navigation)
         )
     }
+
+    pub fn buttons(&mut self) -> Vec<&mut IconButton> {self.2.buttons()}
 }
 
 impl OnEvent for MobileNavigator {}
@@ -118,6 +120,10 @@ impl MobileNavigatorContent {
             Row::new(48.0, Offset::Center, Size::Fit, Padding(0.0, 8.0, 0.0, 8.0)),
             tabs
         )
+    }
+
+    fn buttons(&mut self) -> Vec<&mut IconButton> {
+        self.1.iter_mut().map(|nb| nb.icon_button().as_mut().unwrap()).collect::<Vec<_>>()
     }
 }
 

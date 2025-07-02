@@ -7,7 +7,7 @@ use crate::components::avatar::{Avatar, AvatarContent};
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text, TextStyle};
-use crate::layout::{Offset, Padding, Row, Size, Stack, Wrap};
+use crate::layout::{Offset, Padding, Row, Size, Stack, Wrap, Opt};
 
 use super::{ButtonSize, ButtonState, ButtonStyle};
 
@@ -32,9 +32,9 @@ impl Button {
     pub fn new(
         ctx: &mut Context,
         avatar: Option<AvatarContent>,
-        icon_l: Option<&'static str>,
+        icon_l: Option<(&'static str, ButtonFlair)>,
         label: Option<&str>,
-        icon_r: Option<&'static str>,
+        icon_r: Option<(&'static str, ButtonFlair)>,
         size: ButtonSize,
         width: ButtonWidth,
         style: ButtonStyle,
@@ -77,6 +77,9 @@ impl Button {
         self.color(ctx);
     }
 
+    pub fn show_flair_left(&mut self, hide: bool) {self.2.2.as_mut().map(|b| b.flair().as_mut().map(|i| i.display(hide)));}
+    pub fn show_flair_right(&mut self, hide: bool) {self.2.4.as_mut().map(|b| b.flair().as_mut().map(|i| i.display(hide)));}
+
     pub fn avatar(&mut self) -> &mut Option<Avatar> { &mut self.2.1 }
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
     pub fn label(&mut self) -> &mut Option<Text> {&mut self.2.3}
@@ -110,7 +113,7 @@ impl std::fmt::Debug for Button {
 }
 
 #[derive(Debug, Component)]
-struct ButtonContent(Row, Option<Avatar>, Option<Image>, Option<Text>, Option<Image>);
+struct ButtonContent(Row, Option<Avatar>, Option<ButtonIcon>, Option<Text>, Option<ButtonIcon>);
 impl OnEvent for ButtonContent {}
 
 impl ButtonContent {
@@ -118,9 +121,9 @@ impl ButtonContent {
     fn new(
         ctx: &mut Context,
         avatar: Option<AvatarContent>,
-        icon_l: Option<&'static str>,
+        icon_l: Option<(&'static str, ButtonFlair)>,
         label: Option<&str>,
-        icon_r: Option<&'static str>,
+        icon_r: Option<(&'static str, ButtonFlair)>,
         size: ButtonSize,
         color: Color,
         padding: f32,
@@ -129,17 +132,34 @@ impl ButtonContent {
         ButtonContent(
             Row::new(spacing, Offset::Center, Size::Fit, Padding(padding, 0.0, padding, 0.0)),
             avatar.map(|content| Avatar::new(ctx, content, None, false, icon_size, None)),
-            icon_l.map(|icon| Icon::new(ctx, icon, color, icon_size)),
+            icon_l.map(|(icon, flair)| ButtonIcon::new(ctx, (icon, color, icon_size), flair)),
             label.map(|label| Text::new(ctx, label, TextStyle::Label(color), text_size, Align::Left)),
-            icon_r.map(|icon| Icon::new(ctx, icon, color, icon_size)),
+            icon_r.map(|(icon, flair)| ButtonIcon::new(ctx, (icon, color, icon_size), flair)),
         )
     }
 
     fn set_color(&mut self, color: Color) {
-        if let Some(icon) = &mut self.2 { icon.color = Some(color); }
+        if let Some(icon) = &mut self.2 { icon.1.color = Some(color); }
         if let Some(text) = &mut self.3 { text.text().spans[0].color = color; }
-        if let Some(icon) = &mut self.4 { icon.color = Some(color); }
+        if let Some(icon) = &mut self.4 { icon.1.color = Some(color); }
     }
+}
+
+type ButtonFlair = Option<(&'static str, Color, bool)>;
+
+#[derive(Debug, Component)]
+struct ButtonIcon(Stack, Image, Option<Opt<Image>>);
+impl OnEvent for ButtonIcon {}
+
+impl ButtonIcon {
+    #[allow(clippy::too_many_arguments)]
+    fn new(ctx: &mut Context, icon: (&'static str, Color, f32), flair: ButtonFlair) -> Self {
+        let i = Icon::new(ctx, icon.0, icon.1, icon.2);
+        let flair = flair.map(|(i, c, h)| Opt::new(Icon::new(ctx, i, c, icon.2 / 1.8), h));
+        ButtonIcon(Stack(Offset::End, Offset::Start, Size::Fit, Size::Fit, Padding::default()), i, flair)
+    }
+
+    fn flair(&mut self) -> &mut Option<Opt<Image>> {&mut self.2}
 }
 
 impl Button {
@@ -173,9 +193,9 @@ impl Button {
         Button::new(
             ctx,
             None,
-            icon_l,
+            icon_l.map(|i| (i, None)),
             Some(label),
-            icon_r,
+            icon_r.map(|i| (i, None)),
             ButtonSize::Medium,
             ButtonWidth::Hug,
             ButtonStyle::Secondary,
@@ -234,7 +254,7 @@ impl Button {
         Button::new(
             ctx,
             None,
-            icon,
+            icon.map(|i| (i, None)),
             label,
             None,
             ButtonSize::Large,
@@ -253,10 +273,11 @@ impl Button {
         selected: bool,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
+        let color = ctx.theme.colors.brand.primary;
         Button::new(
             ctx,
             None,
-            Some(icon),
+            Some((icon, Some(("notification", color, false)))),
             Some(label),
             None,
             ButtonSize::Large,
@@ -318,6 +339,6 @@ impl OnEvent for QuickActions {}
 
 impl QuickActions {
     pub fn new(buttons: Vec<Button>) -> Self {
-        QuickActions(Wrap(8.0, 8.0, Offset::Start, Offset::Center, Padding::default()), buttons)
+        QuickActions(Wrap::new(8.0, 8.0), buttons)
     }
 }

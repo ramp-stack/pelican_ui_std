@@ -6,7 +6,7 @@ use pelican_ui::{Context, Component};
 use crate::elements::shapes::{Rectangle};
 use crate::elements::text::TextStyle;
 use crate::events::TextInputSelect;
-use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Scroll};
+use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Scroll, ScrollAnchor};
 use crate::components::avatar::{AvatarContent, AvatarRow};
 use crate::components::button::{IconButton, Button};
 use crate::components::text_input::TextInput;
@@ -38,6 +38,9 @@ impl Interface {
 
     pub fn desktop(&mut self) -> &mut Option<DesktopInterface> { &mut self.3 }
     pub fn mobile(&mut self) -> &mut Option<MobileInterface> { &mut self.2 }
+    // pub fn navigation(&mut self) -> (Option<&mut Option<MobileNavigator>>, Option<&mut Option<DesktopNavigator>>) {
+    //     (self.desktop().as_mut().map(|d| &mut d.navigator()), self.mobile().as_mut().map(|m| &mut m.navigator()))
+    // }
 }  
 
 #[derive(Debug, Component)]
@@ -67,8 +70,9 @@ impl Content {
     pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(375.0), 375.0));
         let height = Size::custom(move |_: Vec<(f32, f32)>|(0.0, f32::MAX));
-        let mut layout = Scroll::new(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0));
-        if offset == Offset::End { layout.set_scroll(f32::MAX); }
+        let anchor = if offset == Offset::End { ScrollAnchor::End } else { ScrollAnchor::Start };
+        let mut layout = Scroll::new(Offset::Center, offset, width, height, Padding(24.0, 0.0, 24.0, 0.0), anchor);
+        // if offset == Offset::End { layout.set_scroll(f32::MAX); }
         Content(layout, ContentChildren::new(content)) 
     }
     

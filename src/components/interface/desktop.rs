@@ -123,6 +123,9 @@ impl DesktopNavigator {
         self.4.buttons().iter_mut().map(|nb| nb.button()).flatten().map(|button| button.avatar()).flatten().next()
     }
 
+    pub fn buttons(&mut self) -> Vec<&mut Button> {
+        self.2.buttons().iter_mut().map(|nb| nb.button()).flatten().collect::<Vec<_>>()
+    }
 }
 
 impl OnEvent for DesktopNavigator {
