@@ -280,10 +280,8 @@ impl Searchbar {
 
 impl OnEvent for Searchbar {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(event) = event.downcast_ref::<InputEditedEvent>() {
-            if self.1.2.3 == InputState::Focus {
-                ctx.trigger_event(SearchEvent(self.1.value().clone()))
-            }
+        if event.downcast_ref::<InputEditedEvent>().is_some() && self.1.2.3 == InputState::Focus {
+            ctx.trigger_event(SearchEvent(self.1.value().clone()))
         }
         true
     }

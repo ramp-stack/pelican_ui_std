@@ -13,8 +13,6 @@ use crate::components::button::{IconButton, ButtonState};
 use crate::layout::{Stack, Bin, Column, Row, Offset, Size, Padding};
 
 use std::sync::mpsc::{self, Receiver, Sender};
-use std::io::BufWriter;
-use image::codecs::png::PngEncoder;
 
 #[derive(Component, Debug)]
 pub struct MobileKeyboard(Stack, Rectangle, KeyboardContent);
@@ -79,9 +77,9 @@ impl KeyboardIcons {
 
 impl OnEvent for KeyboardIcons {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(_) = event.downcast_ref::<TickEvent>() {
+        if event.downcast_ref::<TickEvent>().is_some() {
             if let Ok((bytes, orientation)) = self.4.try_recv() {
-                EncodedImage::encode(bytes, orientation).map(|s| ctx.trigger_event(AttachmentEvent(s)));
+                if let Some(s) = EncodedImage::encode(bytes, orientation) {ctx.trigger_event(AttachmentEvent(s));}
             }
         }
         true

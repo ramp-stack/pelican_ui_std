@@ -395,12 +395,11 @@ impl Layout for Scroll {
 
         children.into_iter().map(|i| {
             let size = i.get(scroll_size);
-            let mut y_offset = match self.6 {
+            let y_offset = match self.6 {
                 ScrollAnchor::Start => self.1.get(scroll_size.1, size.1)-*scroll_val,
                 ScrollAnchor::End => scroll_size.1 - children_height + *scroll_val,
             };
             let offset = (self.0.get(scroll_size.0, size.0), y_offset);
-            y_offset += size.1;
             Area {offset: self.4.adjust_offset(offset), size }
         }).collect()
     }

@@ -5,7 +5,7 @@ use pelican_ui::{Context, resources};
 use std::io::BufWriter;
 
 use image::codecs::png::PngEncoder;
-use image::{ExtendedColorType, ImageEncoder, ImageReader};
+use image::ImageEncoder;
 
 use fast_image_resize::{IntoImageView, Resizer};
 use fast_image_resize::images::Image as FirImage;

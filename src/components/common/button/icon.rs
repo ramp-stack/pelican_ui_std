@@ -34,7 +34,7 @@ impl IconButton {
         self.1.2.color = Some(colors.label);
     }
 
-    pub fn show_flair(&mut self, hide: bool) {self.2.as_mut().map(|i| i.display(hide));}
+    pub fn show_flair(&mut self, hide: bool) {if let Some(i) = self.2.as_mut() {i.display(hide);}}
     pub fn status(&mut self) -> &mut ButtonState {&mut self.1.4}
 }
 

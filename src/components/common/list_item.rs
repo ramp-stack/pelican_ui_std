@@ -212,7 +212,7 @@ impl LeftData {
             Column::new(4.0, Offset::Start, Size::custom(|widths: Vec<(f32, f32)>| (widths[0].0, f32::MAX)), Padding::default()),
             TitleRow::new(ctx, title, flair),
             subtitle.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, Align::Left, Some(2))),
-            description.map(|text| ExpandableText::new(ctx, &text, TextStyle::Secondary, font_size, Align::Left, Some(2))),
+            description.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, Align::Left, Some(2))),
         )
     }
 
@@ -298,6 +298,6 @@ impl ListItemGroup {
 
     pub fn items(&mut self) -> &mut Vec<Opt<ListItem>> {&mut self.1}
     pub fn hide(&mut self, hide: bool, i: usize) {
-        self.items().get_mut(i).map(|item| item.display(!hide));
+        if let Some(item) = self.items().get_mut(i) {item.display(!hide);}
     }
 }

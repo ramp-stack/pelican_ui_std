@@ -57,7 +57,7 @@ impl Timestamp {
 
         match date == today {
             true => the_time,
-            false if date == today.pred_opt().unwrap_or(today) => format!("{} {}", "yesterday,".to_string(), the_time),
+            false if date == today.pred_opt().unwrap_or(today) => format!("{} {}", "yesterday,", the_time),
             false if date.iso_week() == today.iso_week() => format!("{}", dt.format("%A")),
             false if date.year() == today.year() => format!("{}", dt.format("%B %-d")),
             false => format!("{}", dt.format("%m/%d/%y"))

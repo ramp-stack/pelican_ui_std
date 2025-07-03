@@ -104,7 +104,7 @@ impl DesktopNavigator {
     }
 
     pub fn update_avatar(&mut self, avatar_content: AvatarContent) {
-        self.avatar().map(|avatar| {
+        if let Some(avatar) = self.avatar() {
             if avatar.avatar().image().is_none() {
                 avatar.set_content(avatar_content)
             } else if let AvatarContent::Image(ref image) = avatar_content {
@@ -112,7 +112,7 @@ impl DesktopNavigator {
                     avatar.set_content(avatar_content)
                 }
             }
-        });
+        };
     }
 
     pub fn update_username(&mut self, username: String) {
@@ -120,11 +120,11 @@ impl DesktopNavigator {
     }
 
     pub fn avatar(&mut self) -> Option<&mut Avatar> {
-        self.4.buttons().iter_mut().map(|nb| nb.button()).flatten().map(|button| button.avatar()).flatten().next()
+        self.4.buttons().iter_mut().flat_map(|nb| nb.button()).flat_map(|button| button.avatar()).next()
     }
 
     pub fn buttons(&mut self) -> Vec<&mut Button> {
-        self.2.buttons().iter_mut().map(|nb| nb.button()).flatten().collect::<Vec<_>>()
+        self.2.buttons().iter_mut().flat_map(|nb| nb.button()).collect::<Vec<_>>()
     }
 }
 
