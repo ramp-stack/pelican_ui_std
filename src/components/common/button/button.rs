@@ -42,7 +42,7 @@ impl Button {
         offset: Offset,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
-        let (height, padding) = size.background();
+        let (height, padding) = size.sizes();
         let colors = state.color(ctx, style);
         let content = ButtonContent::new(ctx, avatar, icon_l, label, icon_r, size, colors.label, padding);
 

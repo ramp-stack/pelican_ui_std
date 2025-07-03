@@ -5,7 +5,7 @@ use pelican_ui::{Context, Component};
 
 use crate::elements::shapes::{Rectangle};
 use crate::elements::text::TextStyle;
-use crate::events::TextInputSelect;
+use crate::events::{TextInputSelect, AdjustScrollEvent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Scroll, ScrollAnchor};
 use crate::components::avatar::{AvatarContent, AvatarRow};
 use crate::components::button::{IconButton, Button};
@@ -97,7 +97,9 @@ impl Content {
 
 impl OnEvent for Content {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(TextInputSelect(id)) = event.downcast_ref::<TextInputSelect>() {
+        if let Some(AdjustScrollEvent(a)) = event.downcast_ref::<AdjustScrollEvent>() {
+            self.0.adjust_scroll(*a);
+        } else if let Some(TextInputSelect(id)) = event.downcast_ref::<TextInputSelect>() {
             if crate::config::IS_MOBILE {
                 let mut total_height = 0.0;
                 for item in self.items().iter_mut() {

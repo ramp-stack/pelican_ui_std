@@ -106,7 +106,7 @@ impl ButtonSize {
             ButtonSize::Large => (font_size.lg, 24., 12.)
         }
     }
-    fn background(&self) -> (f32, f32) { // height, padding
+    pub fn sizes(&self) -> (f32, f32) { // height, padding
         match self {
             ButtonSize::Medium => (32., 12.),
             ButtonSize::Large => (48., 24.)
