@@ -20,16 +20,15 @@ impl Avatar {
         size: f32,
         on_click: Option<Callback>
     ) -> Self {
-        let black = ctx.theme.colors.shades.black;
-
         Avatar(
             Stack(Offset::End, Offset::End, Size::Fit, Size::Fit, Padding::default()),
             PrimaryAvatar::new(ctx, content, outline, size),
-            flair.map(|(name, style)| Flair::new(ctx, name, style, size / 3.0, black)),
+            flair.map(|(name, style)| Flair::new(ctx, name, style, size)),
             on_click
         )
     }
 
+    pub fn size(&self) -> f32 {self.1.size()}
     pub fn set_content(&mut self, content: AvatarContent)  {self.1.set_content(content)}
     pub fn flair(&mut self) -> &mut Option<Flair> {&mut self.2}
     pub fn outline(&mut self) -> &mut Option<Shape> {&mut self.1.3}
@@ -55,7 +54,7 @@ impl std::fmt::Debug for Avatar {
 }
 
 #[derive(Component, Debug)]
-pub struct PrimaryAvatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>);
+pub struct PrimaryAvatar(Stack, Option<AvatarIcon>, Option<Image>, Option<Shape>, #[skip] f32);
 impl OnEvent for PrimaryAvatar {}
 
 impl PrimaryAvatar {
@@ -69,7 +68,7 @@ impl PrimaryAvatar {
 
         PrimaryAvatar(
             Stack(Offset::Center, Offset::Center, Size::Fit, Size::Fit, Padding::default()),
-            circle_icon, image, outline.then(|| Outline::circle(size, black)),
+            circle_icon, image, outline.then(|| Outline::circle(size, black)), size
         )
     }
 
@@ -89,6 +88,7 @@ impl PrimaryAvatar {
         };
     }
 
+    pub fn size(&self) -> f32 {self.4}
     pub fn image(&mut self) -> &mut Option<Image> { &mut self.2 }
     pub fn icon(&mut self) -> &mut Option<AvatarIcon> { &mut self.1 }
 }
@@ -149,11 +149,12 @@ pub struct Flair(Stack, AvatarIcon, Shape);
 impl OnEvent for Flair {}
 
 impl Flair {
-    pub fn new(ctx: &mut Context, name: &'static str, style: AvatarIconStyle, size: f32, color: Color) -> Self {
+    pub fn new(ctx: &mut Context, name: &'static str, style: AvatarIconStyle, size: f32) -> Self {
+        let black = ctx.theme.colors.shades.black;
         Flair(
             Stack::center(),
-            AvatarIcon::new(ctx, name, style, size),
-            Outline::circle(size, color)
+            AvatarIcon::new(ctx, name, style, size / 3.0),
+            Outline::circle(size / 3.0, black)
         )
     }
 

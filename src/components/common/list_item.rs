@@ -46,9 +46,9 @@ impl ListItem {
         ListItem(layout, Rectangle::new(color), content, ButtonState::Default, Box::new(on_click), element_id, false)
     }
 
-    pub fn title(&mut self) -> &mut Text {&mut self.2.data().left().title().1}
+    pub fn title(&mut self) -> &mut TitleRow {self.2.data().left().title()}
     pub fn subtitle(&mut self) -> &mut Option<ExpandableText> {self.2.data().left().subtitle()}
-
+    pub fn avatar(&mut self) -> &mut Option<Avatar> {&mut self.2.2}
 
     pub fn is_selected(&self) -> bool {
         self.2.1.as_ref().map(|r| r.2).unwrap_or(false)
@@ -173,19 +173,26 @@ impl ListItemData {
 
     fn left(&mut self) -> &mut LeftData {&mut self.1}
 }
+
 #[derive(Debug, Component)]
-struct TitleRow(Row, Text, Option<Image>);
+pub struct TitleRow(Row, Text, Option<Image>);
 impl OnEvent for TitleRow {}
 
 impl TitleRow {
     fn new(ctx: &mut Context, title: &str, flair: Option<(&'static str, Color)>) -> Self {
         let font_size = ctx.theme.fonts.size.h5;
         TitleRow(
-            Row::new(4.0, Offset::End, Size::Fit, Padding::default()),
+            Row::new(4.0, Offset::Center, Size::Fit, Padding::default()),
             Text::new(ctx, title, TextStyle::Heading, font_size, Align::Left),
-            flair.map(|(name, color)| Icon::new(ctx, name, color, 20.0)),
+            flair.map(|(name, color)| Icon::new(ctx, name, color, 16.0)),
         )
     }
+
+    pub fn update_flair(&mut self, ctx: &mut Context, flair: Option<(&'static str, Color)>) {
+        self.2 = flair.map(|(i, c)| Icon::new(ctx, i, c, 20.0))
+    }
+
+    pub fn title(&mut self) -> &mut Text {&mut self.1}
 }
 
 #[derive(Debug, Component)]

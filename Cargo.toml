@@ -3,13 +3,13 @@ name = "pelican_ui_std"
 version = "0.1.2"
 authors = ["Ella Mae <ellaammae@email.com>"]
 edition = "2021"
-description = "A modern UI/UX toolkit optimized for the RAMP stack."
+description = "Standard UI tools and components built off Pelican UI of the RAMP stack."
 license = "BSD-3-Clause"
-repository = "https://github.com/ramp-stack/pelican_ui"
+repository = "https://github.com/ramp-stack/pelican_ui_std"
 readme = "README.md"
 keywords = ["ui", "ux", "ramp", "rust", "component"]
 categories = ["gui", "visualization", "rendering"]
-documentation = "https://docs.rs/pelican-ui"
+documentation = "https://docs.rs/pelican-ui-std"
 
 [lib]
 name = "pelican_ui_std"
