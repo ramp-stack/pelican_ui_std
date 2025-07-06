@@ -28,6 +28,14 @@ impl DataItem {
             DataItemContent::new(ctx, label, text, secondary, table, quick_actions)
         )
     }
+
+    pub fn label(&mut self) -> &mut String {
+        &mut self.2.1.text().spans[0].text
+    }
+
+    pub fn buttons(&mut self) -> Option<&mut Vec<Button>> {
+        self.2.5.as_mut().map(|qa| qa.buttons())
+    }
 }
 
 #[derive(Debug, Component)]
@@ -113,4 +121,6 @@ impl QuickActions {
     fn new(buttons: Vec<Button>) -> Self {
         QuickActions(Row::new(8.0, Offset::Start, Size::Fit, Padding::default()), buttons)
     }
+
+    fn buttons(&mut self) -> &mut Vec<Button> {&mut self.1}
 }
