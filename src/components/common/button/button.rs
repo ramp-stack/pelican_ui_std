@@ -1,4 +1,4 @@
-use pelican_ui::events::{MouseState, MouseEvent, OnEvent, Event};
+use pelican_ui::events::{MouseState, MouseEvent, OnEvent, Event, TickEvent};
 use pelican_ui::drawable::{Drawable, Component, Image, Color, Align};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
@@ -10,6 +10,8 @@ use crate::elements::text::{Text, TextStyle};
 use crate::layout::{Offset, Padding, Row, Size, Stack, Wrap, Opt};
 
 use super::{ButtonSize, ButtonState, ButtonStyle};
+
+use std::time::Instant;
 
 #[derive(Debug, Clone, Copy)]
 pub enum ButtonWidth {
@@ -25,6 +27,9 @@ pub struct Button(
     #[skip] ButtonStyle, 
     #[skip] ButtonState,
     #[skip] pub Box<dyn FnMut(&mut Context)>, 
+    #[skip] Option<String>,
+    #[skip] Option<Instant>,
+    #[skip] Option<String>,
 );
 
 impl Button {
@@ -41,6 +46,7 @@ impl Button {
         state: ButtonState,
         offset: Offset,
         on_click: impl FnMut(&mut Context) + 'static,
+        active_label: Option<String>,
     ) -> Self {
         let (height, padding) = size.sizes();
         let colors = state.color(ctx, style);
@@ -58,7 +64,7 @@ impl Button {
         let background = OutlinedRectangle::new(colors.background, colors.outline, height/2.0, 1.0);
         let layout = Stack(offset, Offset::Center, width, Size::Static(height), Padding::default());
 
-        Button(layout, background, content, style, state, Box::new(on_click))
+        Button(layout, background, content, style, state, Box::new(on_click), label.map(|l| l.to_string()), None, active_label)
     }
 
     pub fn color(&mut self, ctx: &mut Context) {
@@ -87,14 +93,27 @@ impl Button {
 
 impl OnEvent for Button {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            if self.4.handle(ctx, *event).is_some() {
-                self.color(ctx);
+        if let Some(TickEvent) = event.downcast_ref::<TickEvent>() {
+            if let Some(timer) = self.7 {
+                if timer.elapsed().as_millis() > 750 {
+                    let new = self.6.clone().unwrap();
+                    if let Some(l) = self.label().as_mut() { l.text().spans[0].text = new; }
+                    self.7 = None;
+                    *self.status() = ButtonState::Default;
+                    self.color(ctx);
+                }
             }
+        } else if let Some(event) = event.downcast_ref::<MouseEvent>() {
+            if self.4.handle(ctx, *event).is_some() { self.color(ctx); }
 
             if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
                 match self.4 {
                     ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
+                        if let Some(label) = self.8.clone() {
+                            self.7 = Some(Instant::now());
+                            *self.status() = ButtonState::Selected;
+                            if let Some(l) = self.label().as_mut() { l.text().spans[0].text = label.to_string(); }
+                        }
                         ctx.hardware.haptic();
                         (self.5)(ctx)
                     },
@@ -180,6 +199,7 @@ impl Button {
             ButtonState::Default,
             Offset::Center,
             on_click,
+            None,
         )
     }
 
@@ -189,6 +209,7 @@ impl Button {
         label: &str,
         icon_r: Option<&'static str>,
         on_click: impl FnMut(&mut Context) + 'static,
+        active_label: Option<String>,
     ) -> Self {
         Button::new(
             ctx,
@@ -202,6 +223,7 @@ impl Button {
             ButtonState::Default,
             Offset::Center,
             on_click,
+            active_label,
         )
     }
 
@@ -222,6 +244,7 @@ impl Button {
             ButtonState::Default,
             Offset::Center,
             on_click,
+            None,
         )
     }
 
@@ -242,6 +265,7 @@ impl Button {
             ButtonState::Disabled,
             Offset::Center,
             on_click,
+            None,
         )
     }
 
@@ -263,6 +287,7 @@ impl Button {
             ButtonState::Default,
             Offset::Center,
             on_click,
+            None,
         )
     }
 
@@ -286,6 +311,7 @@ impl Button {
             if selected {ButtonState::Selected} else {ButtonState::Default},
             Offset::Start,
             on_click,
+            None,
         )
     }
 
@@ -308,6 +334,7 @@ impl Button {
             if selected {ButtonState::Selected} else {ButtonState::Default},
             Offset::Start,
             on_click,
+            None,
         )
     }
 
@@ -328,6 +355,7 @@ impl Button {
             ButtonState::Default,
             Offset::Center,
             on_click,
+            None,
         )
     }
 }

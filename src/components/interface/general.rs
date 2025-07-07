@@ -116,6 +116,7 @@ impl OnEvent for Content {
                 }
             }
         } else if let Some(MouseEvent { state: MouseState::Scroll(_, y), position: Some(_) }) = event.downcast_ref::<MouseEvent>() {
+            println!("Received scroll event {:?}", y);
             self.0.adjust_scroll(*y);
         }
         true
