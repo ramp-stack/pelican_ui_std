@@ -4,8 +4,6 @@ pub mod alert;
 pub use alert::*;
 pub mod avatar;
 pub use avatar::*;
-pub mod card;
-pub use card::*;
 pub mod data_item;
 pub use data_item::*;
 pub mod list_item;
