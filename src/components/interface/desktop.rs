@@ -22,10 +22,10 @@ impl DesktopInterface {
     pub fn new(
         ctx: &mut Context, 
         start_page: Box<dyn AppPage>,
-        mut navigation: Option<(usize, Vec<NavigateInfo>)>,
+        mut navigation: Option<(usize, Vec<NavigateInfo>, Vec<NavigateInfo>)>,
     ) -> Self {
         let color = ctx.theme.colors.outline.secondary;
-        let pages = navigation.as_mut().map(|navi| navi.1.iter_mut().map(|n| n.3.take().unwrap()).collect::<Vec<_>>());
+        let pages = navigation.as_mut().map(|navi| navi.1.iter_mut().chain(navi.2.iter_mut()).map(|t| t.3.take().unwrap()).collect::<Vec<_>>());
         let navigator = navigation.map(|n| DesktopNavigator::new(ctx, n));
 
         DesktopInterface(
@@ -68,24 +68,46 @@ impl std::fmt::Debug for DesktopInterface {
 pub struct DesktopNavigator(Column, Image, ButtonColumn, Bin<Stack, Rectangle>, ButtonColumn);
 
 impl DesktopNavigator {
-    pub fn new(ctx: &mut Context, navigation: (usize, Vec<NavigateInfo>)) -> Self {
+    pub fn new(ctx: &mut Context, navigation: (usize, Vec<NavigateInfo>, Vec<NavigateInfo>)) -> Self {
         let mut top_col = Vec::new();
         let mut bot_col = Vec::new();
 
-        for (i, (icon, name, avatar, _)) in navigation.1.into_iter().enumerate() {
+        let mut index = 0;
+
+        for (icon, name, avatar, _) in navigation.1.into_iter() {
             let id = ElementID::new();
             let closure = move |ctx: &mut Context| {
                 ctx.trigger_event(NavigatorSelect(id));
-                ctx.trigger_event(NavigatorEvent(i));
+                ctx.trigger_event(NavigatorEvent(index));
             };
 
             if let Some(avatar) = avatar {
-                let profile = Button::photo(ctx, &name, avatar, navigation.0 == i, closure);
-                bot_col.push(NavigationButton::new(id, Some(profile), None))
+                let profile = Button::photo(ctx, &name, avatar, navigation.0 == index, closure);
+                top_col.push(NavigationButton::new(id, Some(profile), None))
             } else {
-                let button = Button::navigation(ctx, icon, &name, navigation.0 == i, closure);
+                let button = Button::navigation(ctx, icon, &name, navigation.0 == index, closure);
                 top_col.push(NavigationButton::new(id, Some(button), None))
             }
+
+            index += 1;
+        }
+
+        for (icon, name, avatar, _) in navigation.2.into_iter() {
+            let id = ElementID::new();
+            let closure = move |ctx: &mut Context| {
+                ctx.trigger_event(NavigatorSelect(id));
+                ctx.trigger_event(NavigatorEvent(index));
+            };
+
+            if let Some(avatar) = avatar {
+                let profile = Button::photo(ctx, &name, avatar, navigation.0 == index, closure);
+                bot_col.push(NavigationButton::new(id, Some(profile), None))
+            } else {
+                let button = Button::navigation(ctx, icon, &name, navigation.0 == index, closure);
+                bot_col.push(NavigationButton::new(id, Some(button), None))
+            }
+
+            index += 1;
         }
 
         let theme = &ctx.theme;
@@ -96,7 +118,7 @@ impl DesktopNavigator {
             Brand::new(wordmark, (108.0, 23.0)),
             ButtonColumn::new(top_col),
             Bin (
-                Stack(Offset::Center, Offset::Center, Size::Fill(100.0, 200.0), Size::Fill(100.0, f32::MAX), Padding::default()), 
+                Stack(Offset::Center, Offset::Center, Size::Fill(100.0, 200.0), Size::Fill(0.0, f32::MAX), Padding::default()), 
                 Rectangle::new(color)
             ),
             ButtonColumn::new(bot_col)

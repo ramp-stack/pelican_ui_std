@@ -65,7 +65,7 @@ impl ButtonState {
         state
     }
 
-    fn color(&self, ctx: &mut Context, style: ButtonStyle) -> ButtonColorScheme {
+    pub fn color(&self, ctx: &mut Context, style: ButtonStyle) -> ButtonColorScheme {
         let schemes = &ctx.theme.colors.button;
         match (style, self) {
             (ButtonStyle::Primary, ButtonState::Default) => schemes.primary_default,
@@ -99,7 +99,7 @@ pub enum ButtonSize {
 }
 
 impl ButtonSize {
-    fn content(&self, ctx: &mut Context) -> (f32, f32, f32) { // text size, icon size, spacing
+    pub fn content(&self, ctx: &mut Context) -> (f32, f32, f32) { // text size, icon size, spacing
         let font_size = ctx.theme.fonts.size;
         match self {
             ButtonSize::Medium => (font_size.md, 16., 4.),

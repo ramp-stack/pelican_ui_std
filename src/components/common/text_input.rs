@@ -15,6 +15,9 @@ use std::sync::mpsc::{self, Receiver};
 pub struct TextInput(Column, Option<Text>, InputField, Option<Text>, Option<Text>);
 
 impl TextInput {
+    #[allow(clippy::type_complexity)]
+    pub const NO_ICON: Option<(&str, fn(&mut Context, &mut String))> = None::<(&'static str, fn(&mut Context, &mut String))>;
+
     pub fn new(
         ctx: &mut Context,
         value: Option<&str>,
@@ -93,7 +96,6 @@ impl InputField {
         let background = OutlinedRectangle::new(background, outline, 8.0, 1.0);
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, widths[0].1));            
         let height = Size::custom(|heights: Vec<(f32, f32)>| (heights[1].0.max(48.0), heights[1].1.max(48.0)));
-
 
         InputField(
             Stack(Offset::Start, Offset::Start, width, height, Padding::default()), 

@@ -16,11 +16,12 @@ name = "pelican_ui_std"
 path = "src/lib.rs"
 
 [dependencies]
-qrcode = "0.14.1"
 uuid = { version = "1.16.0", features = ["v4"] }
 dyn-clone = "1.0.19"
 pelican_ui = {path="../pelican_ui"}
 #pelican_ui = "0.1.5"
+imageproc = "0.25.0"
+qrcode = "0.14.1"
 quircs = "0.10.2"
 image = "0.25.6"
 chrono = "0.4.41"

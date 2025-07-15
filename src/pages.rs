@@ -17,7 +17,7 @@ impl AppPage for Error {
 impl Error {
     pub fn new(ctx: &mut Context, error: &str, home: Box<dyn AppPage>) -> Self {
         let theme = &ctx.theme;
-        let illustration = theme.brand.illustrations.get("error").clone();
+        let illustration = theme.brand.illustrations.get("error").unwrap();
         let font_size = theme.fonts.size;
         let illustration = Brand::new(illustration, (300.0, 300.0));
         let title = Text::new(ctx, "Something went wrong.", TextStyle::Heading, font_size.h4, Align::Left);
@@ -44,5 +44,27 @@ impl Splash {
         let content = Content::new(Offset::Center, vec![Box::new(Brand::new(wordmark, (162.0, 34.5)))]);
 
         Splash(Stack::default(), Page::new(None, content, None))
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct PelicanHome(Stack, Page);
+impl OnEvent for PelicanHome {}
+
+impl AppPage for PelicanHome {
+    fn has_nav(&self) -> bool { false }
+    fn navigate(self: Box<Self>, _ctx: &mut Context, _index: usize) -> Result<Box<dyn AppPage>, Box<dyn AppPage>> { Err(self) }
+}
+
+impl PelicanHome {
+    pub fn new(ctx: &mut Context) -> Self {
+        let theme = &ctx.theme;
+        let logo = theme.brand.logomark.clone();
+        let font_size = theme.fonts.size;
+        let illustration = Brand::new(logo, (150.0, 150.0));
+        let title = Text::new(ctx, "Welcome to Pelican UI", TextStyle::Heading, font_size.h4, Align::Center);
+        let text = Text::new(ctx, "featherlight components for bold ideas", TextStyle::Primary, font_size.md, Align::Center);
+        let content = Content::new(Offset::Center, vec![Box::new(illustration), Box::new(title), Box::new(text)]);
+        PelicanHome(Stack::default(), Page::new(None, content, None))
     }
 }

@@ -20,7 +20,7 @@ impl MobileInterface {
     pub fn new(
         ctx: &mut Context, 
         start_page: Box<dyn AppPage>,
-        mut navigation: Option<(usize, Vec<NavigateInfo>)>
+        mut navigation: Option<(usize, Vec<NavigateInfo>, Vec<NavigateInfo>)>
     ) -> Self {
         let background = ctx.theme.colors.background.primary;
         let pages = navigation.as_mut().map(|nav| nav.1.iter_mut().map(|n| n.3.take().unwrap()).collect::<Vec<_>>());
@@ -78,7 +78,7 @@ pub struct MobileNavigator(Stack, Rectangle, MobileNavigatorContent);
 impl MobileNavigator {
     pub fn new(
         ctx: &mut Context,
-        navigation: (usize, Vec<NavigateInfo>)
+        navigation: (usize, Vec<NavigateInfo>, Vec<NavigateInfo>)
     ) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         let height = Size::custom(move |heights: Vec<(f32, f32)>|(heights[1].0, heights[1].1));
@@ -102,9 +102,10 @@ struct MobileNavigatorContent(Row, Vec<NavigationButton>);
 impl MobileNavigatorContent {
     fn new(
         ctx: &mut Context,
-        navigation: (usize, Vec<NavigateInfo>)
+        mut navigation: (usize, Vec<NavigateInfo>, Vec<NavigateInfo>)
     ) -> Self {
         let mut tabs = Vec::new();
+        navigation.1.extend(navigation.2);
         for (i, (icon, _, _, _)) in navigation.1.into_iter().enumerate() {
             let id = ElementID::new();
             let closure = move |ctx: &mut Context| {

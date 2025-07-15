@@ -113,6 +113,7 @@ impl Component for Rectangle {
     }
 }
 
+
 /// Utility struct for creating circular shapes (for example, to represent icons or buttons).
 pub struct Outline;
 

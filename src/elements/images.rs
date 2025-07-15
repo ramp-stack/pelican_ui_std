@@ -1,4 +1,7 @@
 use pelican_ui::events::OnEvent;
+use pelican_ui::drawable::{Drawable, Component, Shape};
+use pelican_ui::layout::{Area, SizeRequest, Layout};
+use pelican_ui::{Component};
 use pelican_ui::drawable::{ShapeType, Image, Color};
 use pelican_ui::hardware::ImageOrientation;
 use pelican_ui::{Context, resources};
@@ -29,7 +32,13 @@ impl OnEvent for Brand {}
 impl Brand {
     #[allow(clippy::new_ret_no_self)]
     pub fn new(image: resources::Image, size: (f32, f32)) -> Image {
-        Image{shape: ShapeType::Rectangle(0.0, (size.0, size.1)), image, color: None}
+        let (w, h) = image.size();
+        let r = h as f32 / w as f32;
+
+        let tw = size.0;
+        let th = tw * r;
+
+        Image{shape: ShapeType::Rectangle(0.0, (tw, th)), image, color: None}
     }
 }
 
@@ -57,5 +66,32 @@ impl EncodedImage {
         let png_bytes = general_purpose::STANDARD.decode(bytes).unwrap();
         let image = image::load_from_memory(&png_bytes).unwrap();
         ctx.assets.add_image(image.into())  
+    }
+}
+
+
+#[derive(Debug)]
+pub struct ExpandableImage(Image);
+
+impl ExpandableImage {
+    pub fn new(image: resources::Image) -> Self {
+        ExpandableImage(Image{shape: ShapeType::Rectangle(0.0, (0.0, 0.0)), image, color: None})
+    }
+
+    pub fn image(&mut self) -> &mut Image { &mut self.0 }
+}
+
+impl OnEvent for ExpandableImage {}
+impl Component for ExpandableImage {
+    fn children_mut(&mut self) -> Vec<&mut dyn Drawable> { vec![&mut self.0] }
+    fn children(&self) -> Vec<&dyn Drawable> { vec![&self.0] }
+    fn request_size(&self, _ctx: &mut Context, _children: Vec<SizeRequest>) -> SizeRequest {
+        SizeRequest::fill()
+    }
+    fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
+        if let ShapeType::Rectangle(_, s) = &mut self.0.shape {
+            *s = size;
+        }
+        vec![Area { offset: (0.0, 0.0), size }]
     }
 }

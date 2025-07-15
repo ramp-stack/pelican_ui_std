@@ -10,3 +10,7 @@ pub mod list_item;
 pub use list_item::*;
 pub mod text_input;
 pub use text_input::*;
+pub mod qr_code;
+pub use qr_code::*;
+pub mod qr_scanner;
+pub use qr_scanner::*;

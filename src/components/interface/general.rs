@@ -1,9 +1,10 @@
 use pelican_ui::events::{OnEvent, MouseState, MouseEvent, Event};
 use pelican_ui::drawable::{Drawable, Component, Align};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Context, Component};
+use pelican_ui::{Context, Component, resources};
 
 use crate::elements::shapes::{Rectangle};
+use crate::elements::images::ExpandableImage;
 use crate::elements::text::TextStyle;
 use crate::events::{TextInputSelect, AdjustScrollEvent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Scroll, ScrollAnchor};
@@ -20,24 +21,39 @@ pub type NavigateInfo = (&'static str, String, Option<AvatarContent>, Option<Box
 pub type PageBuilder = Option<Vec<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>>;
 
 #[derive(Debug, Component)]
-pub struct Interface (Stack, Rectangle, Option<MobileInterface>, Option<DesktopInterface>);
+pub struct Interface (Stack, Option<Rectangle>, Option<ExpandableImage>, Option<MobileInterface>, Option<DesktopInterface>);
 impl OnEvent for Interface {}
 impl Interface {
     pub fn new(
         ctx: &mut Context, 
         start_page: Box<dyn AppPage>,
-        navigation: Option<(usize, Vec<NavigateInfo>)>,
+        navigation: Option<(usize, Vec<NavigateInfo>, Vec<NavigateInfo>)>,
     ) -> Self {
         let color = ctx.theme.colors.background.primary;
         let (mobile, desktop) = match crate::config::IS_MOBILE {
             true => (Some(MobileInterface::new(ctx, start_page, navigation)), None),
             false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)))
         };
-        Interface(Stack::default(), Rectangle::new(color), mobile, desktop)
+        Interface(Stack::default(), Some(Rectangle::new(color)), None, mobile, desktop)
     }
 
-    pub fn desktop(&mut self) -> &mut Option<DesktopInterface> { &mut self.3 }
-    pub fn mobile(&mut self) -> &mut Option<MobileInterface> { &mut self.2 }
+    //move background to pages
+    pub fn new_with_background(
+        ctx: &mut Context, 
+        image: resources::Image,
+        start_page: Box<dyn AppPage>,
+        navigation: Option<(usize, Vec<NavigateInfo>, Vec<NavigateInfo>)>,
+    ) -> Self {
+        let background = ExpandableImage::new(image);
+        let (mobile, desktop) = match crate::config::IS_MOBILE {
+            true => (Some(MobileInterface::new(ctx, start_page, navigation)), None),
+            false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)))
+        };
+        Interface(Stack::default(), None, Some(background), mobile, desktop)
+    }
+
+    pub fn desktop(&mut self) -> &mut Option<DesktopInterface> { &mut self.4 }
+    pub fn mobile(&mut self) -> &mut Option<MobileInterface> { &mut self.3 }
     // pub fn navigation(&mut self) -> (Option<&mut Option<MobileNavigator>>, Option<&mut Option<DesktopNavigator>>) {
     //     (self.desktop().as_mut().map(|d| &mut d.navigator()), self.mobile().as_mut().map(|m| &mut m.navigator()))
     // }
@@ -75,7 +91,7 @@ impl Content {
         // if offset == Offset::End { layout.set_scroll(f32::MAX); }
         Content(layout, ContentChildren::new(content)) 
     }
-    
+
     pub fn find<T: std::any::Any>(&mut self) -> Option<&mut T> {
         self.items().iter_mut().find_map(|item| item.as_any_mut().downcast_mut::<T>())
     }
@@ -145,12 +161,12 @@ impl Header {
         )
     }
 
-    pub fn home(ctx: &mut Context, title: &str) -> Self {
+    pub fn home(ctx: &mut Context, title: &str, icon: Option<IconButton>) -> Self {
         Header(
             Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
             HeaderIcon::new(None), 
             HeaderContent::home(ctx, title),
-            HeaderIcon::new(None)
+            HeaderIcon::new(icon)
         )
     }
 

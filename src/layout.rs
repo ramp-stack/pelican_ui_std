@@ -53,7 +53,7 @@ impl Size {
         Size::Custom(Box::new(func))
     }
 
-    fn get(&self, items: Vec<(f32, f32)>, fit: FitFunc) -> (f32, f32) {
+    pub fn get(&self, items: Vec<(f32, f32)>, fit: FitFunc) -> (f32, f32) {
         match self {
             Size::Fit => fit(items),
             Size::Fill(min, max) => (*min, *max),
@@ -62,11 +62,11 @@ impl Size {
         }
     }
 
-    fn max(items: Vec<(f32, f32)>) -> (f32, f32) {
+    pub fn max(items: Vec<(f32, f32)>) -> (f32, f32) {
         items.into_iter().reduce(|s, i| (s.0.max(i.0), s.1.max(i.1))).unwrap_or_default()
     }
 
-    fn add(items: Vec<(f32, f32)>) -> (f32, f32) {
+    pub fn add(items: Vec<(f32, f32)>) -> (f32, f32) {
         items.into_iter().reduce(|s, i| (s.0+i.0, s.1+i.1)).unwrap_or_default()
     }
 }
@@ -88,17 +88,17 @@ pub struct Padding(pub f32, pub f32, pub f32, pub f32);
 impl Padding {
     pub fn new(p: f32) -> Self {Padding(p, p, p, p)}
 
-    fn adjust_size(&self, size: (f32, f32)) -> (f32, f32) {
+    pub fn adjust_size(&self, size: (f32, f32)) -> (f32, f32) {
         let wp = self.0+self.2;
         let hp = self.1+self.3;
         (size.0-wp, size.1-hp)
     }
 
-    fn adjust_offset(&self, offset: (f32, f32)) -> (f32, f32) {
+    pub fn adjust_offset(&self, offset: (f32, f32)) -> (f32, f32) {
         (offset.0+self.0, offset.1+self.1)
     }
 
-    fn adjust_request(&self, request: SizeRequest) -> SizeRequest {
+    pub fn adjust_request(&self, request: SizeRequest) -> SizeRequest {
         let wp = self.0+self.2;
         let hp = self.1+self.3;
         request.add(wp, hp)
@@ -213,6 +213,8 @@ impl Column {
     pub fn center(spacing: f32) -> Self {
         Column(spacing, Offset::Center, Size::Fit, Padding::default())
     }
+
+    pub fn padding(&mut self) -> &mut Padding {&mut self.3}
 }
 
 impl Layout for Column {

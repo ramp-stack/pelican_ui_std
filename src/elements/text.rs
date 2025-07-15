@@ -41,8 +41,12 @@ impl Text {
     // TODO add max lines to this as well
     pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text.to_string(), size, Some(size*1.25), font, color)], None, align, None);
+        let text = BasicText::new(vec![Span::new(text.to_string(), size, Some(size*1.25), font, color, 0.0)], None, align, None);
         Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text)
+    }
+
+    pub fn set_kerning(&mut self, kerning: f32) {
+        self.1.spans[0].kerning = kerning;
     }
 
     pub fn text(&mut self) -> &mut BasicText { &mut self.1 }
@@ -55,9 +59,11 @@ impl OnEvent for ExpandableText {}
 impl ExpandableText {
     pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align, max_lines: Option<u32>) -> Self {
         let (color, font) = style.get(ctx);
-        let text = BasicText::new(vec![Span::new(text.to_string(), size, Some(size*1.25), font, color)], None, align, max_lines);
+        let text = BasicText::new(vec![Span::new(text.to_string(), size, Some(size*1.25), font, color, 0.0)], None, align, max_lines);
         ExpandableText(Text(Stack(Offset::Start, Offset::Start, Size::Fit, Size::Fit, Padding::default()), text))
     }
+
+    pub fn set_kerning(&mut self, kerning: f32) { self.0.set_kerning(kerning); }
 
     pub fn text(&mut self) -> &mut BasicText { self.0.text() }
 }

@@ -238,8 +238,8 @@ impl Key {
 impl OnEvent for Key {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            let colors = ctx.theme.colors;
             self.2 = handle_state(ctx, self.2, *event);
+            let colors = &ctx.theme.colors;
 
             *self.1.background() = match self.2 {
                 ButtonState::Default => colors.shades.lighten,
@@ -285,8 +285,8 @@ impl std::fmt::Debug for Capslock {
 impl OnEvent for Capslock {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            let colors = ctx.theme.colors;
             self.2 = handle_state(ctx, self.2, *event);
+            let colors = &ctx.theme.colors;
 
             *self.1.background() = match self.2 {
                 ButtonState::Default => colors.shades.lighten,
@@ -336,8 +336,8 @@ impl std::fmt::Debug for Paginator {
 impl OnEvent for Paginator {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(event) = event.downcast_ref::<MouseEvent>() {
-            let colors = ctx.theme.colors;
             self.2 = handle_state(ctx, self.2, *event);
+            let colors = &ctx.theme.colors;
 
             *self.1.background() = match self.2 {
                 ButtonState::Default => colors.shades.lighten,
@@ -348,7 +348,8 @@ impl OnEvent for Paginator {
             if event.state == MouseState::Pressed && event.position.is_some() {
                 // ctx.hardware.vibrate();
 
-                let (highlight, dim) = (colors.text.heading, colors.text.secondary);
+                let highlight = ctx.theme.colors.text.heading;
+                let dim = ctx.theme.colors.text.secondary;
                 let next = if self.3 == 2 { 0 } else { self.3 + 1 };
                 self.3 = next;
 
