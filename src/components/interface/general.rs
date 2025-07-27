@@ -30,6 +30,7 @@ impl Interface {
         navigation: Option<(usize, Vec<NavigateInfo>, Vec<NavigateInfo>)>,
     ) -> Self {
         let color = ctx.theme.colors.background.primary;
+        println!("BACKGROUND COLOR IS {:?}", ctx.theme.colors.background.primary);
         let (mobile, desktop) = match crate::config::IS_MOBILE {
             true => (Some(MobileInterface::new(ctx, start_page, navigation)), None),
             false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)))
@@ -100,12 +101,15 @@ impl Content {
         self.items().get_mut(i)?.as_any_mut().downcast_mut::<T>()
     }
 
-    pub fn remove<T: std::any::Any>(&mut self) {
+    pub fn remove<T: std::any::Any>(&mut self) -> Option<T> {
         if let Some(pos) = self.items().iter().position(|item| item.as_any().is::<T>()) {
-            self.items().remove(pos);
+            let boxed = self.items().remove(pos);
+            boxed.into_any().downcast::<T>().ok().map(|b| *b)
+        } else {
+            None
         }
-        // self.items().iter_mut().find_map(|item| item.as_any_mut().downcast_mut::<T>())
     }
+
 
     pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.1.1}
     pub fn offset(&mut self) -> &mut Offset {self.0.offset()}

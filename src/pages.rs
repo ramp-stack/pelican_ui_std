@@ -21,9 +21,9 @@ impl Error {
         let font_size = theme.fonts.size;
         let illustration = Brand::new(illustration, (300.0, 300.0));
         let title = Text::new(ctx, "Something went wrong.", TextStyle::Heading, font_size.h4, Align::Left);
-        let text = Text::new(ctx, error, TextStyle::Primary, font_size.lg, Align::Center);
+        let text = Text::new(ctx, error, TextStyle::Primary, font_size.md, Align::Center);
         let content = Content::new(Offset::Center, vec![Box::new(illustration), Box::new(title), Box::new(text)]);
-        let button = Button::primary(ctx, "Go Home", move |ctx: &mut Context| ctx.trigger_event(NavigateEvent(0)));
+        let button = Button::primary(ctx, "Go Back", move |ctx: &mut Context| ctx.trigger_event(NavigateEvent(0)));
         let bumper = Bumper::single_button(ctx, button);
         let header = Header::stack(ctx, None, "", None);
         Error(Stack::default(), Page::new(Some(header), content, Some(bumper)), home)
@@ -63,7 +63,7 @@ impl PelicanHome {
         let font_size = theme.fonts.size;
         let illustration = Brand::new(logo, (150.0, 150.0));
         let title = Text::new(ctx, "Welcome to Pelican UI", TextStyle::Heading, font_size.h4, Align::Center);
-        let text = Text::new(ctx, "featherlight components for bold ideas", TextStyle::Primary, font_size.md, Align::Center);
+        let text = Text::new(ctx, "featherlight ui for heavy ideas", TextStyle::Primary, font_size.md, Align::Center);
         let content = Content::new(Offset::Center, vec![Box::new(illustration), Box::new(title), Box::new(text)]);
         PelicanHome(Stack::default(), Page::new(None, content, None))
     }

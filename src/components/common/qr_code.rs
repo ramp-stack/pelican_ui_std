@@ -38,7 +38,7 @@ impl QRCode {
         let theme = &ctx.theme;
         let (app_icon, color) = (theme.brand.app_icon.clone(), theme.colors.shades.white);
         let qr_size = 300.0;
-        let logo_size = 72.0;
+        let logo_size = 64.0;
 
         let image = generate_qr_code(data);
         let img = DynamicImage::ImageRgb8(image).to_rgba8();

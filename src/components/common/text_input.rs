@@ -12,7 +12,7 @@ use crate::utils::ElementID;
 
 use std::sync::mpsc::{self, Receiver};
 #[derive(Debug, Component)]
-pub struct TextInput(Column, Option<Text>, InputField, Option<Text>, Option<Text>);
+pub struct TextInput(Column, Option<Text>, InputField, Option<ExpandableText>, Option<Text>);
 
 impl TextInput {
     #[allow(clippy::type_complexity)]
@@ -33,7 +33,7 @@ impl TextInput {
             Column::new(16.0, Offset::Start, Size::fill(), Padding::default()),
             label.map(|text| Text::new(ctx, text, TextStyle::Heading, font_size.h5, Align::Left)),
             InputField::new(ctx, value, placeholder, icon_button, keyboard_actions),
-            help_text.map(|t| Text::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left)),
+            help_text.map(|t| ExpandableText::new(ctx, t, TextStyle::Secondary, font_size.sm, Align::Left, None)),
             None
         )
     }
@@ -46,7 +46,7 @@ impl TextInput {
 
     pub fn set_help(&mut self, ctx: &mut Context, help: &str) {
         let font_size = ctx.theme.fonts.size.sm;
-        self.3 = Some(Text::new(ctx, help, TextStyle::Secondary, font_size, Align::Left));
+        self.3 = Some(ExpandableText::new(ctx, help, TextStyle::Secondary, font_size, Align::Left, None));
         self.4 = None;
     }
 

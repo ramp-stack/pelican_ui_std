@@ -1,7 +1,6 @@
 use pelican_ui::events::OnEvent;
-use pelican_ui::drawable::{Drawable, Component, Shape};
-use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Component};
+use pelican_ui::drawable::{Drawable, Component};
+use pelican_ui::layout::{Area, SizeRequest};
 use pelican_ui::drawable::{ShapeType, Image, Color};
 use pelican_ui::hardware::ImageOrientation;
 use pelican_ui::{Context, resources};
@@ -26,6 +25,7 @@ impl Icon {
     }
 }
 
+// Rename to AspectRatioImage or something
 #[derive(Clone, Debug)]
 pub struct Brand;
 impl OnEvent for Brand {}

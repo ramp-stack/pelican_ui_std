@@ -416,6 +416,9 @@ impl<L: Layout, D: Drawable> Bin<L, D> {
     pub fn inner(&mut self) -> &mut D {
         &mut self.1
     }
+    pub fn layout(&mut self) -> &mut L {
+        &mut self.0
+    }
 }
 
 #[derive(Debug, Component)]

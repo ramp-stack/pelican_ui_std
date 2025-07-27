@@ -358,6 +358,27 @@ impl Button {
             None,
         )
     }
+
+    pub fn secondary_expand(
+        ctx: &mut Context,
+        label: &str,
+        on_click: impl FnMut(&mut Context) + 'static,
+    ) -> Self {
+        Button::new(
+            ctx,
+            None,
+            None,
+            Some(label),
+            None,
+            ButtonSize::Large,
+            ButtonWidth::Expand,
+            ButtonStyle::Secondary,
+            ButtonState::Default,
+            Offset::Center,
+            on_click,
+            None,
+        )
+    }
 }
 
 #[derive(Debug, Component)]

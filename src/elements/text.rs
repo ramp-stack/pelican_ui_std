@@ -185,7 +185,7 @@ impl BulletedText {
         let (color, _) = style.get(ctx);
         BulletedText(
             Row::new(size*0.75, Offset::Center, Size::Fit, Padding::default()), // change this offset to be line_height - circle size / 2
-            Circle::new(size*0.5, color),
+            Circle::new(size*0.2, color),
             ExpandableText::new(ctx, text, style, size, align, None)
         )
     }
