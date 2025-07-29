@@ -16,7 +16,6 @@ use crate::{
     Column
 };
 
-
 use image::{DynamicImage, GrayImage, RgbaImage};
 use std::sync::{Mutex, Arc};
 
@@ -25,11 +24,34 @@ use quircs::Quirc;
 use crate::events::QRCodeScannedEvent;
 
 #[derive(Debug, Component)]
-pub struct QRCodeScanner(Stack, Option<Image>, QRGuide, #[skip] Camera, #[skip] Arc<Mutex<Option<String>>>, #[skip] Arc<Mutex<bool>>);
+pub struct QRCodeScanner(
+    Stack, 
+    Option<Image>, 
+    QRGuide, 
+    #[skip] Option<Camera>, 
+    #[skip] Arc<Mutex<Option<String>>>, 
+    #[skip] Arc<Mutex<bool>>
+);
 
 impl QRCodeScanner {
     pub fn new(ctx: &mut Context) -> Self {
-        QRCodeScanner(Stack::center(), None, QRGuide::new(ctx), Camera::new(), Arc::new(Mutex::new(None)), Arc::new(Mutex::new(false)))
+        // Try to create custom camera for raw frame support
+        let camera = match Camera::new_custom() {
+            Ok(cam) => Some(cam),
+            Err(e) => {
+                println!("Failed to create custom camera: {:?}", e);
+                None
+            }
+        };
+        
+        QRCodeScanner(
+            Stack::center(), 
+            None, 
+            QRGuide::new(ctx), 
+            camera, 
+            Arc::new(Mutex::new(None)), 
+            Arc::new(Mutex::new(false))
+        )
     }
 
     fn find_code(&mut self, img: RgbaImage) {
@@ -49,35 +71,44 @@ impl QRCodeScanner {
             *flag_clone.lock().unwrap() = false;
         });
     }
-
 }
 
 impl OnEvent for QRCodeScanner {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref::<TickEvent>() {
-            let frame = self.3.get_frame();
-            match frame {
-                Ok(f) => {
-                    // let f = mirrored_from(&f);
-                    self.find_code(f.clone());
-                    if let Some(data) = &*self.4.lock().unwrap() {
-                        ctx.trigger_event(QRCodeScannedEvent(data.to_string()));
+            if let Some(ref mut camera) = self.3 {
+                match camera.get_frame() {
+                    Some(raw_frame) => {
+                        println!("Received frame: {}x{}", raw_frame.width(), raw_frame.height());
+                        
+                        self.find_code(raw_frame.clone());
+                        
+                        if let Some(data) = &*self.4.lock().unwrap() {
+                            println!("QR Data: {}", data);
+                            ctx.trigger_event(QRCodeScannedEvent(data.to_string()));
+                        }
+                        
+                        *self.2.message() = None; 
+                        *self.2.background() = None;
+                        let image = ctx.assets.add_image(raw_frame);
+                        self.1 = Some(Image{
+                            shape: ShapeType::Rectangle(0.0, (300.0, 300.0)), 
+                            image, 
+                            color: None
+                        });
+                    },
+                    None => {
+                        // No raw frame available yet, show waiting message
+                        let background = ctx.theme.colors.background.secondary;
+                        *self.2.background() = Some(RoundedRectangle::new(0.0, 8.0, background));
+                        *self.2.message() = Some(Message::new(ctx, "camera", "Waiting for raw camera frame."));
                     }
-                    
-                    *self.2.message() = None; *self.2.background() = None;
-                    let image = ctx.assets.add_image(f);
-                    self.1 = Some(Image{shape: ShapeType::Rectangle(0.0, (300.0, 300.0)), image, color: None});
-                },
-                Err(CameraError::AccessDenied) => {
-                    let background = ctx.theme.colors.background.secondary;
-                    *self.2.background() = Some(RoundedRectangle::new(0.0, 8.0, background));
-                    *self.2.message() = Some(Message::new(ctx, "settings", "Enable camera in settings."));
-                },
-                Err(CameraError::FailedToGetFrame) | Err(CameraError::WaitingForAccess) => {
-                    let background = ctx.theme.colors.background.secondary;
-                    *self.2.background() = Some(RoundedRectangle::new(0.0, 8.0, background));
-                    *self.2.message() = Some(Message::new(ctx, "camera", "Accessing device camera."));
                 }
+            } else {
+                // No camera available
+                let background = ctx.theme.colors.background.secondary;
+                *self.2.background() = Some(RoundedRectangle::new(0.0, 8.0, background));
+                *self.2.message() = Some(Message::new(ctx, "settings", "Camera not available."));
             }
         }
         true
@@ -91,11 +122,11 @@ impl OnEvent for QRGuide {}
 impl QRGuide {
     pub fn new(ctx: &mut Context) -> Self {
         let background = ctx.theme.colors.background.secondary;
-        let color = ctx.theme.colors.outline.secondary;
+        let outline = ctx.theme.colors.outline.secondary;
         QRGuide(
             Stack(Offset::Center, Offset::Center, Size::Static(308.0), Size::Static(308.0), Padding::default()), 
             Some(RoundedRectangle::new(0.0, 8.0, background)), 
-            RoundedRectangle::new(4.0, 8.0, color), 
+            RoundedRectangle::new(4.0, 8.0, outline), 
             Some(Message::new(ctx, "camera", "Accessing device camera."))
         )
     }
@@ -133,15 +164,12 @@ fn decode_image(img_rgba: RgbaImage, mut decoder: Quirc) -> Option<String> {
             Ok(c) => match c.decode() {
                 Ok(decoded) => {
                     let code = std::str::from_utf8(&decoded.payload).unwrap_or("<invalid utf8>");
-                    println!("qrcode: {}", code);
                     return Some(code.to_string());
                 }
-                Err(e) => println!("COULD NOT DECODE {:?}", e),
+                Err(_) => continue,
             },
-            Err(e) => println!("COULD NOT UNWRAP {:?}", e),
+            Err(_) => continue,
         }
     }
-    println!("ERROR OR NO CODE");
     None
 }
-
