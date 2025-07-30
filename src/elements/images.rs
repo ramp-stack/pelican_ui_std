@@ -5,6 +5,8 @@ use pelican_ui::drawable::{ShapeType, Image, Color};
 use pelican_ui::hardware::ImageOrientation;
 use pelican_ui::{Context, resources};
 use std::io::BufWriter;
+use image::RgbaImage;
+use image::ColorType;
 
 use image::codecs::png::PngEncoder;
 use image::ImageEncoder;
@@ -60,6 +62,19 @@ impl EncodedImage {
             return Some(general_purpose::STANDARD.encode(&result_buf))
         }
         None
+    }
+
+    pub fn encode_rgba(image: RgbaImage) -> String {
+        let (width, height) = image.dimensions();
+        let raw = image.into_raw();
+
+        let mut result_buf = BufWriter::new(Vec::new());
+        PngEncoder::new(&mut result_buf)
+            .write_image(&raw, width, height, ColorType::Rgba8.into())
+            .unwrap();
+
+        let png_bytes = result_buf.into_inner().unwrap();
+        general_purpose::STANDARD.encode(&png_bytes)
     }
 
     pub fn decode(ctx: &mut Context, bytes: &String) -> resources::Image {
