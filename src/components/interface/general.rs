@@ -15,27 +15,30 @@ use crate::elements::text::Text;
 use crate::utils::{ElementID, AppPage};
 use std::fmt::Debug;
 
-use super::{DesktopInterface, MobileInterface};
+use super::{DesktopInterface, MobileInterface, WebInterface};
 
 pub type NavigateInfo = (&'static str, String, Option<AvatarContent>, Option<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>);
 pub type PageBuilder = Option<Vec<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>>;
 
 #[derive(Debug, Component)]
-pub struct Interface (Stack, Option<Rectangle>, Option<ExpandableImage>, Option<MobileInterface>, Option<DesktopInterface>);
+pub struct Interface (Stack, Option<Rectangle>, Option<ExpandableImage>, Option<MobileInterface>, Option<DesktopInterface>, Option<WebInterface>);
 impl OnEvent for Interface {}
 impl Interface {
     pub fn new(
         ctx: &mut Context, 
         start_page: Box<dyn AppPage>,
         navigation: Option<(usize, Vec<NavigateInfo>, Vec<NavigateInfo>)>,
+        socials: Option<Vec<(&'static str, String)>>
     ) -> Self {
         let color = ctx.theme.colors.background.primary;
-        println!("BACKGROUND COLOR IS {:?}", ctx.theme.colors.background.primary);
-        let (mobile, desktop) = match crate::config::IS_MOBILE {
-            true => (Some(MobileInterface::new(ctx, start_page, navigation)), None),
-            false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)))
+
+        let (mobile, desktop, web) = match crate::config::IS_WEB {
+            true => (None, None, Some(WebInterface::new(ctx, start_page, navigation, socials))),
+            false if crate::config::IS_MOBILE => (Some(MobileInterface::new(ctx, start_page, navigation)), None, None),
+            false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)), None),
         };
-        Interface(Stack::default(), Some(Rectangle::new(color)), None, mobile, desktop)
+
+        Interface(Stack::default(), Some(Rectangle::new(color)), None, mobile, desktop, web)
     }
 
     //move background to pages
@@ -44,13 +47,15 @@ impl Interface {
         image: resources::Image,
         start_page: Box<dyn AppPage>,
         navigation: Option<(usize, Vec<NavigateInfo>, Vec<NavigateInfo>)>,
+        socials: Option<Vec<(&'static str, String)>>
     ) -> Self {
-        let background = ExpandableImage::new(image);
-        let (mobile, desktop) = match crate::config::IS_MOBILE {
-            true => (Some(MobileInterface::new(ctx, start_page, navigation)), None),
-            false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)))
+        let background = ExpandableImage::new(image, (100.0, 100.0));
+        let (mobile, desktop, web) = match crate::config::IS_WEB {
+            true => (None, None, Some(WebInterface::new(ctx, start_page, navigation, socials))),
+            false if crate::config::IS_MOBILE => (Some(MobileInterface::new(ctx, start_page, navigation)), None, None),
+            false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)), None),
         };
-        Interface(Stack::default(), None, Some(background), mobile, desktop)
+        Interface(Stack::default(), None, Some(background), mobile, desktop, web)
     }
 
     pub fn desktop(&mut self) -> &mut Option<DesktopInterface> { &mut self.4 }
@@ -85,7 +90,8 @@ pub struct Content (Scroll, ContentChildren);
 
 impl Content {
     pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
-        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(375.0), 375.0));
+        let max = if crate::config::IS_WEB {1200.0} else {375.0};
+        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(max), max));
         let height = Size::custom(move |_: Vec<(f32, f32)>|(0.0, f32::MAX));
         let anchor = if offset == Offset::End { ScrollAnchor::End } else { ScrollAnchor::Start };
         let layout = Scroll::new(Offset::Center, offset, width, height, Padding(24.0, 24.0, 24.0, 24.0), anchor);
@@ -247,7 +253,8 @@ impl OnEvent for Bumper {}
 impl Bumper {
     pub fn new(ctx: &mut Context, content: Vec<Box<dyn Drawable>>) -> Self {
         let background = ctx.theme.colors.background.primary;
-        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(375.0), 375.0));
+        let max = if crate::config::IS_WEB {1200.0} else {375.0};
+        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(max), max));
         let height = Size::custom(move |heights: Vec<(f32, f32)>|(heights[1].0, heights[1].1));
         let layout = Stack(Offset::Center, Offset::Start, width, height, Padding(24.0, 0.0, 24.0, 0.0));
         Bumper(layout, Rectangle::new(background), BumperContent::new(content))

@@ -8,6 +8,8 @@ use std::io::BufWriter;
 
 use image::codecs::png::PngEncoder;
 use image::ImageEncoder;
+use image::RgbaImage;
+use image::ColorType;
 
 use fast_image_resize::{IntoImageView, Resizer};
 use fast_image_resize::images::Image as FirImage;
@@ -47,6 +49,7 @@ pub struct EncodedImage;
 impl EncodedImage {
     pub fn encode(bytes: Vec<u8>, orientation: ImageOrientation) -> Option<String> {
         if let Ok(dynamic) = image::load_from_memory(&bytes) {
+            println!("GOT DYNAMIC IMAGE FROM BYTES");
             let src_image = orientation.apply_to(image::DynamicImage::ImageRgba8(dynamic.to_rgba8()));
             let (w, h) = src_image.dimensions();
             let s = 256.0 / w.min(h) as f32;
@@ -59,7 +62,22 @@ impl EncodedImage {
             let result_buf = result_buf.into_inner().unwrap(); // get the inner Vec<u8>
             return Some(general_purpose::STANDARD.encode(&result_buf))
         }
+        println!("Could not load from bytes");
         None
+    }
+
+
+    pub fn encode_rgba(image: RgbaImage) -> String {
+        let (width, height) = image.dimensions();
+        let raw = image.into_raw();
+
+        let mut result_buf = BufWriter::new(Vec::new());
+        PngEncoder::new(&mut result_buf)
+            .write_image(&raw, width, height, ColorType::Rgba8.into())
+            .unwrap();
+
+        let png_bytes = result_buf.into_inner().unwrap();
+        general_purpose::STANDARD.encode(&png_bytes)
     }
 
     pub fn decode(ctx: &mut Context, bytes: &String) -> resources::Image {
@@ -71,11 +89,11 @@ impl EncodedImage {
 
 
 #[derive(Debug)]
-pub struct ExpandableImage(Image);
+pub struct ExpandableImage(Image, (f32, f32));
 
 impl ExpandableImage {
-    pub fn new(image: resources::Image) -> Self {
-        ExpandableImage(Image{shape: ShapeType::Rectangle(0.0, (0.0, 0.0)), image, color: None})
+    pub fn new(image: resources::Image, size: (f32, f32)) -> Self {
+        ExpandableImage(Image{shape: ShapeType::Rectangle(0.0, size), image, color: None}, size)
     }
 
     pub fn image(&mut self) -> &mut Image { &mut self.0 }
@@ -86,12 +104,23 @@ impl Component for ExpandableImage {
     fn children_mut(&mut self) -> Vec<&mut dyn Drawable> { vec![&mut self.0] }
     fn children(&self) -> Vec<&dyn Drawable> { vec![&self.0] }
     fn request_size(&self, _ctx: &mut Context, _children: Vec<SizeRequest>) -> SizeRequest {
-        SizeRequest::fill()
+        let (_, orig_h) = self.1;
+        SizeRequest::new(0.0, orig_h, f32::MAX, orig_h)
     }
+
+
+
     fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
+        let width = size.0;
+        let (orig_w, orig_h) = self.1;
+        let height = width * (orig_h / orig_w);
+        self.1 = (width, height);
+
         if let ShapeType::Rectangle(_, s) = &mut self.0.shape {
-            *s = size;
+            *s = (width, height);
         }
-        vec![Area { offset: (0.0, 0.0), size }]
+
+        vec![Area { offset: (0.0, 0.0), size: (width, height) }]
     }
+
 }

@@ -4,5 +4,7 @@ pub mod mobile;
 pub use mobile::*;
 pub mod desktop;
 pub use desktop::*;
+pub mod web;
+pub use web::*;
 pub mod keyboard;
 pub use keyboard::*;

@@ -124,6 +124,22 @@ impl IconButton {
         )
     }
 
+    pub fn ghost(
+        ctx: &mut Context, 
+        icon: &'static str, 
+        on_click: Callback
+    ) -> Self {
+        IconButton::new(
+            ctx,
+            icon,
+            ButtonSize::Large,
+            ButtonStyle::Ghost,
+            ButtonState::Default,
+            on_click,
+            None,
+        )
+    }
+
     pub fn input(
         ctx: &mut Context, 
         icon: &'static str, 
