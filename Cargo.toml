@@ -16,7 +16,7 @@ name = "pelican_ui_std"
 path = "src/lib.rs"
 
 [dependencies]
-uuid = { version = "1.16.0", features = ["v4"] }
+uuid = { version = "1.16.0", features = ["v4", "js"] }
 dyn-clone = "1.0.19"
 pelican_ui = {path="../pelican_ui"}
 #pelican_ui = "0.1.5"

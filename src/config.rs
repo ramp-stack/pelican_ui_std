@@ -5,5 +5,5 @@ pub const IS_MOBILE: bool = false;
 #[cfg(target_arch = "wasm32")]
 pub const IS_WEB: bool = true;
 #[cfg(not(target_arch = "wasm32"))]
-pub const IS_WEB: bool = true;
+pub const IS_WEB: bool = false;
 

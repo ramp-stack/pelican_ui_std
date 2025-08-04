@@ -48,6 +48,7 @@ pub struct EncodedImage;
 
 impl EncodedImage {
     pub fn encode(bytes: Vec<u8>, orientation: ImageOrientation) -> Option<String> {
+        println!("{:?}", &bytes);
         if let Ok(dynamic) = image::load_from_memory(&bytes) {
             println!("GOT DYNAMIC IMAGE FROM BYTES");
             let src_image = orientation.apply_to(image::DynamicImage::ImageRgba8(dynamic.to_rgba8()));

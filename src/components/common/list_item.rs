@@ -29,12 +29,13 @@ impl ListItem {
         radio_button: Option<bool>,
         circle_icon: Option<AvatarContent>,
         element_id: Option<ElementID>,
+        max_lines: bool,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
         let color = ctx.theme.colors.background.primary;
         let content = ListItemContent::new(
             ctx, caret, title, flair, subtitle, description, right_title, 
-            right_subtitle, radio_button, circle_icon
+            right_subtitle, radio_button, circle_icon, max_lines
         );
         let layout = Stack(
             Offset::Start, Offset::Center, 
@@ -112,13 +113,14 @@ impl ListItemContent {
         right_subtitle: Option<&str>,
         radio_button: Option<bool>,
         circle_icon: Option<AvatarContent>,
+        max_lines: bool,
     ) -> Self {
         let color = ctx.theme.colors.text.secondary;
         ListItemContent(
             Row::new(16.0, Offset::Center, Size::Fit, Padding::default()),
             radio_button.map(|enabled| RadioButton::new(ctx, enabled)), 
             circle_icon.map(|data| Avatar::new(ctx, data, None, false, 48.0, None)),
-            ListItemData::new(ctx, title, flair, subtitle, description, right_title, right_subtitle),
+            ListItemData::new(ctx, title, flair, subtitle, description, right_title, right_subtitle, max_lines),
             caret.then(|| Icon::new(ctx, "forward", color, 16.0)),
         )
     }
@@ -163,10 +165,11 @@ impl ListItemData {
         description: Option<&str>,
         right_title: Option<&str>,
         right_subtitle: Option<&str>,
+        max_lines: bool,
     ) -> Self {
         ListItemData(
             Row::new(8.0, Offset::Start, Size::Fit, Padding::default()),
-            LeftData::new(ctx, title, flair, subtitle, description),
+            LeftData::new(ctx, title, flair, subtitle, description, max_lines),
             right_title.map(|r_title| RightData::new(ctx, r_title, right_subtitle)), 
         )
     }
@@ -206,13 +209,15 @@ impl LeftData {
         flair: Option<(&'static str, Color)>,
         subtitle: Option<&str>,
         description: Option<&str>,
+        max_lines: bool,
     ) -> Self {
+        let max = max_lines.then_some(2);
         let font_size = ctx.theme.fonts.size.xs;
         LeftData (
             Column::new(4.0, Offset::Start, Size::custom(|widths: Vec<(f32, f32)>| (widths[0].0, f32::MAX)), Padding::default()),
             TitleRow::new(ctx, title, flair),
-            subtitle.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, Align::Left, Some(2))),
-            description.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, Align::Left, Some(2))),
+            subtitle.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, Align::Left, max)),
+            description.map(|text| ExpandableText::new(ctx, text, TextStyle::Secondary, font_size, Align::Left, max)),
         )
     }
 
@@ -246,7 +251,7 @@ impl ListItem {
         description: Option<&str>,
         on_click: impl FnMut(&mut Context) + 'static,
     ) -> Self {
-        ListItem::new(ctx, false, title, None, Some(subtitle), description, None, None, Some(selected), None, Some(ElementID::new()), on_click)
+        ListItem::new(ctx, false, title, None, Some(subtitle), description, None, None, Some(selected), None, Some(ElementID::new()), false, on_click)
     }
 }
 
