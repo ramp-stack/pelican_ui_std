@@ -49,7 +49,7 @@ impl Interface {
         navigation: Option<(usize, Vec<NavigateInfo>, Vec<NavigateInfo>)>,
         socials: Option<Vec<(&'static str, String)>>
     ) -> Self {
-        let background = ExpandableImage::new(image, (100.0, 100.0));
+        let background = ExpandableImage::new(image, None);
         let (mobile, desktop, web) = match crate::config::IS_WEB {
             true => (None, None, Some(WebInterface::new(ctx, start_page, navigation, socials))),
             false if crate::config::IS_MOBILE => (Some(MobileInterface::new(ctx, start_page, navigation)), None, None),
@@ -89,14 +89,16 @@ impl Page {
 pub struct Content (Scroll, ContentChildren);
 
 impl Content {
-    pub fn new(offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
-        let max = if crate::config::IS_WEB {1200.0} else {375.0};
+    pub fn new(ctx: &mut Context, offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
+        let max = ctx.theme.layout.content_max;
+        let padding = ctx.theme.layout.content_padding;
+        let max = if crate::config::IS_WEB {1200.0} else {max};
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(max), max));
         let height = Size::custom(move |_: Vec<(f32, f32)>|(0.0, f32::MAX));
         let anchor = if offset == Offset::End { ScrollAnchor::End } else { ScrollAnchor::Start };
-        let layout = Scroll::new(Offset::Center, offset, width, height, Padding(24.0, 24.0, 24.0, 24.0), anchor);
+        let layout = Scroll::new(Offset::Center, offset, width, height, Padding::default(), anchor);
         // if offset == Offset::End { layout.set_scroll(f32::MAX); }
-        Content(layout, ContentChildren::new(content)) 
+        Content(layout, ContentChildren::new(content, padding)) 
     }
 
     pub fn find<T: std::any::Any>(&mut self) -> Option<&mut T> {
@@ -123,7 +125,7 @@ impl Content {
 
 impl OnEvent for Content {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if let Some(AdjustScrollEvent(a)) = event.downcast_ref::<AdjustScrollEvent>() {
+        if let Some(AdjustScrollEvent::Vertical(a)) = event.downcast_ref::<AdjustScrollEvent>() {
             self.0.adjust_scroll(*a);
         } else if let Some(TextInputSelect(id)) = event.downcast_ref::<TextInputSelect>() {
             if crate::config::IS_MOBILE {
@@ -142,7 +144,6 @@ impl OnEvent for Content {
                 }
             }
         } else if let Some(MouseEvent { state: MouseState::Scroll(_, y), position: Some(_) }) = event.downcast_ref::<MouseEvent>() {
-            println!("Received scroll event {:?}", y);
             self.0.adjust_scroll(*y);
         }
         true
@@ -154,8 +155,8 @@ struct ContentChildren (Column, Vec<Box<dyn Drawable>>);
 impl OnEvent for ContentChildren {}
 
 impl ContentChildren {
-    pub fn new(content: Vec<Box<dyn Drawable>>) -> Self {
-        ContentChildren(Column::center(24.0), content)
+    pub fn new(content: Vec<Box<dyn Drawable>>, padding: f32) -> Self {
+        ContentChildren(Column::new(24.0, Offset::Center, Size::Fit, Padding::new(padding)), content)
     }
 }
 
@@ -253,10 +254,11 @@ impl OnEvent for Bumper {}
 impl Bumper {
     pub fn new(ctx: &mut Context, content: Vec<Box<dyn Drawable>>) -> Self {
         let background = ctx.theme.colors.background.primary;
-        let max = if crate::config::IS_WEB {1200.0} else {375.0};
+        let max = ctx.theme.layout.bumper_max;
+        let max = if crate::config::IS_WEB {1200.0} else {max};
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(max), max));
         let height = Size::custom(move |heights: Vec<(f32, f32)>|(heights[1].0, heights[1].1));
-        let layout = Stack(Offset::Center, Offset::Start, width, height, Padding(24.0, 0.0, 24.0, 0.0));
+        let layout = Stack(Offset::Center, Offset::Start, width, height, Padding::default());
         Bumper(layout, Rectangle::new(background), BumperContent::new(content))
     }
 
@@ -290,7 +292,7 @@ struct BumperContent (Row, Vec<Box<dyn Drawable>>);
 
 impl BumperContent {
     fn new(content: Vec<Box<dyn Drawable>>) -> Self {
-        BumperContent(Row::new(16.0, Offset::Center, Size::Fit, Padding(0.0, 16.0, 0.0, 16.0)), content)
+        BumperContent(Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)), content)
     }
 }
 

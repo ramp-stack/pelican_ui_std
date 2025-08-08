@@ -338,7 +338,10 @@ pub enum ScrollAnchor {
 }
 
 #[derive(Debug)]
-pub struct Scroll(Offset, Offset, Size, Size, Padding, Arc<Mutex<f32>>, ScrollAnchor);
+pub enum Scroll {
+    Vertical(Offset, Offset, Size, Size, Padding, Arc<Mutex<f32>>, ScrollAnchor),
+    Horizontal(Offset, Offset, Size, Size, Padding, Arc<Mutex<f32>>, ScrollAnchor)
+}
 
 impl Default for Scroll {
     fn default() -> Self {
@@ -348,18 +351,47 @@ impl Default for Scroll {
 
 impl Scroll {
     pub fn new(offset_x: Offset, offset_y: Offset, size_x: Size, size_y: Size, padding: Padding, anchor: ScrollAnchor) -> Self {
-        Scroll(offset_x, offset_y, size_x, size_y, padding, Arc::new(Mutex::new(0.0)), anchor)
+        Scroll::Vertical(offset_x, offset_y, size_x, size_y, padding, Arc::new(Mutex::new(0.0)), anchor)
     }
 
-    pub fn adjust_scroll(&mut self, val: f32) { 
-        match self.6 {
-            ScrollAnchor::Start => *self.5.lock().unwrap() += val,
-            ScrollAnchor::End => *self.5.lock().unwrap() -= val,
+    pub fn horizontal(offset_x: Offset, offset_y: Offset, size_x: Size, size_y: Size, padding: Padding, anchor: ScrollAnchor) -> Self {
+        Scroll::Horizontal(offset_x, offset_y, size_x, size_y, padding, Arc::new(Mutex::new(0.0)), anchor)
+    }
+
+    pub fn adjust_scroll(&mut self, delta: f32) { 
+        println!("ADJUSTING SCROLL");
+        match self {
+            Scroll::Vertical(_, _, _, _, _, m, a) => {
+                let mut guard = m.lock().unwrap();
+                match a {
+                    ScrollAnchor::Start => *guard += delta,
+                    ScrollAnchor::End => *guard -= delta,
+                }
+            },
+            Scroll::Horizontal(_, _, _, _, _, m, a) => {
+                let mut guard = m.lock().unwrap();
+                match a {
+                    ScrollAnchor::Start => *guard += delta,
+                    ScrollAnchor::End => *guard -= delta,
+                }
+            }
         }
     }
 
-    pub fn set_scroll(&mut self, val: f32) { *self.5.lock().unwrap() = val; }
-    pub fn offset(&mut self) -> &mut Offset { &mut self.1 }
+    pub fn set_scroll(&mut self, val: f32) { 
+        match self {
+            Scroll::Vertical(_, _, _, _, _, m, _) =>  *m.lock().unwrap() = val,
+            Scroll::Horizontal(_, _, _, _, _, m, _) => {}// *m.lock().unwrap() = val,
+        };
+    }
+
+    pub fn offset(&mut self) -> &mut Offset { 
+        println!("GETTING THE OFFSET WHY ID TEHUTEH");
+        match self {
+            Scroll::Vertical(_, o, _, _, _, _, _) => o,
+            Scroll::Horizontal(o, _, _, _, _, _, _) => o,
+        }
+    }
 }
 
 impl Layout for Scroll {
@@ -367,9 +399,17 @@ impl Layout for Scroll {
         let (widths, heights): (Vec<_>, Vec<_>) = children.into_iter().map(|r|
             ((r.min_width(), r.max_width()), (r.min_height(), r.max_height()))
         ).unzip();
-        let width = self.2.get(widths, Size::max);
-        let height = self.3.get(heights, Size::max);
-        self.4.adjust_request(SizeRequest::new(width.0, height.0, width.1, height.1))
+
+        let (width, height, padding) = match &self {
+            Scroll::Vertical(x_off, y_off, s_x, s_y, padd, val, anch) |
+            Scroll::Horizontal(x_off, y_off, s_x, s_y, padd, val, anch) => {
+                let width = s_x.get(widths, Size::max);
+                let height = s_y.get(heights, Size::max);
+                (width, height, padd)
+            }
+        };
+        
+        padding.adjust_request(SizeRequest::new(width.0, height.0, width.1, height.1))
     }
 
     // fn build(&self, _ctx: &mut Context, scroll_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
@@ -388,22 +428,44 @@ impl Layout for Scroll {
     // }
 
     fn build(&self, _ctx: &mut Context, scroll_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
-        let scroll_size = self.4.adjust_size(scroll_size);
-        let children_height: f32 = children.iter().map(|i| i.min_height()).sum();
-        let max_scroll = (children_height - scroll_size.1).max(0.0);
+        match &self {
+            Scroll::Vertical(x_off, y_off, s_x, s_y, padd, val, anch) => {
+                let scroll_size = padd.adjust_size(scroll_size);
+                let children_height: f32 = children.iter().map(|i| i.min_height()).sum();
+                let max_scroll = (children_height - scroll_size.1).max(0.0);
 
-        let mut scroll_val = self.5.lock().unwrap();
-        *scroll_val = scroll_val.clamp(0.0, max_scroll);
+                let mut scroll_val = val.lock().unwrap();
+                *scroll_val = scroll_val.clamp(0.0, max_scroll);
 
-        children.into_iter().map(|i| {
-            let size = i.get(scroll_size);
-            let y_offset = match self.6 {
-                ScrollAnchor::Start => self.1.get(scroll_size.1, size.1)-*scroll_val,
-                ScrollAnchor::End => scroll_size.1 - children_height + *scroll_val,
-            };
-            let offset = (self.0.get(scroll_size.0, size.0), y_offset);
-            Area {offset: self.4.adjust_offset(offset), size }
-        }).collect()
+                children.into_iter().map(|i| {
+                    let size = i.get(scroll_size);
+                    let y_offset = match anch {
+                        ScrollAnchor::Start => y_off.get(scroll_size.1, size.1)-*scroll_val,
+                        ScrollAnchor::End => scroll_size.1 - children_height + *scroll_val,
+                    };
+                    let offset = (x_off.get(scroll_size.0, size.0), y_offset);
+                    Area {offset: padd.adjust_offset(offset), size }
+                }).collect()
+            }
+            Scroll::Horizontal(x_off, y_off, s_x, s_y, padd, val, anch) => {
+                let scroll_size = padd.adjust_size(scroll_size);
+                let children_width: f32 = children.iter().map(|i| i.min_width()).sum();
+                let max_scroll = (children_width - scroll_size.0).max(0.0);
+
+                let mut scroll_val = val.lock().unwrap();
+                *scroll_val = scroll_val.clamp(0.0, max_scroll);
+
+                children.into_iter().map(|i| {
+                    let size = i.get(scroll_size);
+                    let x_offset = match anch {
+                        ScrollAnchor::Start => x_off.get(scroll_size.0, size.0) - *scroll_val,
+                        ScrollAnchor::End => scroll_size.0 - children_width + *scroll_val,
+                    };
+                    let offset = (x_offset, y_off.get(scroll_size.1, size.1));
+                    Area {offset: padd.adjust_offset(offset), size }
+                }).collect()
+            }
+        }
     }
 }
 

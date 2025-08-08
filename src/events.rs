@@ -106,7 +106,10 @@ impl Event for InputEditedEvent {
 }
 
 #[derive(Debug, Clone)]
-pub struct AdjustScrollEvent(pub f32);
+pub enum AdjustScrollEvent {
+    Vertical(f32),
+    Horizontal(f32),
+}
 
 impl Event for AdjustScrollEvent {
     fn pass(self: Box<Self>, _ctx: &mut Context, children: Vec<((f32, f32), (f32, f32))>) -> Vec<Option<Box<dyn Event>>> {

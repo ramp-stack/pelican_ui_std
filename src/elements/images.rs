@@ -90,11 +90,12 @@ impl EncodedImage {
 
 
 #[derive(Debug)]
-pub struct ExpandableImage(Image, (f32, f32));
+pub struct ExpandableImage(Image, Option<(f32, f32)>);
 
 impl ExpandableImage {
-    pub fn new(image: resources::Image, size: (f32, f32)) -> Self {
-        ExpandableImage(Image{shape: ShapeType::Rectangle(0.0, size), image, color: None}, size)
+    pub fn new(image: resources::Image, size: Option<(f32, f32)>) -> Self {
+        let dims = size.unwrap_or((0.0, 0.0));
+        ExpandableImage(Image{shape: ShapeType::Rectangle(0.0, dims), image, color: None}, size)
     }
 
     pub fn image(&mut self) -> &mut Image { &mut self.0 }
@@ -105,23 +106,35 @@ impl Component for ExpandableImage {
     fn children_mut(&mut self) -> Vec<&mut dyn Drawable> { vec![&mut self.0] }
     fn children(&self) -> Vec<&dyn Drawable> { vec![&self.0] }
     fn request_size(&self, _ctx: &mut Context, _children: Vec<SizeRequest>) -> SizeRequest {
-        let (_, orig_h) = self.1;
-        SizeRequest::new(0.0, orig_h, f32::MAX, orig_h)
+        if let Some((_, orig_h)) = self.1 {
+            SizeRequest::new(0.0, orig_h, f32::MAX, orig_h)
+        } else {
+            SizeRequest::fill()
+        }
     }
 
 
 
     fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
-        let width = size.0;
-        let (orig_w, orig_h) = self.1;
-        let height = width * (orig_h / orig_w);
-        self.1 = (width, height);
+        if let Some((orig_w, orig_h)) = self.1 {
+            let width = size.0;
+            let height = width * (orig_h / orig_w);
+            self.1 = Some((width, height));
 
-        if let ShapeType::Rectangle(_, s) = &mut self.0.shape {
-            *s = (width, height);
+            if let ShapeType::Rectangle(_, s) = &mut self.0.shape {
+                *s = (width, height);
+            }
+
+            vec![Area { offset: (0.0, 0.0), size: (width, height) }]
+        } else {
+            if let ShapeType::Rectangle(_, s) = &mut self.0.shape {
+                *s = (size.0, size.1);
+            }
+
+            vec![Area { offset: (0.0, 0.0), size, }]
         }
 
-        vec![Area { offset: (0.0, 0.0), size: (width, height) }]
+
     }
 
 }

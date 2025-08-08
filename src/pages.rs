@@ -22,7 +22,7 @@ impl Error {
         let illustration = Brand::new(illustration, (300.0, 300.0));
         let title = Text::new(ctx, "Something went wrong.", TextStyle::Heading, font_size.h4, Align::Left);
         let text = Text::new(ctx, error, TextStyle::Primary, font_size.md, Align::Center);
-        let content = Content::new(Offset::Center, vec![Box::new(illustration), Box::new(title), Box::new(text)]);
+        let content = Content::new(ctx, Offset::Center, vec![Box::new(illustration), Box::new(title), Box::new(text)]);
         let button = Button::primary(ctx, "Go Back", move |ctx: &mut Context| ctx.trigger_event(NavigateEvent(0)));
         let bumper = Bumper::single_button(ctx, button);
         let header = Header::stack(ctx, None, "", None);
@@ -41,7 +41,7 @@ impl AppPage for Splash {
 impl Splash {
     pub fn new(ctx: &mut Context) -> Self {
         let wordmark = ctx.theme.brand.wordmark.clone();
-        let content = Content::new(Offset::Center, vec![Box::new(Brand::new(wordmark, (162.0, 34.5)))]);
+        let content = Content::new(ctx, Offset::Center, vec![Box::new(Brand::new(wordmark, (162.0, 34.5)))]);
 
         Splash(Stack::default(), Page::new(None, content, None))
     }
@@ -64,7 +64,7 @@ impl PelicanHome {
         let illustration = Brand::new(logo, (150.0, 150.0));
         let title = Text::new(ctx, "Welcome to Pelican UI", TextStyle::Heading, font_size.h4, Align::Center);
         let text = Text::new(ctx, "featherlight ui for heavy ideas", TextStyle::Primary, font_size.md, Align::Center);
-        let content = Content::new(Offset::Center, vec![Box::new(illustration), Box::new(title), Box::new(text)]);
+        let content = Content::new(ctx, Offset::Center, vec![Box::new(illustration), Box::new(title), Box::new(text)]);
         PelicanHome(Stack::default(), Page::new(None, content, None))
     }
 }
