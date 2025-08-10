@@ -76,7 +76,7 @@ impl IconButtonContent {
             (ButtonStyle::Secondary, ButtonSize::Medium) => (36.0, 20.0, 8.0),
             (ButtonStyle::Ghost, ButtonSize::Large) => (52.0, 48.0, 12.0),
             (ButtonStyle::Ghost, ButtonSize::Medium) => (36.0, 32.0, 8.0),
-            _ => panic!("{:?} is not a valid IconButton tyle", style)
+            _ => panic!("{style:?} is not a valid IconButton style")
         };
 
         let icon = Icon::new(ctx, icon, colors.label, icon_size);

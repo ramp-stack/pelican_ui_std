@@ -75,8 +75,8 @@ impl std::fmt::Debug for Size {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Size::Fit => write!(f, "Size::Fit"),
-            Size::Fill(min, max) => write!(f, "Size::Fill(min: {}, max: {})", min, max),
-            Size::Static(val) => write!(f, "Size::Static({})", val),
+            Size::Fill(min, max) => write!(f, "Size::Fill(min: {min}, max: {max})"),
+            Size::Static(val) => write!(f, "Size::Static({val})"),
             Size::Custom(_) => write!(f, "Size::Custom(<function>)"),
         }
     }
@@ -381,12 +381,11 @@ impl Scroll {
     pub fn set_scroll(&mut self, val: f32) { 
         match self {
             Scroll::Vertical(_, _, _, _, _, m, _) =>  *m.lock().unwrap() = val,
-            Scroll::Horizontal(_, _, _, _, _, m, _) => {}// *m.lock().unwrap() = val,
+            Scroll::Horizontal(_, _, _, _, _, m, _) => *m.lock().unwrap() = val,
         };
     }
 
     pub fn offset(&mut self) -> &mut Offset { 
-        println!("GETTING THE OFFSET WHY ID TEHUTEH");
         match self {
             Scroll::Vertical(_, o, _, _, _, _, _) => o,
             Scroll::Horizontal(o, _, _, _, _, _, _) => o,
@@ -401,8 +400,8 @@ impl Layout for Scroll {
         ).unzip();
 
         let (width, height, padding) = match &self {
-            Scroll::Vertical(x_off, y_off, s_x, s_y, padd, val, anch) |
-            Scroll::Horizontal(x_off, y_off, s_x, s_y, padd, val, anch) => {
+            Scroll::Vertical(_, _, s_x, s_y, padd, _, _) |
+            Scroll::Horizontal(_, _, s_x, s_y, padd, _, _) => {
                 let width = s_x.get(widths, Size::max);
                 let height = s_y.get(heights, Size::max);
                 (width, height, padd)
@@ -412,24 +411,9 @@ impl Layout for Scroll {
         padding.adjust_request(SizeRequest::new(width.0, height.0, width.1, height.1))
     }
 
-    // fn build(&self, _ctx: &mut Context, scroll_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
-    //     let scroll_size = self.4.adjust_size(scroll_size);
-    //     let children_height: f32 = children.iter().map(|i| i.min_height()).sum();
-    //     let max_scroll = (children_height - scroll_size.1).max(0.0);
-    //     let scroll_val = self.5.lock().unwrap().clamp(0.0, max_scroll);
-
-    //     *self.5.lock().unwrap() = scroll_val;
-
-    //     children.into_iter().map(|i| {
-    //         let size = i.get(scroll_size);
-    //         let offset = (self.0.get(scroll_size.0, size.0), self.1.get(scroll_size.1, size.1)-scroll_val);
-    //         Area{offset: self.4.adjust_offset(offset), size}
-    //     }).collect()
-    // }
-
     fn build(&self, _ctx: &mut Context, scroll_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
         match &self {
-            Scroll::Vertical(x_off, y_off, s_x, s_y, padd, val, anch) => {
+            Scroll::Vertical(x_off, y_off, _, _, padd, val, anch) => {
                 let scroll_size = padd.adjust_size(scroll_size);
                 let children_height: f32 = children.iter().map(|i| i.min_height()).sum();
                 let max_scroll = (children_height - scroll_size.1).max(0.0);
@@ -447,7 +431,7 @@ impl Layout for Scroll {
                     Area {offset: padd.adjust_offset(offset), size }
                 }).collect()
             }
-            Scroll::Horizontal(x_off, y_off, s_x, s_y, padd, val, anch) => {
+            Scroll::Horizontal(x_off, y_off, _, _, padd, val, anch) => {
                 let scroll_size = padd.adjust_size(scroll_size);
                 let children_width: f32 = children.iter().map(|i| i.min_width()).sum();
                 let max_scroll = (children_width - scroll_size.0).max(0.0);

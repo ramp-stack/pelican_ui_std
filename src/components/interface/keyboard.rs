@@ -451,7 +451,7 @@ fn handle_state(_ctx: &mut Context, state: ButtonState, event: MouseEvent) -> Bu
         ButtonState::Pressed => {
             match event.state {
                 MouseState::Released => Some(ButtonState::Default),
-                MouseState::Moved if event.position.is_none() => Some(ButtonState::Default),
+                MouseState::Moved | MouseState::Scroll(..) if event.position.is_none() => Some(ButtonState::Default),
                 _ => None,
             }
         },

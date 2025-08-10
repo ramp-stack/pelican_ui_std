@@ -41,21 +41,21 @@ impl ButtonState {
                         // ctx.hardware.vibrate();
                         Some(ButtonState::Pressed)
                     },
-                    MouseState::Moved => Some(if crate::config::IS_MOBILE {ButtonState::Default} else {ButtonState::Hover}),
+                    MouseState::Moved | MouseState::Scroll(..) => Some(if crate::config::IS_MOBILE {ButtonState::Default} else {ButtonState::Hover}),
                     _ => None
                 }
             },
             ButtonState::Pressed => {
                 match event.state {
                     MouseState::Released if event.position.is_some() => Some(if crate::config::IS_MOBILE {ButtonState::Default} else {ButtonState::Hover}),
-                    MouseState::Moved if event.position.is_none() => Some(ButtonState::Default),
+                    MouseState::Moved | MouseState::Scroll(..) if event.position.is_none() => Some(ButtonState::Default),
                     _ => None
                 }
             },
             ButtonState::Hover => {
                 match event.state {
                     MouseState::Pressed if event.position.is_some() => Some(ButtonState::Pressed),
-                    MouseState::Moved if event.position.is_none() => Some(ButtonState::Default),
+                    MouseState::Moved | MouseState::Scroll(..) if event.position.is_none() => Some(ButtonState::Default),
                     _ => None
                 }
             }

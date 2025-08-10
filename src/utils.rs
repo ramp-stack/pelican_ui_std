@@ -53,11 +53,11 @@ impl Timestamp {
             false => (hour - 12, "pm")
         };
 
-        let the_time = format!("{}:{:02} {}", hour12, minute, am_pm);
+        let the_time = format!("{hour12}:{minute:02} {am_pm}");
 
         match date == today {
             true => the_time,
-            false if date == today.pred_opt().unwrap_or(today) => format!("{} {}", "yesterday,", the_time),
+            false if date == today.pred_opt().unwrap_or(today) => format!("yesterday, {the_time}"),
             false if date.iso_week() == today.iso_week() => format!("{}", dt.format("%A")),
             false if date.year() == today.year() => format!("{}", dt.format("%B %-d")),
             false => format!("{}", dt.format("%m/%d/%y"))
@@ -79,7 +79,7 @@ impl Timestamp {
                     false if hour == 12 => (12, "PM"),
                     false => (hour - 12, "PM")
                 };
-                format!("{}:{:02} {}", hour12, minute, am_pm)
+                format!("{hour12}:{minute:02} {am_pm}")
             },
             false if date == today.pred_opt().unwrap_or(today) => "Yesterday".to_string(),
             false if date.iso_week() == today.iso_week() => format!("{}", dt.format("%A")),

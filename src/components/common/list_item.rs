@@ -157,6 +157,7 @@ struct ListItemData(Row, LeftData, Option<RightData>);
 impl OnEvent for ListItemData {}
 
 impl ListItemData {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         ctx: &mut Context,
         title: &str,

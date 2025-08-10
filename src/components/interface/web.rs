@@ -8,7 +8,7 @@ use crate::elements::images::Brand;
 use crate::events::{NavigatorSelect, NavigateEvent, NavigatorEvent};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::components::button::{Button, ButtonState, IconButton};
-use crate::components::avatar::{Avatar, AvatarContent};
+// use crate::components::avatar::{Avatar, AvatarContent};
 use crate::utils::{ElementID, AppPage};
 use crate::pages::Error;
 
@@ -46,7 +46,6 @@ impl WebInterface {
 impl OnEvent for WebInterface {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigateEvent(index)) = event.downcast_mut::<NavigateEvent>() {
-            println!("RECEIVED NAVIGATION EVENT");
             self.2 = match self.2.take().unwrap().navigate(ctx, *index) {
                 Ok(p) => Some(p),
                 Err(e) => Some(Box::new(Error::new(ctx, "404 Page Not Found", e)))
@@ -77,7 +76,7 @@ impl WebNavigator {
 
         let mut index = 0;
 
-        for (icon, name, avatar, _) in navigation.1.into_iter() {
+        navigation.1.into_iter().chain(navigation.2).for_each(|(icon, name, _, _)| {
             let id = ElementID::new();
             let closure = move |ctx: &mut Context| {
                 ctx.trigger_event(NavigatorSelect(id));
@@ -89,20 +88,7 @@ impl WebNavigator {
             buttons.push(NavigationButton::new(id, Some(button), None));
 
             index += 1;
-        }
-
-        for (icon, name, avatar, _) in navigation.2.into_iter() {
-            let id = ElementID::new();
-            
-            let closure = move |ctx: &mut Context| {
-                ctx.trigger_event(NavigatorSelect(id));
-                ctx.trigger_event(NavigatorEvent(index));
-            };
-
-            let button = Button::navigation(ctx, icon, &name, navigation.0 == index, closure);
-            buttons.push(NavigationButton::new(id, Some(button), None));
-            index += 1;
-        }
+        });
 
         let wordmark = ctx.theme.brand.wordmark.clone();
         let color = ctx.theme.colors.shades.transparent;
@@ -146,7 +132,6 @@ impl WebNavigator {
 impl OnEvent for WebNavigator {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(NavigatorSelect(id)) = event.downcast_ref::<NavigatorSelect>() {
-            println!("Navigator selected");
             let mut buttons: Vec<&mut NavigationButton> = self.3.buttons().iter_mut().collect();
             // buttons.extend(self.4.buttons().iter_mut());
             buttons.iter_mut().for_each(|button| {
@@ -179,8 +164,8 @@ impl WebFooter {
         ctx: &mut Context, 
         socials: Vec<(&'static str, String)>
     ) -> Self {
-        let buttons = socials.into_iter().map(|(i, l)| {
-            let button = IconButton::ghost(ctx, i, Box::new(move |ctx: &mut Context| println!("Navigate to {:?}", l)));
+        let buttons = socials.into_iter().map(|(i, _)| {
+            let button = IconButton::ghost(ctx, i, Box::new(move |_ctx: &mut Context| {}));
             let id = ElementID::new();
             NavigationButton::new(id, None, Some(button))
         }).collect();

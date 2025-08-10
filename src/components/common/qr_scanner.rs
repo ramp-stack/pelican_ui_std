@@ -1,7 +1,7 @@
 use pelican_ui::events::{OnEvent, Event, TickEvent};
 use pelican_ui::drawable::{Drawable, Component, ShapeType, Image, Align};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::hardware::{Camera, CameraError};
+use pelican_ui::hardware::Camera;
 use pelican_ui::{Context, Component};
 
 use crate::{
@@ -35,20 +35,11 @@ pub struct QRCodeScanner(
 
 impl QRCodeScanner {
     pub fn new(ctx: &mut Context) -> Self {
-        // Try to create custom camera for raw frame support
-        let camera = match Camera::new_custom() {
-            Ok(cam) => Some(cam),
-            Err(e) => {
-                println!("Failed to create custom camera: {:?}", e);
-                None
-            }
-        };
-        
         QRCodeScanner(
             Stack::center(), 
             None, 
             QRGuide::new(ctx), 
-            camera, 
+            Camera::new_custom().ok(), 
             Arc::new(Mutex::new(None)), 
             Arc::new(Mutex::new(false))
         )
@@ -79,12 +70,9 @@ impl OnEvent for QRCodeScanner {
             if let Some(ref mut camera) = self.3 {
                 match camera.get_frame() {
                     Some(raw_frame) => {
-                        println!("Received frame: {}x{}", raw_frame.width(), raw_frame.height());
-                        
                         self.find_code(raw_frame.clone());
                         
                         if let Some(data) = &*self.4.lock().unwrap() {
-                            println!("QR Data: {}", data);
                             ctx.trigger_event(QRCodeScannedEvent(data.to_string()));
                         }
                         
@@ -98,14 +86,12 @@ impl OnEvent for QRCodeScanner {
                         });
                     },
                     None => {
-                        // No raw frame available yet, show waiting message
                         let background = ctx.theme.colors.background.secondary;
                         *self.2.background() = Some(RoundedRectangle::new(0.0, 8.0, background));
                         *self.2.message() = Some(Message::new(ctx, "camera", "Waiting for raw camera frame."));
                     }
                 }
             } else {
-                // No camera available
                 let background = ctx.theme.colors.background.secondary;
                 *self.2.background() = Some(RoundedRectangle::new(0.0, 8.0, background));
                 *self.2.message() = Some(Message::new(ctx, "settings", "Camera not available."));
