@@ -82,6 +82,7 @@ impl std::fmt::Debug for Size {
     }
 }
 
+/// Structure used to define top, left, bottom, and right padding of an UI element.
 #[derive(Clone, Debug, Default)]
 pub struct Padding(pub f32, pub f32, pub f32, pub f32);
 
@@ -162,6 +163,7 @@ impl UniformExpand {
     }
 }
 
+/// Horizontal layout of items.
 #[derive(Debug)]
 pub struct Row(f32, Offset, Size, Padding);
 
@@ -174,7 +176,6 @@ impl Row {
         Row::new(spacing, Offset::Center, Size::Fit, Padding::default())
     }
 }
-
 
 impl Layout for Row {
     fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
@@ -202,6 +203,7 @@ impl Layout for Row {
     }
 }
 
+/// Vertical layout of items.
 #[derive(Debug)]
 pub struct Column(f32, Offset, Size, Padding);
 
@@ -243,6 +245,7 @@ impl Layout for Column {
     }
 }
 
+/// Items stacked on top of each other
 #[derive(Debug, Default)]
 pub struct Stack(pub Offset, pub Offset, pub Size, pub Size, pub Padding);
 
@@ -276,6 +279,7 @@ impl Layout for Stack {
     }
 }
 
+/// Horizontal layout that automatically wraps items to the next row when the maximum width is exceeded
 #[derive(Debug)]
 pub struct Wrap(pub f32, pub f32, pub Offset, pub Offset, pub Padding, Arc<Mutex<f32>>);
 
@@ -331,12 +335,14 @@ impl Layout for Wrap {
     }
 }
 
+/// Defines the reference point for scrolling content.
 #[derive(Debug, Clone, Copy)]
 pub enum ScrollAnchor {
     Start,
     End,
 }
 
+/// Scrollable layout of items.
 #[derive(Debug)]
 pub enum Scroll {
     Vertical(Offset, Offset, Size, Size, Padding, Arc<Mutex<f32>>, ScrollAnchor),
@@ -453,6 +459,7 @@ impl Layout for Scroll {
     }
 }
 
+/// A container pairing a layout with a drawable element.
 #[derive(Debug, Component)]
 pub struct Bin<L: Layout, D: Drawable>(pub L, pub D);
 
@@ -467,9 +474,9 @@ impl<L: Layout, D: Drawable> Bin<L, D> {
     }
 }
 
+/// A container that optionally displays a drawable item, toggling between visible and hidden states.
 #[derive(Debug, Component)]
 pub struct Opt<D: Drawable + 'static>(Stack, Option<D>, #[skip] Option<D>);
-
 impl<D: Drawable + 'static> OnEvent for Opt<D> {}
 
 impl<D: Drawable + 'static> Opt<D> {
@@ -497,6 +504,7 @@ impl<D: Drawable + 'static> Opt<D> {
     }
 }
 
+/// A container that holds two drawables but displays only one at a time, allowing toggling between them.
 #[derive(Debug, Component)]
 pub struct EitherOr<L: Drawable + 'static, R: Drawable + 'static>(Stack, Opt<L>, Opt<R>);
 

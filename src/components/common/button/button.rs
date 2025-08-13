@@ -13,12 +13,7 @@ use super::{ButtonSize, ButtonState, ButtonStyle};
 
 use std::time::Instant;
 
-#[derive(Debug, Clone, Copy)]
-pub enum ButtonWidth {
-    Expand,
-    Hug,
-}
-
+/// A button UI element
 #[derive(Component)]
 pub struct Button(
     Stack, 
@@ -129,6 +124,12 @@ impl std::fmt::Debug for Button {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Button")
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum ButtonWidth {
+    Expand,
+    Hug,
 }
 
 #[derive(Debug, Component)]
