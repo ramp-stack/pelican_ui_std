@@ -8,11 +8,10 @@ use crate::elements::shapes::{Circle, RoundedRectangle};
 use crate::layout::{Column, Stack, Offset, Size, Padding, Bin};
 
 #[derive(Debug, Component)]
-pub struct Slider(Column, Option<Text>, Option<ExpandableText>, SliderContent);
-impl OnEvent for Slider {}
+pub struct Slider(Column, Option<Text>, Option<ExpandableText>, SliderContent, #[skip] Option<f32>);
 impl Slider {
     pub fn new(
-        ctx: &mut Context,
+        ctx: &mut Context, start: f32,
         label: Option<&str>, description: Option<&str>,
         on_release: impl FnMut(&mut Context, f32) + 'static,
     ) -> Self {
@@ -20,13 +19,24 @@ impl Slider {
         Slider(Column::new(8.0, Offset::Start, Size::Fit, Padding::default()), 
             label.map(|l| Text::new(ctx, l, TextStyle::Heading, font_size.h5, Align::Left)),
             description.map(|t| ExpandableText::new(ctx, t, TextStyle::Primary, font_size.md, Align::Left, None)),
-            SliderContent::new(ctx, on_release)
+            SliderContent::new(ctx, on_release), Some(start)
         )
     }
 
     pub fn set_value(&mut self, i: f32) {
         let w = self.3.1.inner().shape().shape.size().0;
         self.3.2.adjust_scroll((i * w) / 100.0)
+    }
+}
+
+impl OnEvent for Slider {
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if event.downcast_ref::<TickEvent>().is_some() {
+            if let Some(val) = self.4.take() {
+                self.set_value(val)
+            }
+        }
+        true
     }
 }
 
@@ -58,9 +68,11 @@ impl OnEvent for SliderContent {
             *self.value() = *x;
             self.5 = true;
         } else if let Some(MouseEvent { state: MouseState::Released, position: _}) = event.downcast_ref::<MouseEvent>() {
-            self.5 = false;
-            let p = self.percentage();
-            (self.4)(ctx, p);
+            if self.5 {
+                self.5 = false;
+                let p = self.percentage();
+                (self.4)(ctx, p);
+            }
         } else if let Some(MouseEvent { state: MouseState::Scroll(..), position: Some((x, _))}) = event.downcast_ref::<MouseEvent>() {
             *self.value() = *x;
             if self.5 { self.2.adjust_scroll(*x); }

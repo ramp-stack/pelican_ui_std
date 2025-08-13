@@ -60,13 +60,18 @@ impl EncodedImage {
 
             let mut result_buf = BufWriter::new(Vec::new());
             PngEncoder::new(&mut result_buf).write_image(dst_image.buffer(), w, h, src_image.color().into()).unwrap();
-            let result_buf = result_buf.into_inner().unwrap(); // get the inner Vec<u8>
+            let result_buf = result_buf.into_inner().unwrap(); 
             return Some(general_purpose::STANDARD.encode(&result_buf))
         }
         println!("Could not load from bytes");
         None
     }
 
+    pub fn decode(ctx: &mut Context, bytes: &String) -> resources::Image {
+        let png_bytes = general_purpose::STANDARD.decode(bytes).unwrap();
+        let image = image::load_from_memory(&png_bytes).unwrap();
+        ctx.assets.add_image(image.into())  
+    }
 
     pub fn encode_rgba(image: RgbaImage) -> String {
         let (width, height) = image.dimensions();
@@ -81,10 +86,14 @@ impl EncodedImage {
         general_purpose::STANDARD.encode(&png_bytes)
     }
 
-    pub fn decode(ctx: &mut Context, bytes: &String) -> resources::Image {
-        let png_bytes = general_purpose::STANDARD.decode(bytes).unwrap();
-        let image = image::load_from_memory(&png_bytes).unwrap();
-        ctx.assets.add_image(image.into())  
+    pub fn decode_rgba(data: &str) -> RgbaImage {
+        let png_bytes = general_purpose::STANDARD
+            .decode(data)
+            .expect("Base64 decode failed");
+
+        image::load_from_memory_with_format(&png_bytes, image::ImageFormat::Png)
+            .expect("Failed to load PNG")
+            .to_rgba8()
     }
 }
 
@@ -113,8 +122,6 @@ impl Component for ExpandableImage {
         }
     }
 
-
-
     fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
         if let Some((orig_w, orig_h)) = self.1 {
             let width = size.0;
@@ -133,8 +140,5 @@ impl Component for ExpandableImage {
 
             vec![Area { offset: (0.0, 0.0), size, }]
         }
-
-
     }
-
 }
