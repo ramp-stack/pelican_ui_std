@@ -1,7 +1,12 @@
-#![doc(html_logo_url = "https://raw.githubusercontent.com/ramp-stack/pelican_ui/main/logo.png")]
+#![doc(html_logo_url = "https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/logo.png")]
 
 pub mod events;
 pub mod config;
+/// ## Layout
+///
+/// Every structure implementing the [`Component`](pelican_ui::Component) trait must have its **first element implement [`Layout`](pelican_ui::layout::Layout)**.  
+/// This ensures that the component can correctly manage positioning, sizing, and nested layouts within the UI hierarchy.
+///
 pub mod layout;
 pub mod elements;
 pub mod components;

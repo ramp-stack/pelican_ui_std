@@ -39,7 +39,7 @@ impl QRCodeScanner {
             Stack::center(), 
             None, 
             QRGuide::new(ctx), 
-            Camera::new_custom().ok(), 
+            Camera::new_unprocessed().ok(), 
             Arc::new(Mutex::new(None)), 
             Arc::new(Mutex::new(false))
         )
