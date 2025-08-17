@@ -1,6 +1,12 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/logo.png")]
 
+/// ## Events
+///
+/// Events used by Pelican UI Standard components.
 pub mod events;
+/// ## Config
+///
+/// Variables for detecting which 
 pub mod config;
 /// ## Layout
 ///
@@ -8,18 +14,39 @@ pub mod config;
 /// This ensures that the component can correctly manage positioning, sizing, and nested layouts within the UI hierarchy.
 ///
 pub mod layout;
+/// ## Elements
+///
+/// Contains the lowest-level UI primitives, such as text, images, and other  
+/// fundamental building blocks that can be composed into larger components.
+///
 pub mod elements;
-pub mod components;
-pub mod utils;
-pub mod pages;
+/// ## Components
+///
+/// Commonly used UI and interface components composed from [`elements`] and  
+/// [`layouts`](crate::layout). 
+///
+/// Every structure implementing the [`Component`](pelican_ui::Component) trait must have its **first element implement [`Layout`](pelican_ui::layout::Layout)**.  
+/// This ensures that the component can correctly manage positioning, sizing, and nested layouts within the UI hierarchy.
+///
+/// Every structure implementing the [`Component`](pelican_ui::Component) trait must also implement [`OnEvent`](pelican_ui::events::OnEvent).
+///
+/// Every structure implementing the [`Component`](pelican_ui::Component) trait must also implement [`Debug`].
+///
+/// ## Example
+///
+/// ```rust
+#[doc = include_str!("examples/component.rs")]
+/// ```
 
-pub use crate::pages::*;
-pub use crate::events::*;
-pub use crate::layout::*;
-pub use crate::components::*;
-pub use crate::elements::*;
-pub use crate::utils::*;
-pub use crate::config::*;
+pub mod components;
+/// ## Utilities
+///
+/// Helper structures like Timestamp, ElementID, etc.
+pub mod utils;
+/// ## Pages
+///
+/// A couple pages built using Pelican UI Standard components. These can be used as is or as examples when building new pages.
+pub mod pages;
 
 /*
 How to create an app with Ramp

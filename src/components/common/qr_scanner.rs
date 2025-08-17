@@ -4,17 +4,8 @@ use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::hardware::Camera;
 use pelican_ui::{Context, Component};
 
-use crate::{
-    RoundedRectangle,
-    Padding,
-    Size,
-    Offset,
-    Stack,
-    TextStyle,
-    Text,
-    Icon,
-    Column
-};
+use crate::elements::{TextStyle, Text, Icon, RoundedRectangle};
+use crate::layout::{Column, Padding, Size, Offset, Stack};
 
 use image::{DynamicImage, GrayImage, RgbaImage};
 use std::sync::{Mutex, Arc};

@@ -7,6 +7,16 @@ use crate::elements::images::Icon;
 use crate::elements::text::{Text, TextStyle};
 use crate::layout::{Offset, Padding, Row, Size};
 
+/// ## Alert
+///
+/// Displays a warning message with an icon.  
+///  
+/// ![Alert Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/alert.png)
+///
+/// ### Example
+/// ```rust
+/// let alert = Alert::new(&mut ctx, "Offline. Check Your Connection.");
+/// ```
 #[derive(Debug, Component)]
 pub struct Alert(Row, Image, Text);
 impl OnEvent for Alert {}

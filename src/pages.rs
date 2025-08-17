@@ -3,7 +3,11 @@ use pelican_ui::drawable::{Align, Drawable, Component};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
-use crate::{Stack, Content, Header, Bumper, Page, Button, Offset, TextStyle, Text, Brand, NavigateEvent, AppPage};
+use crate::components::{Page, Content, Header, Bumper, Button};
+use crate::layout::{Offset, Stack};
+use crate::elements::{TextStyle, Text, Brand};
+use crate::utils::AppPage;
+use crate::events::NavigateEvent;
 
 #[derive(Debug, Component)]
 pub struct Error(Stack, Page, #[skip] Box<dyn AppPage>);
