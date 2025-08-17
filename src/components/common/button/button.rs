@@ -204,7 +204,7 @@ impl Button {
     ///
     /// ### Example
     /// ```rust
-    /// let button = Button::primary(ctx, "Label", |ctx: &mut Context| println!("This button has been clicked!");
+    /// let button = Button::primary(ctx, "Label", |ctx: &mut Context| println!("This button has been clicked!"));
     /// ```
     pub fn primary(
         ctx: &mut Context,
@@ -233,7 +233,7 @@ impl Button {
     ///
     /// ### Example
     /// ```rust
-    /// let button = Button::secondary(ctx, Some("copy") "Copy", None, |ctx: &mut Context| println!("This button has been clicked!", Some("Copied"));
+    /// let button = Button::secondary(ctx, Some("copy") "Copy", None, |ctx: &mut Context| println!("This button has been clicked!"), Some("Copied"));
     /// ```
     pub fn secondary(
         ctx: &mut Context,
@@ -265,7 +265,7 @@ impl Button {
     ///
     /// ### Example
     /// ```rust
-    /// let button = Button::ghost(ctx, "Next", |ctx: &mut Context| println!("This button has been clicked!");
+    /// let button = Button::ghost(ctx, "Next", |ctx: &mut Context| println!("This button has been clicked!"));
     /// ```
     pub fn ghost(
         ctx: &mut Context,

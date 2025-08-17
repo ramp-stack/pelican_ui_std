@@ -8,6 +8,30 @@ use crate::elements::shapes::{Circle, Rectangle};
 use crate::components::button::Button;
 use crate::layout::{Column, Bin, Row, Stack, Padding, Offset, Size};
 
+/// ## Data Item
+///
+/// A component for presenting information in a clear, structured format.
+///  
+/// ![Data Item Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/data_item.png)
+///
+/// ### Example
+/// ```rust
+/// let data = DataItem::new(
+///     ctx,
+///     Some("1"),
+///     "Confirm Shipping Address",
+///     Some("Confirm the address below matches your shipping address."),
+///     None,
+///     Some(vec![
+///         ("Street", "123 Feather Ln"),
+///         ("City", "Nestville"),
+///         ("ZIP", "44556"),
+///     ]), 
+///     Some(vec![
+///         Button::secondary(ctx, Some("edit"), "Edit Address", None, |ctx: &mut Context| println!("Editing address...")),
+///     ]),
+/// );
+/// ```
 #[derive(Debug, Component)]
 pub struct DataItem(Row, Option<Number>, DataItemContent);
 impl OnEvent for DataItem {}

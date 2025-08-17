@@ -1,5 +1,9 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/logo.png")]
 
+//! Pelican UI Standard provides a wide range of components and interface systems for building beautiful, consistently designed applications.
+//!
+//! Download the starter template here: <https://github.com/EllaCouch20/ramp_template>
+
 /// ## Events
 ///
 /// Events used by Pelican UI Standard components.

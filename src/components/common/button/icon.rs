@@ -119,7 +119,7 @@ impl IconButton {
     ///
     /// ### Example
     /// ```rust
-    /// let button = IconButton::secondary(ctx, "info", |ctx: &mut Context| println!("This button has been clicked!");
+    /// let button = IconButton::secondary(ctx, "info", |ctx: &mut Context| println!("This button has been clicked!"));
     /// ```
     pub fn secondary(
         ctx: &mut Context, 
@@ -143,7 +143,7 @@ impl IconButton {
     ///
     /// ### Example
     /// ```rust
-    /// let button = IconButton::ghost(ctx, "explore", |ctx: &mut Context| println!("This button has been clicked!");
+    /// let button = IconButton::ghost(ctx, "explore", |ctx: &mut Context| println!("This button has been clicked!"));
     /// ```
     pub fn ghost(
         ctx: &mut Context, 

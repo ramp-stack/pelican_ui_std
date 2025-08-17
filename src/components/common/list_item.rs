@@ -12,6 +12,33 @@ use crate::components::avatar::{Avatar, AvatarContent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Opt};
 use crate::utils::ElementID;
 
+/// ## List Item
+///
+/// A versatile row-style component used for lists, menus, or settings screens.  
+/// Supports a title, optional flair (badge), subtitle, description, right-aligned  
+/// content, radio buttons, and avatar/circle icons.  
+///
+/// ![List Item Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/list_item.png)
+///
+/// ### Example
+/// ```rust
+/// let item = ListItem::new(
+///     ctx,
+///     true,
+///     "Wi-Fi",
+///     None
+///     Some("Home Network"),
+///     None,
+///     Some("Connected")
+///     Some("Secure, WPA2"),
+///     None,
+///     Some(AvatarContent::Icon("wifi", AvatarIconStyle::Success)),
+///     None,
+///     false,
+///     |ctx: &mut Context| println!("Clicked Wi-Fi")
+/// );
+/// ```
+
 #[derive(Component)]
 pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] Option<ElementID>, #[skip] bool);
 
