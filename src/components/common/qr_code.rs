@@ -11,22 +11,21 @@ use imageproc::drawing::{draw_filled_circle_mut, draw_filled_rect_mut};
 use imageproc::rect::Rect;
 use qrcode::{QrCode, EcLevel};
 
-/// A component representing a QR code with a branded logo.
+/// ## QR Code
+///
+/// Renders a scannable QR code with a centered brand/logo overlay.
+///
+/// ![QR Code Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/qr_code.png)
+///
+/// ### Example
+/// ```rust
+/// let qr = QRCode::new(ctx, "https://ramp-stack.com/pelican_ui");
+/// ```
 #[derive(Debug, Component)]
 pub struct QRCode(Stack, Bin<Stack, RoundedRectangle>, Image, Image);
 impl OnEvent for QRCode {}
 
 impl QRCode {
-    /// Creates a new `QRCode` component with a QR code and a branded logo.
-    ///
-    /// # Parameters
-    /// - `ctx`: The [`Context`] for accessing the app's theme.
-    /// - `data`: The data to encode in the QR code.
-    ///
-    /// # Example
-    /// ```
-    /// let qr_code = QRCode::new(ctx, "https://example.com");
-    /// ```
     pub fn new(ctx: &mut Context, data: &str) -> Self {
         let theme = &ctx.theme;
         let (app_icon, color) = (theme.brand.app_icon.clone(), theme.colors.shades.white);

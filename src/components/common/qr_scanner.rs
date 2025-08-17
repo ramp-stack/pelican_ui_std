@@ -14,6 +14,15 @@ use quircs::Quirc;
 
 use crate::events::QRCodeScannedEvent;
 
+/// ## QR Code Scanner
+///
+/// A camera-based component for scanning and decoding QR codes.
+/// Triggers a [`QRCodeScannedEvent`] carrying the data read from the QR code.
+///
+/// ### Example
+/// ```rust
+/// let scanner = QRCodeScanner::new(&mut ctx);
+/// ```
 #[derive(Debug, Component)]
 pub struct QRCodeScanner(
     Stack, 

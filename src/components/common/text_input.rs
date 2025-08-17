@@ -11,6 +11,24 @@ use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
 use crate::utils::ElementID;
 
 use std::sync::mpsc::{self, Receiver};
+
+/// ## Text Input
+///
+/// A text input field with optional label, placeholder, help text, and an icon button.  
+///
+/// ![Text Input Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/text_input.png)
+///
+/// ### Example
+/// ```rust
+/// let input = TextInput::new(
+///     ctx,
+///     None,
+///     Some("Bird Name"),
+///     "Enter bird name",
+///     Some("The name will be used in your bird list"),
+///     None,
+/// );
+/// ```  
 #[derive(Debug, Component)]
 pub struct TextInput(Column, Option<Text>, InputField, Option<ExpandableText>, Option<Text>);
 

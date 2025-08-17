@@ -7,6 +7,25 @@ use crate::elements::text::{Text, ExpandableText, TextStyle};
 use crate::elements::shapes::{Circle, RoundedRectangle};
 use crate::layout::{Column, Stack, Offset, Size, Padding, Bin};
 
+/// ## Slider
+///
+/// A UI component that allows users to select a value along a continuous range. 
+///
+/// ![Slider Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/slider.png)
+///
+/// ### Example
+/// ```rust
+/// let slider = Slider::new(
+///     ctx,V
+///     50.0,
+///     Some("Volume"),
+///     Some("Adjust the sound level"),
+///     |ctx: &mut Context, percentage: f32| {
+///         println!("Slider released at %{percentage}");
+///     }
+/// );
+/// ```
+
 #[derive(Debug, Component)]
 pub struct Slider(Column, Option<Text>, Option<ExpandableText>, SliderContent, #[skip] Option<f32>);
 impl Slider {

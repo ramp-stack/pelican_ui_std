@@ -26,9 +26,9 @@ use crate::utils::ElementID;
 ///     ctx,
 ///     true,
 ///     "Wi-Fi",
-///     None
-///     Some("Home Network"),
 ///     None,
+///     None,
+///     Some("Home Network"),
 ///     Some("Connected")
 ///     Some("Secure, WPA2"),
 ///     None,
@@ -40,7 +40,7 @@ use crate::utils::ElementID;
 /// ```
 
 #[derive(Component)]
-pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] pub Box<dyn FnMut(&mut Context)>, #[skip] Option<ElementID>, #[skip] bool);
+pub struct ListItem(Stack, Rectangle, ListItemContent, #[skip] ButtonState, #[skip] Box<dyn FnMut(&mut Context)>, #[skip] Option<ElementID>, #[skip] bool);
 
 impl ListItem {
     #[allow(clippy::too_many_arguments)]
