@@ -9,6 +9,7 @@ pub use button::{Button, ButtonWidth, QuickActions};
 mod icon;
 pub use icon::{IconButton, IconButtonRow};
 
+/// The three styles of a [`Button`] or [`IconButton`].
 #[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]
 pub enum ButtonStyle {
     Primary,
@@ -16,6 +17,7 @@ pub enum ButtonStyle {
     Ghost
 }
 
+/// The various states a [`Button`] or [`IconButton`] can be.
 #[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]
 pub enum ButtonState {
     /// The normal, un-interacted state of the button.
@@ -92,6 +94,7 @@ impl ButtonState {
     }
 }
 
+/// The set sizes of a [`Button`] or [`IconButton`].
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ButtonSize {
     Large,
@@ -99,6 +102,7 @@ pub enum ButtonSize {
 }
 
 impl ButtonSize {
+    /// Returns the button's text size, icon size, and content spacing.
     pub fn content(&self, ctx: &mut Context) -> (f32, f32, f32) { // text size, icon size, spacing
         let font_size = ctx.theme.fonts.size;
         match self {
@@ -106,6 +110,8 @@ impl ButtonSize {
             ButtonSize::Large => (font_size.lg, 24., 12.)
         }
     }
+
+    /// Returns the button's height and padding.
     pub fn sizes(&self) -> (f32, f32) { // height, padding
         match self {
             ButtonSize::Medium => (32., 12.),

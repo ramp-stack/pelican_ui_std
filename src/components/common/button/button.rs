@@ -13,7 +13,11 @@ use super::{ButtonSize, ButtonState, ButtonStyle};
 
 use std::time::Instant;
 
-/// A button UI element
+/// ## Button
+///
+/// A clickable button component.  
+///  
+/// See various examples below.
 #[derive(Component)]
 pub struct Button(
     Stack, 
@@ -21,7 +25,7 @@ pub struct Button(
     ButtonContent, 
     #[skip] ButtonStyle, 
     #[skip] ButtonState,
-    #[skip] pub Box<dyn FnMut(&mut Context)>, 
+    #[skip] Box<dyn FnMut(&mut Context)>, 
     #[skip] Option<String>,
     #[skip] Option<Instant>,
     #[skip] Option<String>,
@@ -29,6 +33,7 @@ pub struct Button(
 
 impl Button {
     #[allow(clippy::too_many_arguments)]
+    /// Creates a new button.
     pub fn new(
         ctx: &mut Context,
         avatar: Option<AvatarContent>,
@@ -62,6 +67,7 @@ impl Button {
         Button(layout, background, content, style, state, Box::new(on_click), label.map(|l| l.to_string()), None, active_label)
     }
 
+    /// Update the button's colors.
     pub fn color(&mut self, ctx: &mut Context) {
         let colors = self.4.color(ctx, self.3);
         self.2.set_color(colors.label);
@@ -69,6 +75,7 @@ impl Button {
         *self.1.background() = colors.background;
     }
 
+    /// Update the state of the button based off the current state and two booleans.
     pub fn update_state(&mut self, ctx: &mut Context, should_disable: bool, should_enable: bool, status: &mut ButtonState) {
         let disabled = *self.status() == ButtonState::Disabled;
         let current_status = *self.status();
@@ -78,11 +85,16 @@ impl Button {
         self.color(ctx);
     }
 
+    /// Show or hide the flair on the left icon.
     pub fn show_flair_left(&mut self, hide: bool) {self.2.2.as_mut().map(|b| b.flair().as_mut().map(|i| i.display(hide)));}
+    /// Show or hide the flair on the right icon.
     pub fn show_flair_right(&mut self, hide: bool) {self.2.4.as_mut().map(|b| b.flair().as_mut().map(|i| i.display(hide)));}
 
+    /// Returns a mutable reference to the optional avatar.
     pub fn avatar(&mut self) -> &mut Option<Avatar> { &mut self.2.1 }
+    /// Returns a mutable reference to the ButtonState.
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
+    /// Returns a mutable reference to the button's optional label.
     pub fn label(&mut self) -> &mut Option<Text> {&mut self.2.3}
 }
 
@@ -126,9 +138,12 @@ impl std::fmt::Debug for Button {
     }
 }
 
+/// Defines the width of of the button.
 #[derive(Debug, Clone, Copy)]
 pub enum ButtonWidth {
+    /// Button's width will expand to take up as much space as possible.
     Expand,
+    /// Button's width will hug it's children.
     Hug,
 }
 
@@ -183,7 +198,15 @@ impl ButtonIcon {
 }
 
 impl Button {
-    pub fn primary (
+    /// ## Primary Button
+    ///
+    /// ![Primary Button Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/primary_buttons.png)
+    ///
+    /// ### Example
+    /// ```rust
+    /// let button = Button::primary(ctx, "Label", |ctx: &mut Context| println!("This button has been clicked!");
+    /// ```
+    pub fn primary(
         ctx: &mut Context,
         label: &str,
         on_click: impl FnMut(&mut Context) + 'static,
@@ -204,13 +227,21 @@ impl Button {
         )
     }
 
+    /// ## Secondary Button
+    ///
+    /// ![Secondary Button Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/secondary_buttons.png)
+    ///
+    /// ### Example
+    /// ```rust
+    /// let button = Button::secondary(ctx, Some("copy") "Copy", None, |ctx: &mut Context| println!("This button has been clicked!", Some("Copied"));
+    /// ```
     pub fn secondary(
         ctx: &mut Context,
         icon_l: Option<&'static str>,
         label: &str,
         icon_r: Option<&'static str>,
         on_click: impl FnMut(&mut Context) + 'static,
-        active_label: Option<String>,
+        active_label: Option<&str>,
     ) -> Self {
         Button::new(
             ctx,
@@ -224,10 +255,18 @@ impl Button {
             ButtonState::Default,
             Offset::Center,
             on_click,
-            active_label,
+            active_label.map(|a| a.to_string()),
         )
     }
 
+    /// ## Ghost Button
+    ///
+    /// ![Ghost Button Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/ghost_buttons.png)
+    ///
+    /// ### Example
+    /// ```rust
+    /// let button = Button::ghost(ctx, "Next", |ctx: &mut Context| println!("This button has been clicked!");
+    /// ```
     pub fn ghost(
         ctx: &mut Context,
         label: &str,
@@ -249,6 +288,7 @@ impl Button {
         )
     }
 
+    /// Creates a primary button defaulting to the disabled state.
     pub fn disabled(
         ctx: &mut Context,
         label: &str,
@@ -270,6 +310,7 @@ impl Button {
         )
     }
 
+    /// Creates a button designed for keypads components.
     pub fn keypad(
         ctx: &mut Context,
         label: Option<&str>,
@@ -292,6 +333,7 @@ impl Button {
         )
     }
 
+    /// Creates a button designed for the interface navigators.
     pub fn navigation(
         ctx: &mut Context,
         icon: &'static str,
@@ -319,6 +361,7 @@ impl Button {
         )
     }
 
+    /// Creates a button with a user avatar.
     pub fn photo(
         ctx: &mut Context,
         label: &str,
@@ -342,28 +385,8 @@ impl Button {
         )
     }
 
+    /// Creates a button designed for the ending or closing page of a flow.
     pub fn close(
-        ctx: &mut Context,
-        label: &str,
-        on_click: impl FnMut(&mut Context) + 'static,
-    ) -> Self {
-        Button::new(
-            ctx,
-            None,
-            None,
-            Some(label),
-            None,
-            ButtonSize::Large,
-            ButtonWidth::Expand,
-            ButtonStyle::Secondary,
-            ButtonState::Default,
-            Offset::Center,
-            on_click,
-            None,
-        )
-    }
-
-    pub fn secondary_expand(
         ctx: &mut Context,
         label: &str,
         on_click: impl FnMut(&mut Context) + 'static,

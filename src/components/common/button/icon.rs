@@ -9,6 +9,11 @@ use crate::elements::shapes::OutlinedRectangle;
 use crate::layout::{Offset, Padding, Size, Row, Stack, Opt};
 use super::{ButtonSize, ButtonState, ButtonStyle};
 
+/// ## Icon Button
+///
+/// A clickable icon component.  
+///  
+/// See various examples below.
 #[derive(Debug, Component)]
 pub struct IconButton(Stack, IconButtonContent, Option<Opt<Image>>);
 impl IconButton {
@@ -108,6 +113,14 @@ impl IconButtonRow {
 }
 
 impl IconButton {
+    /// ## Secondary Icon Button
+    ///
+    /// ![Secondary Icon Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/secondary_icons.png)
+    ///
+    /// ### Example
+    /// ```rust
+    /// let button = IconButton::secondary(ctx, "info", |ctx: &mut Context| println!("This button has been clicked!");
+    /// ```
     pub fn secondary(
         ctx: &mut Context, 
         icon: &'static str, 
@@ -124,6 +137,14 @@ impl IconButton {
         )
     }
 
+    /// ## Secondary Icon Button
+    ///
+    /// ![Secondary Icon Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/ghost_icons.png)
+    ///
+    /// ### Example
+    /// ```rust
+    /// let button = IconButton::ghost(ctx, "explore", |ctx: &mut Context| println!("This button has been clicked!");
+    /// ```
     pub fn ghost(
         ctx: &mut Context, 
         icon: &'static str, 
@@ -140,6 +161,7 @@ impl IconButton {
         )
     }
 
+    /// Icon Button designed for text inputs.
     pub fn input(
         ctx: &mut Context, 
         icon: &'static str, 
@@ -156,6 +178,7 @@ impl IconButton {
         )
     }
 
+    /// Icon Button designed for keyboards.
     pub fn keyboard(
         ctx: &mut Context, 
         icon: &'static str,
@@ -172,6 +195,7 @@ impl IconButton {
         )
     }
     
+    /// Icon Button designed for page navigation.
     pub fn navigation(
         ctx: &mut Context, 
         icon: &'static str, 
@@ -188,6 +212,7 @@ impl IconButton {
         )
     }
 
+    /// Creates a button designed for the ending or closing page of a flow.
     pub fn close(
         ctx: &mut Context, 
         on_click: impl FnMut(&mut Context) + 'static
@@ -203,6 +228,7 @@ impl IconButton {
         )
     }
 
+    /// Icon Button designed for interface navigators.
     pub fn tab_nav(
         ctx: &mut Context, 
         icon: &'static str, 

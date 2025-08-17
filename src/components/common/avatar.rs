@@ -8,8 +8,25 @@ use crate::elements::shapes::{Outline, Circle};
 use crate::layout::{Stack, Offset, Size, Row, Padding};
 use crate::utils::Callback;
 
+/// ## Avatar
+///
+/// Displays a user avatar.  
+///  
+/// ![Avatar Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/avatar.png)
+///
+/// ### Example
+/// ```rust
+/// let avatar = Avatar::new(
+///     ctx, 
+///     AvatarContent::Icon("profile", AvatarIconStyle::Secondary), 
+///     None, 
+///     false, 
+///     48.0, 
+///     None
+/// );
+/// ```
 #[derive(Component)]
-pub struct Avatar(Stack, PrimaryAvatar, Option<Flair>, #[skip] pub Option<Callback>);
+pub struct Avatar(Stack, PrimaryAvatar, Option<Flair>, #[skip] Option<Callback>);
 
 impl Avatar {
     pub fn new(
@@ -28,10 +45,15 @@ impl Avatar {
         )
     }
 
+    /// Returns the size of the avatar.
     pub fn size(&self) -> f32 {self.1.size()}
+    /// Sets the content of the avatar
     pub fn set_content(&mut self, content: AvatarContent)  {self.1.set_content(content)}
+    /// Returns a mutable reference to the optional flair.
     pub fn flair(&mut self) -> &mut Option<Flair> {&mut self.2}
+    /// Returns a mutable reference to the optional outline.
     pub fn outline(&mut self) -> &mut Option<Shape> {&mut self.1.3}
+    /// Returns a mutable reference to the primary avatar.
     pub fn avatar(&mut self) -> &mut PrimaryAvatar {&mut self.1}
 }
 
