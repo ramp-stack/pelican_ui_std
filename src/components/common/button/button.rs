@@ -407,6 +407,21 @@ impl Button {
         )
     }
 }
+/// # Quick Actions
+///
+/// A wrapped group of quick action buttons.
+///
+/// # Example
+///
+/// ![Quick Actions Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/quick_actions.png)
+///
+/// ```rust
+/// let button1 = Button::secondary(ctx, Some("qr_code"), "Scan QR Code", None, |ctx: &mut Context| println!("Save clicked"));
+/// let button2 = Button::new(ctx, Some("paste"), "Paste", None, |ctx: &mut Context| println!("Cancel clicked"));
+/// let button3 = Button::new(ctx, Some("accounts"), "Select Contact", None, |ctx: &mut Context| println!("Delete clicked"));
+///
+/// let quick_actions = QuickActions::new(vec![button1, button2, button3]);
+/// ```
 
 #[derive(Debug, Component)]
 pub struct QuickActions(Wrap, Vec<Button>);

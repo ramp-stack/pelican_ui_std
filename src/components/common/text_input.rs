@@ -290,6 +290,9 @@ impl InputState {
     }
 }
 
+/// # Searchbar
+/// 
+/// Searchbar component
 #[derive(Debug, Component)]
 pub struct Searchbar(Stack, TextInput);
 impl Searchbar {

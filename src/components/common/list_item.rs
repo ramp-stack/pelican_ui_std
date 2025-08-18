@@ -327,6 +327,7 @@ impl ListItemSelector {
         )
     }
 
+    /// Returns the index of the selected list item.
     pub fn index(&self) -> Option<u8> {
         if self.1.is_selected() { return Some(0) }
         if self.2.is_selected() { return Some(1) }
@@ -388,8 +389,11 @@ impl ListItemGroup {
         ListItemGroup(Column::center(0.0), list_items)
     }
 
-    pub fn items(&mut self) -> &mut Vec<Opt<ListItem>> {&mut self.1}
+    /// Returns a vector of optional list items. 
+    pub fn inner(&mut self) -> &mut Vec<Opt<ListItem>> {&mut self.1}
+
+    /// Hide or show an item in the list.
     pub fn hide(&mut self, hide: bool, i: usize) {
-        if let Some(item) = self.items().get_mut(i) {item.display(!hide);}
+        if let Some(item) = self.inner().get_mut(i) {item.display(!hide);}
     }
 }

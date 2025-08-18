@@ -5,7 +5,7 @@ use pelican_ui::{Context, Component, resources};
 
 use crate::elements::images::Icon;
 use crate::elements::shapes::{Outline, Circle};
-use crate::layout::{Stack, Offset, Size, Row, Padding};
+use crate::layout::{Stack, Offset, Size, Padding};
 use crate::utils::Callback;
 
 /// ## Avatar

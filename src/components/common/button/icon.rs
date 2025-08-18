@@ -6,7 +6,7 @@ use pelican_ui::{Context, Component};
 use crate::utils::Callback;
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
-use crate::layout::{Offset, Padding, Size, Row, Stack, Opt};
+use crate::layout::{Offset, Padding, Size, Stack, Opt};
 use super::{ButtonSize, ButtonState, ButtonStyle};
 
 /// ## Icon Button
