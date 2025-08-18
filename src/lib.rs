@@ -41,7 +41,6 @@ pub mod elements;
 /// ```rust
 #[doc = include_str!("examples/component.rs")]
 /// ```
-
 pub mod components;
 /// ## Utilities
 ///

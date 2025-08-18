@@ -3,7 +3,7 @@ use pelican_ui::drawable::{Drawable, Component, Image, Color, Align};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
-use crate::components::avatar::{Avatar, AvatarContent};
+use crate::components::common::{Avatar, AvatarContent};
 use crate::elements::images::Icon;
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{Text, TextStyle};

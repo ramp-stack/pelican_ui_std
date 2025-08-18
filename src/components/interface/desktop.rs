@@ -7,8 +7,7 @@ use crate::elements::shapes::{Rectangle};
 use crate::elements::images::Brand;
 use crate::events::{NavigatorSelect, NavigateEvent, NavigatorEvent};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
-use crate::components::button::{Button, ButtonState};
-use crate::components::avatar::{Avatar, AvatarContent};
+use crate::components::{Button, ButtonState, Avatar, AvatarContent};
 use crate::utils::{ElementID, AppPage};
 use crate::pages::Error;
 

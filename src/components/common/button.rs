@@ -7,7 +7,7 @@ mod button;
 pub use button::{Button, ButtonWidth, QuickActions};
 
 mod icon;
-pub use icon::{IconButton, IconButtonRow};
+pub use icon::IconButton;
 
 /// The three styles of a [`Button`] or [`IconButton`].
 #[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]

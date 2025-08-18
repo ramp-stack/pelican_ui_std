@@ -49,7 +49,7 @@ impl Slider {
 }
 
 impl OnEvent for Slider {
-    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if event.downcast_ref::<TickEvent>().is_some() {
             if let Some(val) = self.4.take() {
                 self.set_value(val)

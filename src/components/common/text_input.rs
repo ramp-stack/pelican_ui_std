@@ -5,7 +5,7 @@ use pelican_ui::{Context, Component};
 
 use crate::elements::shapes::OutlinedRectangle;
 use crate::elements::text::{ExpandableText, Text, TextStyle, TextEditor};
-use crate::components::button::IconButton;
+use crate::components::IconButton;
 use crate::events::{SearchEvent, InputEditedEvent, KeyboardActiveEvent, SetActiveInput, TextInputSelect, ClearActiveInput};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};
 use crate::utils::ElementID;

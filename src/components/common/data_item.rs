@@ -5,7 +5,7 @@ use pelican_ui::{Context, Component};
 
 use crate::elements::text::{Text, ExpandableText, TextStyle};
 use crate::elements::shapes::{Circle, Rectangle};
-use crate::components::button::Button;
+use crate::components::Button;
 use crate::layout::{Column, Bin, Row, Stack, Padding, Offset, Size};
 
 /// ## Data Item

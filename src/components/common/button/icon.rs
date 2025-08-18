@@ -101,17 +101,6 @@ impl std::fmt::Debug for IconButtonContent {
     }
 }
 
-#[derive(Debug, Component)]
-pub struct IconButtonRow(Row, Vec<IconButton>);
-impl OnEvent for IconButtonRow {}
-
-impl IconButtonRow {
-    pub fn new(ctx: &mut Context, buttons: Vec<(&'static str, Callback)>) -> Self {
-        let buttons = buttons.into_iter().map(|(i, on_click)| IconButton::secondary(ctx, i, on_click)).collect();
-        IconButtonRow(Row::center(24.0), buttons)
-    }
-}
-
 impl IconButton {
     /// ## Secondary Icon Button
     ///

@@ -182,23 +182,3 @@ impl Flair {
 
     pub fn icon(&mut self) -> &mut Image {self.1.icon()}
 }
-
-#[derive(Debug, Component)]
-pub struct AvatarRow(Row, Vec<Avatar>);
-
-impl OnEvent for AvatarRow {}
-
-impl AvatarRow {
-    pub fn new(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {
-        AvatarRow(
-            Row::center(-16.0),
-            avatars.into_iter().take(5).map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0, None)).collect()
-        )
-    }
-
-    pub fn update(&mut self, ctx: &mut Context, avatars: Vec<AvatarContent>) {
-        self.1 = avatars.into_iter().take(5).map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0, None)).collect()
-    }
-
-    pub fn count(&mut self) -> usize {self.1.len()}
-}

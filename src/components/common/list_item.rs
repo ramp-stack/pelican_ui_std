@@ -7,8 +7,7 @@ use crate::events::ListItemSelect;
 use crate::elements::images::Icon;
 use crate::elements::text::{Text, ExpandableText, TextStyle};
 use crate::elements::shapes::Rectangle;
-use crate::components::button::ButtonState;
-use crate::components::avatar::{Avatar, AvatarContent};
+use crate::components::{ButtonState, Avatar, AvatarContent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Opt};
 use crate::utils::ElementID;
 
@@ -283,6 +282,24 @@ impl ListItem {
     }
 }
 
+/// ## List Item Selector
+///
+/// The first item is always marked as **selected**.  
+/// The second item is always present but unselected.  
+/// The third and fourth items are optional, and if provided, will also be unselected.
+///
+/// ![Selector Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/selector.png)
+///
+/// # Example
+/// ```rust
+/// let selector = ListItemSelector::new(
+///     ctx,
+///     ("Standard Shipping", "3–5 business days", Some("Free")),
+///     ("Express Shipping", "1–2 business days", Some("$9.99")),
+///     Some(("Overnight Shipping", "Arrives Tomorrow", Some("$19.99"))),
+///     None,
+/// );
+/// ```
 #[derive(Debug, Component)]
 pub struct ListItemSelector(
     Column,       // The layout column for organizing the items vertically.
@@ -319,6 +336,48 @@ impl ListItemSelector {
     }
 }
 
+/// # List Item Group
+/// A group of [`ListItem`]s arranged in a vertical [`Column`].
+///
+/// ![List Group Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/li_group.png)
+///
+/// # Example
+///
+/// ```rust
+/// let wifi = ListItem::new(
+///     ctx,
+///     true,
+///     "Wi-Fi",
+///     None,
+///     None,
+///     Some("Home Network"),
+///     Some("Connected")
+///     Some("Secure, WPA2"),
+///     None,
+///     Some(AvatarContent::Icon("wifi", AvatarIconStyle::Success)),
+///     None,
+///     false,
+///     |ctx: &mut Context| println!("Clicked Wi-Fi")
+/// );
+///
+/// let bluetooth = ListItem::new(
+///     ctx,
+///     true,
+///     "Bluetooth",
+///     None,
+///     None,
+///     Some("Connect to accessories"),
+///     Some("On")
+///     Some("7 Devices"),
+///     None,
+///     Some(AvatarContent::Icon("bluetooth", AvatarIconStyle::Primary)),
+///     None,
+///     false,
+///     |ctx: &mut Context| println!("Clicked Bluetooth")
+/// );
+///
+/// let mut group = ListItemGroup::new(vec![wifi, bluetooth]);
+/// ```
 #[derive(Debug, Component)]
 pub struct ListItemGroup(Column, Vec<Opt<ListItem>>);
 impl OnEvent for ListItemGroup {}

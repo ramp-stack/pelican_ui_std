@@ -5,7 +5,7 @@ use pelican_ui::{Context, Component};
 
 use crate::events::{KeyboardActiveEvent, NavigatorSelect, NavigateEvent, NavigatorEvent};
 use crate::layout::{Column, Row, Padding, Offset, Size, Opt, Stack, Bin};
-use crate::components::button::{IconButton, ButtonState};
+use crate::components::{IconButton, ButtonState};
 use crate::elements::shapes::Rectangle;
 use crate::utils::{ElementID, AppPage};
 use crate::pages::Error;

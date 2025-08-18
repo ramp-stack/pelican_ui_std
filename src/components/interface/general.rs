@@ -8,9 +8,7 @@ use crate::elements::images::ExpandableImage;
 use crate::elements::text::TextStyle;
 use crate::events::{TextInputSelect, AdjustScrollEvent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Scroll, ScrollAnchor};
-use crate::components::avatar::{AvatarContent, AvatarRow};
-use crate::components::button::{IconButton, Button};
-use crate::components::text_input::TextInput;
+use crate::components::{Avatar, AvatarContent, IconButton, Button, TextInput};
 use crate::elements::text::Text;
 use crate::utils::{ElementID, AppPage};
 use std::fmt::Debug;
@@ -319,4 +317,24 @@ impl NavigationButton {
     pub fn icon_button(&mut self) -> &mut Option<IconButton> {
         &mut self.2
     }
+}
+
+#[derive(Debug, Component)]
+pub struct AvatarRow(Row, Vec<Avatar>);
+
+impl OnEvent for AvatarRow {}
+
+impl AvatarRow {
+    pub fn new(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {
+        AvatarRow(
+            Row::center(-16.0),
+            avatars.into_iter().take(5).map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0, None)).collect()
+        )
+    }
+
+    pub fn update(&mut self, ctx: &mut Context, avatars: Vec<AvatarContent>) {
+        self.1 = avatars.into_iter().take(5).map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0, None)).collect()
+    }
+
+    pub fn count(&mut self) -> usize {self.1.len()}
 }

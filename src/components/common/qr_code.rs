@@ -3,7 +3,7 @@ use pelican_ui::drawable::{Drawable, Component, ShapeType, Image};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
-use crate::layout::{Column, Padding, Size, Offset, Stack, Bin};
+use crate::layout::{Padding, Size, Offset, Stack, Bin};
 use crate::elements::{RoundedRectangle, Brand};
 
 use image::{Rgb, RgbImage, DynamicImage};
