@@ -4,7 +4,7 @@ use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
 use crate::layout::{Padding, Size, Offset, Stack, Bin};
-use crate::elements::{RoundedRectangle, Brand};
+use crate::elements::{RoundedRectangle, AspectRatioImage};
 
 use image::{Rgb, RgbImage, DynamicImage};
 use imageproc::drawing::{draw_filled_circle_mut, draw_filled_rect_mut};
@@ -42,7 +42,7 @@ impl QRCode {
             ),
             Image{shape: ShapeType::RoundedRectangle(0.0, (qr_size - 16.0, qr_size - 16.0), 8.0), image: ctx.assets.add_image(img), color: None},
             // QRModules::new(ctx, data, qr_size, logo_size),  - NO CUSTOM STYLIZATION FOR THIS RELEASE
-            Brand::new(app_icon, (logo_size, logo_size))
+            AspectRatioImage::new(app_icon, (logo_size, logo_size))
         )
     }
 }

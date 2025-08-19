@@ -3,8 +3,7 @@ use pelican_ui::drawable::{Drawable, Component, Align, Image};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
-use crate::elements::images::Icon;
-use crate::elements::text::{Text, TextStyle};
+use crate::elements::{Icon, Text, TextStyle};
 use crate::layout::{Offset, Padding, Row, Size};
 
 /// ## Alert
@@ -23,8 +22,8 @@ impl OnEvent for Alert {}
 
 impl Alert {
     pub fn new(ctx: &mut Context, message: &str) -> Self {
-        let theme = &ctx.theme;
-        let (color, font_size) = (theme.colors.status.warning, theme.fonts.size.md);
+        let color = ctx.theme.colors.status.warning;
+        let font_size = ctx.theme.fonts.size.md;
 
         Alert(
             Row::new(4.0, Offset::Center, Size::Fit, Padding::default()),

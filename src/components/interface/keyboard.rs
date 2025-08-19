@@ -5,10 +5,8 @@ use pelican_ui::drawable::{Drawable, Component, Align, Image, Color};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
-use crate::elements::shapes::{Rectangle, RoundedRectangle};
-use crate::elements::images::{Icon, EncodedImage};
+use crate::elements::{Text, TextStyle, Rectangle, RoundedRectangle, Icon, EncodedImage};
 use crate::events::{KeyboardActiveEvent, AttachmentEvent};
-use crate::elements::text::{Text, TextStyle};
 use crate::components::{IconButton, ButtonState};
 use crate::layout::{Stack, Bin, Column, Row, Offset, Size, Padding};
 

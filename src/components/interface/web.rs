@@ -3,13 +3,13 @@ use pelican_ui::drawable::{Drawable, Component, Image};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
-use crate::elements::shapes::{Rectangle};
-use crate::elements::images::Brand;
+use crate::elements::{Rectangle, AspectRatioImage};
 use crate::events::{NavigatorSelect, NavigateEvent, NavigatorEvent};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::components::{Button, ButtonState, IconButton};
 // use crate::components::avatar::{Avatar, AvatarContent};
-use crate::utils::{ElementID, AppPage};
+use crate::utils::ElementID;
+use crate::pages::AppPage;
 use crate::pages::Error;
 
 use std::fmt::Debug;
@@ -95,7 +95,7 @@ impl WebNavigator {
 
         WebNavigator(
             Row::new(32.0, Offset::Center, Size::Fit, Padding::new(48.0)),
-            Brand::new(wordmark, (150.0, 35.0)),
+            AspectRatioImage::new(wordmark, (150.0, 35.0)),
             Bin (
                 Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(5.0), Padding::default()), 
                 Rectangle::new(color)
@@ -156,11 +156,11 @@ impl ButtonRow {
 }
 
 #[derive(Debug, Component)]
-pub struct WebFooter(Row, Bin<Stack, Rectangle>, ButtonRow);
+struct WebFooter(Row, Bin<Stack, Rectangle>, ButtonRow);
 impl OnEvent for WebFooter {}
 
 impl WebFooter {
-    pub fn new(
+    fn new(
         ctx: &mut Context, 
         socials: Vec<(&'static str, String)>
     ) -> Self {
@@ -173,7 +173,7 @@ impl WebFooter {
         // let wordmark = ctx.theme.brand.wordmark.clone();
         let transparent = ctx.theme.colors.shades.transparent;
         // let white = ctx.theme.colors.shades.white;
-        // let mut logo = Brand::new(wordmark, (150.0, 35.0));
+        // let mut logo = AspectRatioImage::new(wordmark, (150.0, 35.0));
         // logo.color = Some(white);
 
         WebFooter(
@@ -186,8 +186,8 @@ impl WebFooter {
         )
     }
 
-    pub fn buttons(&mut self) -> Vec<&mut Button> {
-        self.2.buttons().iter_mut().flat_map(|nb| nb.button()).collect::<Vec<_>>()
-    }
+    // fn buttons(&mut self) -> Vec<&mut Button> {
+    //     self.2.buttons().iter_mut().flat_map(|nb| nb.button()).collect::<Vec<_>>()
+    // }
 }
 

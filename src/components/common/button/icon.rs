@@ -4,8 +4,7 @@ use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
 use crate::utils::Callback;
-use crate::elements::images::Icon;
-use crate::elements::shapes::OutlinedRectangle;
+use crate::elements::{Icon, OutlinedRectangle};
 use crate::layout::{Offset, Padding, Size, Stack, Opt};
 use super::{ButtonSize, ButtonState, ButtonStyle};
 

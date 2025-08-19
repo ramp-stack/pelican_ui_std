@@ -6,8 +6,9 @@ use pelican_ui::{Context, Component};
 use crate::events::{KeyboardActiveEvent, NavigatorSelect, NavigateEvent, NavigatorEvent};
 use crate::layout::{Column, Row, Padding, Offset, Size, Opt, Stack, Bin};
 use crate::components::{IconButton, ButtonState};
-use crate::elements::shapes::Rectangle;
-use crate::utils::{ElementID, AppPage};
+use crate::elements::Rectangle;
+use crate::utils::ElementID;
+use crate::pages::AppPage;
 use crate::pages::Error;
 
 use std::fmt::Debug;

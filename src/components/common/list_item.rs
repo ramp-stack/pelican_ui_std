@@ -4,9 +4,7 @@ use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
 use crate::events::ListItemSelect;
-use crate::elements::images::Icon;
-use crate::elements::text::{Text, ExpandableText, TextStyle};
-use crate::elements::shapes::Rectangle;
+use crate::elements::{Rectangle, Icon, Text, ExpandableText, TextStyle};
 use crate::components::{ButtonState, Avatar, AvatarContent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Opt};
 use crate::utils::ElementID;

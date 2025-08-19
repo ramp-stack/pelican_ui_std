@@ -3,8 +3,7 @@ use pelican_ui::drawable::{Drawable, Component, Align, Color};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
-use crate::elements::shapes::OutlinedRectangle;
-use crate::elements::text::{ExpandableText, Text, TextStyle, TextEditor};
+use crate::elements::{OutlinedRectangle, ExpandableText, Text, TextStyle, TextEditor};
 use crate::components::IconButton;
 use crate::events::{SearchEvent, InputEditedEvent, KeyboardActiveEvent, SetActiveInput, TextInputSelect, ClearActiveInput};
 use crate::layout::{EitherOr, Padding, Column, Stack, Offset, Size, Row, Bin};

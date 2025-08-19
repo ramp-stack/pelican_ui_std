@@ -3,8 +3,7 @@ use pelican_ui::drawable::{Drawable, Component, Image, Color, Shape, ShapeType};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component, resources};
 
-use crate::elements::images::Icon;
-use crate::elements::shapes::{Outline, Circle};
+use crate::elements::{Icon, Outline, Circle};
 use crate::layout::{Stack, Offset, Size, Padding};
 use crate::utils::Callback;
 

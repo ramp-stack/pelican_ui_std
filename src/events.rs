@@ -12,6 +12,7 @@ impl Event for NavigateEvent {
     }
 }
 
+/// Event used to bring up or hide the keyboard.
 #[derive(Debug, Clone)]
 pub struct KeyboardActiveEvent(pub Option<bool>);
 
@@ -101,7 +102,7 @@ impl Event for InputEditedEvent {
     }
 }
 
-/// Adjust the scroll value of a [`Layout`].
+/// Adjust the scroll value of a [`Scroll`] layout.
 #[derive(Debug, Clone)]
 pub enum AdjustScrollEvent {
     Vertical(f32),

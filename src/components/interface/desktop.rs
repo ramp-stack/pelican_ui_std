@@ -3,12 +3,12 @@ use pelican_ui::drawable::{Drawable, Component, Image};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
-use crate::elements::shapes::{Rectangle};
-use crate::elements::images::Brand;
+use crate::elements::{Rectangle, AspectRatioImage};
 use crate::events::{NavigatorSelect, NavigateEvent, NavigatorEvent};
 use crate::layout::{Column, Stack, Bin, Row, Padding, Offset, Size};
 use crate::components::{Button, ButtonState, Avatar, AvatarContent};
-use crate::utils::{ElementID, AppPage};
+use crate::utils::ElementID;
+use crate::pages::AppPage;
 use crate::pages::Error;
 
 use std::fmt::Debug;
@@ -114,7 +114,7 @@ impl DesktopNavigator {
 
         DesktopNavigator(
             Column::new(32.0, Offset::Center, Size::Fill(100.0, 200.0), Padding(16.0, 32.0, 16.0, 32.0)),
-            Brand::new(wordmark, (108.0, 23.0)),
+            AspectRatioImage::new(wordmark, (108.0, 23.0)),
             ButtonColumn::new(top_col),
             Bin (
                 Stack(Offset::Center, Offset::Center, Size::Fill(100.0, 200.0), Size::Fill(0.0, f32::MAX), Padding::default()), 

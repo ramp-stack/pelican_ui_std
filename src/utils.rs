@@ -1,13 +1,6 @@
 use chrono::{DateTime, Local, Datelike, Timelike, TimeZone};
 use serde::{Serialize, Deserialize};
-
-use pelican_ui::drawable::Drawable;
 use pelican_ui::Context;
-
-pub trait AppPage: Drawable + std::fmt::Debug + 'static {
-    fn navigate(self: Box<Self>, ctx: &mut Context, index: usize) -> Result<Box<dyn AppPage>, Box<dyn AppPage>>;
-    fn has_nav(&self) -> bool;
-}
 
 // pub use pelican_macro::AppPage as derive_AppPage;
 

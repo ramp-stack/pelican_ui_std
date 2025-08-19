@@ -3,8 +3,7 @@ use pelican_ui::drawable::{Drawable, Align, Component, Shape};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
 use pelican_ui::{Context, Component};
 
-use crate::elements::text::{Text, ExpandableText, TextStyle};
-use crate::elements::shapes::{Circle, RoundedRectangle};
+use crate::elements::{Text, ExpandableText, TextStyle, Circle, RoundedRectangle};
 use crate::layout::{Column, Stack, Offset, Size, Padding, Bin};
 
 /// ## Slider

@@ -1,16 +1,14 @@
 use pelican_ui::events::{OnEvent, MouseState, MouseEvent, Event};
 use pelican_ui::drawable::{Drawable, Component, Align};
 use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Context, Component, resources};
+use pelican_ui::{Context, Component};
 
-use crate::elements::shapes::{Rectangle};
-use crate::elements::images::ExpandableImage;
-use crate::elements::text::TextStyle;
+use crate::elements::{Rectangle, TextStyle, Text};
 use crate::events::{TextInputSelect, AdjustScrollEvent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Scroll, ScrollAnchor};
 use crate::components::{Avatar, AvatarContent, IconButton, Button, TextInput};
-use crate::elements::text::Text;
-use crate::utils::{ElementID, AppPage};
+use crate::utils::ElementID;
+use crate::pages::AppPage;
 use std::fmt::Debug;
 
 use super::{DesktopInterface, MobileInterface, WebInterface};
@@ -18,8 +16,27 @@ use super::{DesktopInterface, MobileInterface, WebInterface};
 pub type NavigateInfo = (&'static str, String, Option<AvatarContent>, Option<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>);
 pub type PageBuilder = Option<Vec<Box<dyn FnMut(&mut Context) -> Box<dyn AppPage>>>>;
 
+/// The top-level interface of an app built with Pelican.
+///
+/// This interface automatically adapts to the platform:
+/// - On desktop, it uses [`DesktopInterface`].
+/// - On web, it uses [`WebInterface`].
+/// - On mobile, it uses [`MobileInterface`].
+///
+/// The background color is taken from `ctx.theme.colors.background.primary` by default.
+/// You can customize it by setting ctx.theme to a customized [`Theme`] object.
+///
+/// # Required
+/// - A `Box<dyn AppPage>` to serve as the starting page.
+///
+/// # Optional
+/// - A navigation bar, which requires:
+///   - The index of the starting page.
+///   - Two vectors of [`NavigateInfo`], which define top and bottom sections of the navigator on desktop.
+///     On web and mobile, these vectors are combined with no visual separation.
+/// - A vector of socials for web, as tuples `(icon, URL)` representing the social icon and its link.
 #[derive(Debug, Component)]
-pub struct Interface (Stack, Option<Rectangle>, Option<ExpandableImage>, Option<MobileInterface>, Option<DesktopInterface>, Option<WebInterface>);
+pub struct Interface (Stack, Option<Rectangle>, Option<MobileInterface>, Option<DesktopInterface>, Option<WebInterface>);
 impl OnEvent for Interface {}
 impl Interface {
     pub fn new(
@@ -36,28 +53,32 @@ impl Interface {
             false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)), None),
         };
 
-        Interface(Stack::default(), Some(Rectangle::new(color)), None, mobile, desktop, web)
+        Interface(Stack::default(), Some(Rectangle::new(color)), mobile, desktop, web)
     }
 
-    //move background to pages
-    pub fn new_with_background(
-        ctx: &mut Context, 
-        image: resources::Image,
-        start_page: Box<dyn AppPage>,
-        navigation: Option<(usize, Vec<NavigateInfo>, Vec<NavigateInfo>)>,
-        socials: Option<Vec<(&'static str, String)>>
-    ) -> Self {
-        let background = ExpandableImage::new(image, None);
-        let (mobile, desktop, web) = match crate::config::IS_WEB {
-            true => (None, None, Some(WebInterface::new(ctx, start_page, navigation, socials))),
-            false if crate::config::IS_MOBILE => (Some(MobileInterface::new(ctx, start_page, navigation)), None, None),
-            false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)), None),
-        };
-        Interface(Stack::default(), None, Some(background), mobile, desktop, web)
-    }
+    // //move background to pages
+    // pub fn new_with_background(
+    //     ctx: &mut Context, 
+    //     image: resources::Image,
+    //     start_page: Box<dyn AppPage>,
+    //     navigation: Option<(usize, Vec<NavigateInfo>, Vec<NavigateInfo>)>,
+    //     socials: Option<Vec<(&'static str, String)>>
+    // ) -> Self {
+    //     let background = ExpandableImage::new(image, None);
+    //     let (mobile, desktop, web) = match crate::config::IS_WEB {
+    //         true => (None, None, Some(WebInterface::new(ctx, start_page, navigation, socials))),
+    //         false if crate::config::IS_MOBILE => (Some(MobileInterface::new(ctx, start_page, navigation)), None, None),
+    //         false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)), None),
+    //     };
+    //     Interface(Stack::default(), None, Some(background), mobile, desktop, web)
+    // }
 
-    pub fn desktop(&mut self) -> &mut Option<DesktopInterface> { &mut self.4 }
-    pub fn mobile(&mut self) -> &mut Option<MobileInterface> { &mut self.3 }
+    /// Returns the DesktopInterface if on desktop
+    pub fn desktop(&mut self) -> &mut Option<DesktopInterface> { &mut self.3 }
+    /// Returns the MobileInterface if on mobile
+    pub fn mobile(&mut self) -> &mut Option<MobileInterface> { &mut self.2 }
+    /// Returns the WebInterface if on web
+    pub fn web(&mut self) -> &mut Option<WebInterface> { &mut self.4 }
     // pub fn navigation(&mut self) -> (Option<&mut Option<MobileNavigator>>, Option<&mut Option<DesktopNavigator>>) {
     //     (self.desktop().as_mut().map(|d| &mut d.navigator()), self.mobile().as_mut().map(|m| &mut m.navigator()))
     // }

@@ -16,6 +16,18 @@ use fast_image_resize::images::Image as FirImage;
 use image::GenericImageView;
 use base64::{engine::general_purpose, Engine};
 
+
+/// ## Icon
+///
+/// A square icon component.
+///
+/// ![Icon Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/icon.png)
+///
+/// ### Example
+/// ```rust
+/// let color = ctx.theme.colors.status.warning;
+/// let icon = Icon::new(ctx, "potion", color, 64.0);
+/// ```
 #[derive(Clone, Debug)]
 pub struct Icon;
 impl OnEvent for Icon {}
@@ -27,11 +39,23 @@ impl Icon {
     }
 }
 
-// Rename to AspectRatioImage or something
+/// ## Aspect Ratio Image
+///
+/// Displays an image that scales to fit within the given size
+/// while preserving its aspect ratio.
+///
+/// ![Image Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/image.png)
+///
+/// ### Example
+/// ```rust
+/// let illustration = ctx.theme.brand.illustrations.get("splash_screen");
+/// let image = AspectRatioImage::new(illustration, (64.0, 112.0));
+/// ```
+///
+/// For adding a new image to the illustrtations go here: [`Illustrations`]
 #[derive(Clone, Debug)]
-pub struct Brand;
-impl OnEvent for Brand {}
-impl Brand {
+pub struct AspectRatioImage;
+impl AspectRatioImage {
     #[allow(clippy::new_ret_no_self)]
     pub fn new(image: resources::Image, size: (f32, f32)) -> Image {
         let (w, h) = image.size();
@@ -44,13 +68,22 @@ impl Brand {
     }
 }
 
+/// ## Encoded Image
+///
+/// Encode an RgbaImage or image bytes as [`general_purpose::STANDARD`].
+/// Then, later decode as [`resources::Image`] or [`RgbaImage`].
+///
+/// ### Example
+/// ```rust
+/// let illustration = ctx.theme.brand.illustrations.get("splash_screen");
+/// let image = AspectRatioImage::new(illustration, (64.0, 112.0));
+/// ```
+///
+/// For adding a new image to the illustrtations go here: [`Illustrations`]
 pub struct EncodedImage;
-
 impl EncodedImage {
     pub fn encode(bytes: Vec<u8>, orientation: ImageOrientation) -> Option<String> {
-        println!("{:?}", &bytes);
         if let Ok(dynamic) = image::load_from_memory(&bytes) {
-            println!("GOT DYNAMIC IMAGE FROM BYTES");
             let src_image = orientation.apply_to(image::DynamicImage::ImageRgba8(dynamic.to_rgba8()));
             let (w, h) = src_image.dimensions();
             let s = 256.0 / w.min(h) as f32;
@@ -63,7 +96,6 @@ impl EncodedImage {
             let result_buf = result_buf.into_inner().unwrap(); 
             return Some(general_purpose::STANDARD.encode(&result_buf))
         }
-        println!("Could not load from bytes");
         None
     }
 
