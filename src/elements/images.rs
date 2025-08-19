@@ -21,11 +21,15 @@ use base64::{engine::general_purpose, Engine};
 ///
 /// A square icon component.
 ///
+/// If an Icon is built with an icon name that doesn't exist, it will default to the Pelican UI logo.
+///
+/// To learn how to add new icons to the registration, [`go here`](pelican_ui::IconResources)
+///
 /// ![Icon Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/icon.png)
 ///
 /// ### Example
 /// ```rust
-/// let color = ctx.theme.colors.status.warning;
+/// let color = ctx.theme.colors.shades.white;
 /// let icon = Icon::new(ctx, "potion", color, 64.0);
 /// ```
 #[derive(Clone, Debug)]

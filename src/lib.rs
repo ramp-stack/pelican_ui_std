@@ -1,74 +1,50 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/logo.png")]
 
-//! Pelican UI Standard provides a wide range of components and interface systems for building beautiful, consistently designed applications.
+//! Pelican UI Standard provides a wide range of components, layouts, elements, utilities, and pages for building beautiful, consistently designed applications. You can download the starter template [here](<https://github.com/EllaCouch20/ramp_template>).
 //!
-//! Download the starter template here: <https://github.com/EllaCouch20/ramp_template>
-
-//! ## Components
+//! Checkout the [website](<http://ramp-stack.com/pelican_ui>) for additional information, our [Quick Start Guide](<http://ramp-stack.com/pelican_ui/getting_started>) for setting up your first app, and interact with the [community](<https://discord.gg/cTRaRbUZ>) if you have any questions!
 //!
-//! Components are the main purpose of Pelican UI Standard 
-//! and contains commonly used UI and interface components 
-//! composed from elements and layouts. 
 //!
-//! Every structure implementing the [`Component`](pelican_ui::Component) trait must have its **first element implement [`Layout`](pelican_ui::layout::Layout)**.  
-//! This ensures that the component can correctly manage positioning, sizing, and nested layouts within the UI hierarchy.
+//! At its core, Pelican UI Standard revolves around **components**, which are composed from layouts and elements. Every structure implementing the [`Component`](pelican_ui::Component) trait must meet a few requirements:
+//! - Its first element must implement [`Layout`](pelican_ui::layout::Layout), ensuring correct management of positioning, sizing, and nested layouts.
+//! - It must implement [`OnEvent`](pelican_ui::events::OnEvent) and derive [`Debug`].
 //!
-//! Every structure implementing the [`Component`](pelican_ui::Component) trait must also implement [`OnEvent`](pelican_ui::events::OnEvent).
+//! Components are built from **elements**, the lowest-level primitives such as [`Text`], [`AspectRatioImage`], and [`Circle`], and can use different **layouts** like [`Column`], [`Row`], and [`Stack`] to arrange them.
+//! Components are also often built from combining components.
 //!
-//! Every structure implementing the [`Component`](pelican_ui::Component) trait must also derive [`Debug`].
+//! Pelican UI Standard includes multiple [`Events`](pelican_ui::events::Event) used and triggered by its components, as well as configuration variables for platform detection such as [`IS_MOBILE`] and [`IS_WEB`]. Additional utilities like [`Timestamp`] and [`ElementID`] are also provided.
 //!
-//! ## Example
+//! Beyond individual components, Pelican UI Standard ships with a few ready-to-use **pages** built entirely from its own system, including [`PelicanHome`], [`Error`], and [`Splash`]. These can be used directly or serve as references when creating custom pages.
+//!
+//! ### Example
 //!
 //! ```rust
 //! #[derive(Debug, Component)]
-//! pub struct InfoCard(Column, Text, Text);
-//! impl OnEvent for InfoCard {}
-
-//! impl InfoCard {
-//!     pub fn new(ctx: &mut Context, title: &str, description: &str) -> Self {
+//! pub struct FirstScreen(Stack, Page);
+//! impl OnEvent for FirstScreen {}
+//!
+//! impl AppPage for FirstScreen {
+//!     fn has_nav(&self) -> bool { false }
+//!     fn navigate(self: Box<Self>, _ctx: &mut Context, _index: usize) -> Result<Box<dyn AppPage>, Box<dyn AppPage>> { Err(self) }
+//! }
+//!
+//! impl FirstScreen {
+//!     pub fn new(ctx: &mut Context) -> Self {
+//!         let color = ctx.theme.colors.text.heading;
+//!         let icon = Icon::new(ctx, "pelican_ui", color, 128.0);
+//!
 //!         let font_size = ctx.theme.fonts.size;
-
-//!         InfoCard(
-//!             Column::new(8.0, Offset::Center, Size::Fit, Padding::new(16.0)),
-//!             Text::new(ctx, title, TextStyle::Header, font_size.h3, Align::Left),
-//!             Text::new(ctx, description, TextStyle::Primary, font_size.md, Align::Left)
-//!         )
+//!         let text = Text::new(ctx, "Hello World!", TextStyle::Heading, font_size.h2, Align::Center);
+//!         let subtext = ExpandableText::new(ctx, "First project loaded successfully.", TextStyle::Primary, font_size.md, Align::Center, None);
+//!
+//!         let content = Content::new(ctx, Offset::Center, vec![Box::new(icon), Box::new(text), Box::new(subtext)]);
+//!
+//!         let header = Header::home(ctx, "My Screen", None);
+//!
+//!         FirstScreen(Stack::default(), Page::new(Some(header), content, None))
 //!     }
 //! }
-//! ```
-//!
-//! ## Events
-//!
-//! Pelican UI Standard contains multiple [`Event`](pelican_ui::events::Event)s that
-//! are used/triggered by Pelican UI Standard components.
-//!
-//! ## Config & Utils
-//!
-//! Pelican UI Standard contains configuration variables for detecting if the user is on mobile ([`IS_MOBILE`]) or web ([`IS_WEB`]).
-//!
-//! Pelican UI Standard contains utility structures like [`Timestamp`] and [`ElementID`]
-//!
-//! ## Pages
-//!
-//! Pelican UI Standard contains a couple pages built from its own components. 
-//!
-//! - [`PelicanHome`]
-//! - [`Error`]
-//! - [`Splash`]
-//!
-//! These can be used as is or as examples when building new pages.
-//!
-//! ## Layout
-//!
-//! Every structure implementing the [`Component`](pelican_ui::Component) trait must have its **first element implement [`Layout`](pelican_ui::layout::Layout)**.  
-//! This ensures that the component can correctly manage positioning, sizing, and nested layouts within the UI hierarchy.
-//!
-//! Pelican UI Standard contains multiple layouts such as [`Column`], [`Row`], [`Stack`] and more.
-//!
-//! ## Elements
-//!
-//! Elements are the lowest-level UI primitives, such as [`Text`], [`AspectRatioImage`], [`Circle`], and other  
-//! fundamental building blocks that can be composed into larger components.
+//!```
 //!
 
 mod events;
@@ -176,4 +152,23 @@ How to create a plugin with Ramp
 How to create a messaging app with Ramp
 How to create a bitcoin wallet with Ramp
 How to create a AIR profile with Ramp
+*/
+/*
+// ! ```rust
+// ! #[derive(Debug, Component)]
+// ! pub struct InfoCard(Column, Text, Text);
+// ! impl OnEvent for InfoCard {}
+// !
+// ! impl InfoCard {
+// !     pub fn new(ctx: &mut Context, title: &str, description: &str) -> Self {
+// !         let font_size = ctx.theme.fonts.size;
+// !
+// !         InfoCard(
+// !             Column::new(8.0, Offset::Center, Size::Fit, Padding::new(16.0)),
+// !             Text::new(ctx, title, TextStyle::Header, font_size.h3, Align::Left),
+// !             Text::new(ctx, description, TextStyle::Primary, font_size.md, Align::Left)
+// !         )
+// !     }
+// ! }
+// ! ```\
 */
