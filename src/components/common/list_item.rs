@@ -70,7 +70,7 @@ impl ListItem {
             Padding(0.0, 16.0, 0.0, 16.0)
         );
 
-        ListItem(layout, Rectangle::new(color), content, ButtonState::Default, Box::new(on_click), element_id, false)
+        ListItem(layout, Rectangle::new(color, 0.0), content, ButtonState::Default, Box::new(on_click), element_id, false)
     }
 
     pub fn title(&mut self) -> &mut TitleRow {self.2.data().left().title()}

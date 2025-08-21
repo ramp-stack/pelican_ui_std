@@ -4,19 +4,30 @@ use pelican_ui::drawable::{Drawable, Component, Shape, Color, Align, Span, Curso
 use pelican_ui::drawable::Text as BasicText;
 use pelican_ui::{Context, Component, resources};
 
-use crate::layout::{Stack, Offset, Size, Padding, Opt, Row};
+use crate::layout::{Stack, Offset, Size, Padding, Opt, Row, Column};
 use crate::elements::shapes::{Rectangle, Circle};
 
+/// # Text Style
+///
+/// Represents the different text styles supported by Pelican UI.
 #[derive(Clone, Copy, Debug)]
 pub enum TextStyle {
+    /// Text style for large text, titles, and headings.
     Heading,
+    /// Text style for standard primary text.
     Primary,
+    /// Text style for less prominent text, like subtitles or hints.
     Secondary,
+    /// Text style to indicate errors or warnings.
     Error,
+    /// Text style for active text inputs.
     White,
+    /// Text style for keyboard keys.
     Keyboard,
+    /// Text style for button labels with a specified colors.
     Label(Color),
 }
+
 
 impl TextStyle {
     pub fn get(&self, ctx: &mut Context) -> (Color, resources::Font) {
@@ -51,6 +62,34 @@ impl Text {
 
     pub fn text(&mut self) -> &mut BasicText { &mut self.1 }
 }
+
+/// # Expandable Text
+///
+/// A text component that expands to take as much horizontal space as possible,  
+/// enabling automatic line wrapping and custom text alignment.  
+/// Unlike [`Text`], which only sizes to fit its content.
+///
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/expandable_text.png"
+///      alt="Expandable Text Example"
+///      width="400">
+///
+/// ## Example
+/// ```rust
+/// let text = "Greyhounds are gentle, affectionate dogs that love to run.
+/// They are known for their incredible speed and calm temperament,
+/// making them excellent companions.";
+///
+/// let text_size = ctx.theme.fonts.size.md;
+///
+/// let expandable = ExpandableText::new(
+///     ctx,
+///     text,
+///     TextStyle::Primary,
+///     text_size,
+///     Align::Start,
+///     Some(3), // limit to 3 lines before truncation
+/// );
+/// ```
 
 #[derive(Debug)]
 pub struct ExpandableText(pub Text);
@@ -167,7 +206,7 @@ impl TextCursor {
         let (color, _) = style.get(ctx);
         TextCursor(
             Stack(Offset::Start, Offset::End, Size::Static(2.0), Size::Static(size), Padding::default()), 
-            Opt::new(Rectangle::new(color), false)
+            Opt::new(Rectangle::new(color, 0.0), false)
         )
     }
 
@@ -175,19 +214,49 @@ impl TextCursor {
     pub fn y_offset(&mut self) -> &mut Offset { &mut self.0.1 }
 }
 
+/// # Bulleted Text
+///
+/// A component for rendering lists with bullet points.
+///
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/bulleted_text.png"
+///      alt="Bulleted Text Example"
+///      width="400">
+///
+/// ## Example
+///```rust
+/// let text_size = ctx.theme.fonts.size.md;
+/// let items = vec!["Feed the chairs at midnight.", "Borrow a broom from the moon.", "Vacuum the car inside out.", "Hide the clock beneath the carpet."];
+/// let list = BulletedText::new(ctx, items, TextStyle::Primary, text_size);
+///```
 #[derive(Debug, Component)]
-pub struct BulletedText(Row, Shape, ExpandableText);
+pub struct BulletedText(Column, Vec<BulletedTextContent>);
 
 impl OnEvent for BulletedText {}
 
 impl BulletedText {
-    pub fn new(ctx: &mut Context, text: &str, style: TextStyle, size: f32, align: Align) -> Self {
-        let (color, _) = style.get(ctx);
-        BulletedText(
+    pub fn new(ctx: &mut Context, text: Vec<&str>, style: TextStyle, size: f32) -> Self {
+        let color = style.get(ctx).0;
+
+        let items = text.into_iter().map(|t| BulletedTextContent::new(ctx, t, color, style, size)).collect();
+        
+
+        BulletedText(Column::center(8.0), items)
+    }
+}
+
+#[derive(Debug, Component)]
+
+struct BulletedTextContent(Row, Shape, ExpandableText);
+impl OnEvent for BulletedTextContent {}
+
+impl BulletedTextContent {
+    fn new(ctx: &mut Context, text: &str, color: Color, style: TextStyle, size: f32) -> Self {
+        BulletedTextContent(
             Row::new(size*0.75, Offset::Center, Size::Fit, Padding::default()), // change this offset to be line_height - circle size / 2
             Circle::new(size*0.2, color),
-            ExpandableText::new(ctx, text, style, size, align, None)
+            ExpandableText::new(ctx, text, style, size, Align::Left, None)
         )
     }
-    pub fn text(&mut self) -> &mut BasicText { self.2.text() }
+
+    // fn text(&mut self) -> &mut BasicText { self.2.text() }
 }

@@ -27,7 +27,7 @@ impl MobileInterface {
         let pages = navigation.as_mut().map(|nav| nav.1.iter_mut().map(|n| n.3.take().unwrap()).collect::<Vec<_>>());
         let navigator = navigation.map(|n| Opt::new(MobileNavigator::new(ctx, n), true));
         let insets = ctx.hardware.safe_area_insets();
-        let inset = |h: f32| Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(h), Padding::default()), Rectangle::new(background));
+        let inset = |h: f32| Bin(Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(h), Padding::default()), Rectangle::new(background, 0.0));
         MobileInterface(
             Column::new(0.0, Offset::Center, Size::Fit, Padding::default()), 
             inset(insets.0),
@@ -87,7 +87,7 @@ impl MobileNavigator {
 
         MobileNavigator(
             Stack(Offset::Center, Offset::Start, width, height, Padding::default()), 
-            Rectangle::new(background),
+            Rectangle::new(background, 0.0),
             MobileNavigatorContent::new(ctx, navigation)
         )
     }

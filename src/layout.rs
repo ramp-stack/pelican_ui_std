@@ -38,14 +38,30 @@ impl Offset {
 type CustomFunc = dyn Fn(Vec<(f32, f32)>) -> (f32, f32);
 type FitFunc = fn(Vec<(f32, f32)>) -> (f32, f32);
 
+/// Enum specifying how a layout should size and resize its content.
 #[derive(Default)]
 pub enum Size {
     #[default]
+    /// Layout automatically fits the size of its children.
     Fit,
+    /// Layout fills the available space but remains between the specified minimum and maximum.
+    /// 
+    /// # Parameters
+    /// - `min` (`f32`): Minimum size.
+    /// - `max` (`f32`): Maximum size.
     Fill(f32, f32),
+    /// Layout uses a fixed, static size.
+    ///
+    /// # Parameters
+    /// - `size` (`f32`): The exact size to use.
     Static(f32),
+    /// Layout size is determined by a custom function.
+    ///
+    /// # Parameters
+    /// - `func` (`Box<CustomFunc>`): Function that returns the desired size based on available space.
     Custom(Box<CustomFunc>),
 }
+
 
 impl Size {
     pub fn fill() -> Self {Size::Fill(0.0, f32::MAX)}
@@ -83,6 +99,9 @@ impl std::fmt::Debug for Size {
 }
 
 /// Structure used to define top, left, bottom, and right padding of an UI element.
+///```rust
+/// let padding = Padding(24.0, 16.0, 24.0, 16.0);
+///```
 #[derive(Clone, Debug, Default)]
 pub struct Padding(pub f32, pub f32, pub f32, pub f32);
 
@@ -168,6 +187,10 @@ impl UniformExpand {
 /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/row.png"
 ///      alt="Row Example"
 ///      width="250">
+///
+///```rust
+/// let layout = Row::new(24.0, Offset::Center, Size::Fit, Padding::new(8.0));
+///```
 #[derive(Debug)]
 pub struct Row(f32, Offset, Size, Padding);
 
@@ -212,6 +235,10 @@ impl Layout for Row {
 /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/column.png"
 ///      alt="Column Example"
 ///      width="250">
+///
+///```rust
+/// let layout = Column::new(24.0, Offset::Center, Size::Fit, Padding::new(8.0));
+///```
 #[derive(Debug)]
 pub struct Column(f32, Offset, Size, Padding);
 
@@ -258,6 +285,10 @@ impl Layout for Column {
 /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/stack.png"
 ///      alt="Stack Example"
 ///      width="250">
+///
+///```rust
+/// let layout = Stack(Offset::Center, Offset::Center, Size::Fit, Size::Fit, Padding::new(8.0));
+///```
 #[derive(Debug, Default)]
 pub struct Stack(pub Offset, pub Offset, pub Size, pub Size, pub Padding);
 
@@ -291,7 +322,15 @@ impl Layout for Stack {
     }
 }
 
-/// Horizontal layout that automatically wraps items to the next row when the maximum width is exceeded
+/// Horizontal layout that automatically wraps items to the next row when the maximum width is exceeded.
+///
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/wrap.png"
+///      alt="Wrap Example"
+///      width="350">
+///
+///```rust
+/// let layout = Wrap::new(8.0, 8.0);
+///```
 #[derive(Debug)]
 pub struct Wrap(pub f32, pub f32, pub Offset, pub Offset, pub Padding, Arc<Mutex<f32>>);
 

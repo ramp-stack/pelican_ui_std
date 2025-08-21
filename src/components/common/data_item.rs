@@ -131,7 +131,7 @@ impl Tabular {
             Text::new(ctx, name, TextStyle::Primary, font_size, Align::Left),
             Bin(
                 Stack(Offset::Center, Offset::Center, Size::Fit, Size::Static(1.0), Padding::default()),
-                Rectangle::new(color),
+                Rectangle::new(color, 0.0),
             ),
             Text::new(ctx, data, TextStyle::Primary, font_size, Align::Left),
         )

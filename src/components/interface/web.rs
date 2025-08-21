@@ -98,7 +98,7 @@ impl WebNavigator {
             AspectRatioImage::new(wordmark, (150.0, 35.0)),
             Bin (
                 Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(5.0), Padding::default()), 
-                Rectangle::new(color)
+                Rectangle::new(color, 0.0)
             ),
             ButtonRow::new(buttons)
         )
@@ -180,7 +180,7 @@ impl WebFooter {
             Row::new(32.0, Offset::Center, Size::Fit, Padding::new(48.0)),
             Bin (
                 Stack(Offset::Center, Offset::Center, Size::fill(), Size::Static(5.0), Padding::default()), 
-                Rectangle::new(transparent)
+                Rectangle::new(transparent, 0.0)
             ),
             ButtonRow::new(buttons)
         )

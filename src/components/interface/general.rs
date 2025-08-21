@@ -53,7 +53,7 @@ impl Interface {
             false => (None, Some(DesktopInterface::new(ctx, start_page, navigation)), None),
         };
 
-        Interface(Stack::default(), Some(Rectangle::new(color)), mobile, desktop, web)
+        Interface(Stack::default(), Some(Rectangle::new(color, 0.0)), mobile, desktop, web)
     }
 
     // //move background to pages
@@ -379,7 +379,7 @@ impl Bumper {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(max), max));
         let height = Size::custom(move |heights: Vec<(f32, f32)>|(heights[1].0, heights[1].1));
         let layout = Stack(Offset::Center, Offset::Start, width, height, Padding::default());
-        Bumper(layout, Rectangle::new(background), BumperContent::new(content))
+        Bumper(layout, Rectangle::new(background, 0.0), BumperContent::new(content))
     }
 
     /// Creates a `Bumper` from two buttons.

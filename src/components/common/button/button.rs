@@ -416,8 +416,9 @@ impl Button {
 /// A wrapped group of quick action buttons.
 ///
 /// # Example
-///
-/// ![Quick Actions Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/quick_actions.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/quick_actions.png"
+///      alt="Quick Action Example"
+///      width="400">
 ///
 /// ```rust
 /// let button1 = Button::secondary(ctx, Some("qr_code"), "Scan QR Code", None, |ctx: &mut Context| println!("Save clicked"));

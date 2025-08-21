@@ -21,7 +21,7 @@ impl MobileKeyboard {
         let height = Size::custom(|heights: Vec<(f32, f32)>| heights[1]);
         MobileKeyboard(
             Stack(Offset::Start, Offset::Start, Size::Fill(200.0, f32::MAX), height, Padding::default()), 
-            Rectangle::new(ctx.theme.colors.background.secondary),
+            Rectangle::new(ctx.theme.colors.background.secondary, 0.0),
             KeyboardContent::new(ctx, actions)
         )
     }
@@ -37,7 +37,7 @@ impl KeyboardHeader {
         KeyboardHeader(
             Column::new(0.0, Offset::Start, Size::Fit, Padding::default()),
             KeyboardIcons::new(ctx, actions),
-            Bin(layout, Rectangle::new(ctx.theme.colors.outline.secondary))
+            Bin(layout, Rectangle::new(ctx.theme.colors.outline.secondary, 0.0))
         )
     }
 }
@@ -65,7 +65,7 @@ impl KeyboardIcons {
             icons.then(|| KeyboardActions(Stack::default(), actions)),
             Bin (
                 Stack(Offset::Center, Offset::Center, Size::Fill(1.0, f32::MAX), Size::Static(1.0),  Padding::default()), 
-                Rectangle::new(color)
+                Rectangle::new(color, 0.0)
             ),
             IconButton::keyboard(ctx, "down_arrow", |ctx: &mut Context| ctx.trigger_event(KeyboardActiveEvent(None))),
             receiver

@@ -5,6 +5,26 @@ use pelican_ui::{Context, Component};
 
 use crate::layout::Stack;
 
+/// # Outlined Rectangle
+///
+/// A rectangle component with a customizable background and outline.  
+/// The rectangle supports rounded corners and adjustable stroke thickness.
+///
+/// Rectangles will always expand in all directions, so wrap them in a [`Bin`]
+/// with a [`Stack`] layout to specify a size.
+///
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/outlined_rectangle.png"
+///      alt="Outlined Rectangle Example"
+///      width="400">
+///
+/// ## Example
+/// ```rust
+/// let background = ctx.theme.colors.brand.primary;
+/// let outline = ctx.theme.colors.outline.primary;
+/// let rect = OutlinedRectangle::new(backround, outline, 8.0, 8.0);
+/// let layout = Stack(Offset::Center, Offset::Center, Size::Static(100.0), Size::Static(100.0), Padding::default());
+/// let shape = Bin(layout, rect);
+/// ```
 #[derive(Debug, Component)]
 pub struct OutlinedRectangle(Stack, RoundedRectangle, RoundedRectangle);
 
@@ -24,6 +44,25 @@ impl OutlinedRectangle {
     pub fn size(&self) -> (f32, f32) {self.2.0.shape.size()}
 }
 
+/// # Roundend Rectangle
+///
+/// A rectangle component with a customizable color, radius and stroke thickness.  
+/// Setting the stroke thickness to `0.0` creates a fully filled shape; any other value draws only the outline.
+///
+/// Rectangles will always expand in all directions, so wrap them in a [`Bin`]
+/// with a [`Stack`] layout to specify a size.
+///
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/rounded_rectangle.png"
+///      alt="Rounded Rectangle Example"
+///      width="400">
+///
+/// ## Example
+/// ```rust
+/// let background = ctx.theme.colors.brand.primary;
+/// let rect = RoundedRectangle::new(0.0, 8.0, background);
+/// let layout = Stack(Offset::Center, Offset::Center, Size::Static(100.0), Size::Static(100.0), Padding::default());
+/// let shape = Bin(layout, rect);
+/// ```
 #[derive(Debug)]
 pub struct RoundedRectangle(Shape);
 
@@ -49,12 +88,31 @@ impl Component for RoundedRectangle {
     }
 }
 
+/// # Rectangle
+///
+/// A rectangle component with a customizable color and stroke thickness.  
+/// Setting the stroke thickness to `0.0` creates a fully filled shape; any other value draws only the outline.
+///
+/// Rectangles will always expand in all directions, so wrap them in a [`Bin`]
+/// with a [`Stack`] layout to specify a size.
+///
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/rectangle.png"
+///      alt="Rectangle Example"
+///      width="400">
+///
+/// ## Example
+/// ```rust
+/// let background = ctx.theme.colors.brand.primary;
+/// let rect = Rectangle::new(background, 0.0);
+/// let layout = Stack(Offset::Center, Offset::Center, Size::Static(100.0), Size::Static(100.0), Padding::default());
+/// let shape = Bin(layout, rect);
+/// ```
 #[derive(Debug)]
 pub struct Rectangle(Shape);
 
 impl Rectangle {
-    pub fn new(color: Color) -> Self {
-        Rectangle(Shape { shape: ShapeType::Rectangle(0.0, (0.0, 0.0), 0.0), color })
+    pub fn new(color: Color, stroke: f32) -> Self {
+        Rectangle(Shape { shape: ShapeType::Rectangle(stroke, (0.0, 0.0), 0.0), color })
     }
 
     pub fn shape(&mut self) -> &mut Shape { &mut self.0 }
@@ -75,15 +133,42 @@ impl Component for Rectangle {
     }
 }
 
-
+/// # Outline
+///
+/// Creates an outlined shape with a specified size and color.
+///
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/outline.png"
+///      alt="Outline Example"
+///      width="400">
+///
+/// ## Example
+/// ```rust
+/// let color = ctx.theme.colors.outline.primary;
+/// let outline = Outline::circle(100.0, color);
+/// ```
 pub struct Outline;
 
 impl Outline {
+    /// Returns a circle shape with an outline.
+    /// The stroke thickness is proportional to the size (`s * 0.06`).
     pub fn circle(s: f32, color: Color) -> Shape {
         Shape { shape: ShapeType::Ellipse(s * 0.06, (s, s), 0.0), color }
     }
 }
 
+/// # Circle
+///
+/// Creates a filled circle shape with a specified size and color.
+///
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/circle.png"
+///      alt="Circle Example"
+///      width="400">  
+///
+/// ## Example
+/// ```rust
+/// let color = ctx.theme.colors.brand.primary;
+/// let circle = Circle::new(100.0, color); 
+/// ```
 pub struct Circle;
 
 impl Circle {
