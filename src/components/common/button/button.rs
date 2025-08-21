@@ -198,7 +198,9 @@ impl ButtonIcon {
 impl Button {
     /// ## Primary Button
     ///
-    /// ![Primary Button Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/primary_buttons.png)
+    /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/primary_buttons.png"
+    ///      alt="Primary Button Example"
+    ///      width="250">
     ///
     /// ### Example
     /// ```rust
@@ -227,7 +229,9 @@ impl Button {
 
     /// ## Secondary Button
     ///
-    /// ![Secondary Button Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/secondary_buttons.png)
+    /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/secondary_buttons.png"
+    ///      alt="Secondary Button Example"
+    ///      width="250">
     ///
     /// ### Example
     /// ```rust
@@ -259,7 +263,9 @@ impl Button {
 
     /// ## Ghost Button
     ///
-    /// ![Ghost Button Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/ghost_buttons.png)
+    /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/ghost_buttons.png"
+    ///      alt="Ghost Button Example"
+    ///      width="250">
     ///
     /// ### Example
     /// ```rust

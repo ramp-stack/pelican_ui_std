@@ -103,7 +103,9 @@ impl std::fmt::Debug for IconButtonContent {
 impl IconButton {
     /// ## Secondary Icon Button
     ///
-    /// ![Secondary Icon Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/secondary_icons.png)
+    /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/secondary_icons.png"
+    ///      alt="Secondary Icon Example"
+    ///      width="250">
     ///
     /// ### Example
     /// ```rust
@@ -127,7 +129,9 @@ impl IconButton {
 
     /// ## Secondary Icon Button
     ///
-    /// ![Secondary Icon Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/ghost_icons.png)
+    /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/ghost_icons.png"
+    ///      alt="Ghost Icons Example"
+    ///      width="250">
     ///
     /// ### Example
     /// ```rust

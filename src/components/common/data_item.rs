@@ -11,7 +11,9 @@ use crate::layout::{Column, Bin, Row, Stack, Padding, Offset, Size};
 ///
 /// A component for presenting information in a clear, structured format.
 ///  
-/// ![Data Item Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/data_item.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/data_item.png"
+///      alt="Data Item Example"
+///      width="400">
 ///
 /// ### Example
 /// ```rust

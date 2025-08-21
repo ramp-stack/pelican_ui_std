@@ -15,7 +15,9 @@ use std::sync::mpsc::{self, Receiver};
 ///
 /// A text input field with optional label, placeholder, help text, and an icon button.  
 ///
-/// ![Text Input Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/text_input.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/text_input.png"
+///      alt="Text Input Example"
+///      width="400">
 ///
 /// ### Example
 /// ```rust

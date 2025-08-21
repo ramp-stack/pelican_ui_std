@@ -164,6 +164,10 @@ impl UniformExpand {
 }
 
 /// Horizontal layout of items.
+///
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/row.png"
+///      alt="Row Example"
+///      width="250">
 #[derive(Debug)]
 pub struct Row(f32, Offset, Size, Padding);
 
@@ -204,6 +208,10 @@ impl Layout for Row {
 }
 
 /// Vertical layout of items.
+///
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/column.png"
+///      alt="Column Example"
+///      width="250">
 #[derive(Debug)]
 pub struct Column(f32, Offset, Size, Padding);
 
@@ -246,6 +254,10 @@ impl Layout for Column {
 }
 
 /// Items stacked on top of each other
+///
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/stack.png"
+///      alt="Stack Example"
+///      width="250">
 #[derive(Debug, Default)]
 pub struct Stack(pub Offset, pub Offset, pub Size, pub Size, pub Padding);
 

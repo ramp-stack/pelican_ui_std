@@ -15,7 +15,9 @@ use crate::utils::ElementID;
 /// Supports a title, optional flair (badge), subtitle, description, right-aligned  
 /// content, radio buttons, and avatar/circle icons.  
 ///
-/// ![List Item Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/list_item.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/list_item.png"
+///      alt="List Item Example"
+///      width="400">
 ///
 /// ### Example
 /// ```rust
@@ -286,7 +288,9 @@ impl ListItem {
 /// The second item is always present but unselected.  
 /// The third and fourth items are optional, and if provided, will also be unselected.
 ///
-/// ![Selector Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/selector.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/selector.png"
+///      alt="Selector Example"
+///      width="400">
 ///
 /// # Example
 /// ```rust
@@ -338,7 +342,9 @@ impl ListItemSelector {
 /// # List Item Group
 /// A group of [`ListItem`]s arranged in a vertical [`Column`].
 ///
-/// ![List Group Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/li_group.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/li_group.png"
+///      alt="List Group Example"
+///      width="400">
 ///
 /// # Example
 ///

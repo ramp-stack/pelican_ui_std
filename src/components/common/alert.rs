@@ -10,7 +10,9 @@ use crate::layout::{Offset, Padding, Row, Size};
 ///
 /// Displays a warning message with an icon.  
 ///  
-/// ![Alert Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/alert.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/alert.png"
+///      alt="Alert Example"
+///      width="400">
 ///
 /// ### Example
 /// ```rust

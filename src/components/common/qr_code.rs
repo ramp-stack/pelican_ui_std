@@ -15,7 +15,9 @@ use qrcode::{QrCode, EcLevel};
 ///
 /// Renders a scannable QR code with a centered brand/logo overlay.
 ///
-/// ![QR Code Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/qr_code.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/qr_code.png"
+///      alt="QR Code Example"
+///      width="400">
 ///
 /// ### Example
 /// ```rust

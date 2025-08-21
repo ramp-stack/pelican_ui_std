@@ -88,7 +88,10 @@ impl Interface {
 ///
 /// A Page is a UI container that holds optional [`Header`], [`Content`], and optional [`Bumper`] components.
 ///
-/// ![Page Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/page.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/page.png"
+///      alt="Page Example"
+///      width="250">
+
 #[derive(Debug, Component)]
 pub struct Page(Column, Option<Header>, Content, Option<Bumper>);
 impl OnEvent for Page {}
@@ -120,8 +123,10 @@ impl Page {
 /// Contents are vertical scrollables and can contain unlimited children.
 /// Content components can only be used inside [`Page`] components.
 ///
-/// ![Content Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/content.png)
-/// 
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/content.png"
+///      alt="Content Example"
+///      width="250">
+///
 /// ```rust
 /// let text_size = ctx.theme.fonts.size.lg;
 /// let text = Text::new(ctx, "Set up a name, description, and team before starting your project.", TextStyle::Primary, text_size, Align::Center);
@@ -226,7 +231,9 @@ impl ContentChildren {
 /// search, or action buttons, helping users understand where 
 /// they are and what they can do.
 ///
-/// ![Header Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/header.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/header.png"
+///      alt="Header Example"
+///      width="250">
 ///
 /// Header components can only be used inside [`Page`] components.
 #[derive(Debug, Component)]
@@ -351,7 +358,9 @@ impl HeaderIcon {
 ///
 /// Bumper components can only be used inside [`Page`] components.
 ///
-/// ![Bumper Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/bumper.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/bumper.png"
+///      alt="Bumper Example"
+///      width="450">
 ///
 ///```rust
 /// let button = Button::primary(ctx, "Continue");

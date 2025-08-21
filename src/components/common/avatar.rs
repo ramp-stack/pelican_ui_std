@@ -11,7 +11,9 @@ use crate::utils::Callback;
 ///
 /// Displays a user avatar.  
 ///  
-/// ![Avatar Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/avatar.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/avatar.png"
+///      alt="Avatar Example"
+///      width="400">
 ///
 /// ### Example
 /// ```rust
