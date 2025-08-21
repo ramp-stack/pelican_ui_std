@@ -84,11 +84,17 @@ impl Interface {
     // }
 }  
 
+/// # Page
+///
+/// A Page is a UI container that holds optional [`Header`], [`Content`], and optional [`Bumper`] components.
+///
+/// ![Page Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/page.png)
 #[derive(Debug, Component)]
 pub struct Page(Column, Option<Header>, Content, Option<Bumper>);
 impl OnEvent for Page {}
 
 impl Page {
+    /// Creates a new [`Page`] from an optional [`Header`], [`Content`], and optional [`Bumper`]
     pub fn new(header: Option<Header>, content: Content, bumper: Option<Bumper>) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         Page(
@@ -99,15 +105,33 @@ impl Page {
         )
     }
 
+    /// Returns the header if it exists.
     pub fn header(&mut self) -> &mut Option<Header> {&mut self.1}
+    /// Returns the content.
     pub fn content(&mut self) -> &mut Content {&mut self.2}
+    /// Returns the bumper if it exists.
     pub fn bumper(&mut self) -> &mut Option<Bumper> {&mut self.3}
 }
 
+/// # Content
+///
+/// The main portion of a page, placed between an optional [`Header`] and an optional [`Bumper`]
+/// 
+/// Contents are vertical scrollables and can contain unlimited children.
+/// Content components can only be used inside [`Page`] components.
+///
+/// ![Content Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/content.png)
+/// 
+/// ```rust
+/// let text_size = ctx.theme.fonts.size.lg;
+/// let text = Text::new(ctx, "Set up a name, description, and team before starting your project.", TextStyle::Primary, text_size, Align::Center);
+/// let content = Content::new(ctx, Offset::Center, vec![Box::new(text)]);
+/// ```
 #[derive(Debug, Component)]
 pub struct Content (Scroll, ContentChildren);
 
 impl Content {
+    /// Creates a new `Content` component with a specified `Offset` (start, center, or end) and a list of `Box<dyn Drawable>` children.
     pub fn new(ctx: &mut Context, offset: Offset, content: Vec<Box<dyn Drawable>>) -> Self {
         let max = ctx.theme.layout.content_max;
         let padding = ctx.theme.layout.content_padding;
@@ -120,14 +144,29 @@ impl Content {
         Content(layout, ContentChildren::new(content, padding)) 
     }
 
+    /// Find an item in the content. Will return the first instance of the type.
+    ///
+    /// ```rust
+    /// let text = content.find::<Text>().expect("Could not find text in content");
+    /// ```
     pub fn find<T: std::any::Any>(&mut self) -> Option<&mut T> {
         self.items().iter_mut().find_map(|item| item.as_any_mut().downcast_mut::<T>())
     }
 
+    /// Find an item in the bumper at a specific index.
+    ///
+    /// ```rust
+    /// let text_input = content.find_at::<TextInput>(0).expect("Could not find text input at first index in content");
+    /// ```
     pub fn find_at<T: std::any::Any>(&mut self, i: usize) -> Option<&mut T> {
         self.items().get_mut(i)?.as_any_mut().downcast_mut::<T>()
     }
 
+    /// Remove an item from the content. Will remove the first instance of the type.
+    ///
+    /// ```rust
+    /// let text = content.remove::<Text>().expect("Could not remove text from content");
+    /// ```
     pub fn remove<T: std::any::Any>(&mut self) -> Option<T> {
         if let Some(pos) = self.items().iter().position(|item| item.as_any().is::<T>()) {
             let boxed = self.items().remove(pos);
@@ -137,8 +176,9 @@ impl Content {
         }
     }
 
-
+    /// Returns all the items in the content
     pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {&mut self.1.1}
+    /// Returns the offset of the items.
     pub fn offset(&mut self) -> &mut Offset {self.0.offset()}
 }
 
@@ -179,11 +219,22 @@ impl ContentChildren {
     }
 }
 
+/// # Header
+///
+/// The top section of a page that displays the page title 
+/// and may include supporting elements like navigation, 
+/// search, or action buttons, helping users understand where 
+/// they are and what they can do.
+///
+/// ![Header Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/header.png)
+///
+/// Header components can only be used inside [`Page`] components.
 #[derive(Debug, Component)]
 pub struct Header(Row, HeaderIcon, HeaderContent, HeaderIcon);
 impl OnEvent for Header {}
 
 impl Header {
+    /// Creates `Header` a new  component from a left and right [`HeaderIcon`] and a centered [`HeaderContent`].
     pub fn new(left: HeaderIcon, content: HeaderContent, right: HeaderIcon) -> Self {
         Header(
             Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
@@ -191,6 +242,11 @@ impl Header {
         )
     }
 
+    /// A `Header` preset used for home pages.
+    ///
+    /// ```rust
+    /// let header = Header::home(ctx, "My Account", None);
+    /// ```
     pub fn home(ctx: &mut Context, title: &str, icon: Option<IconButton>) -> Self {
         Header(
             Row::new(16.0, Offset::Center, Size::Fit, Padding(24.0, 16.0, 24.0, 16.0)),
@@ -200,6 +256,12 @@ impl Header {
         )
     }
 
+    /// A `Header` preset used for in-flow pages.
+    ///
+    /// ```rust
+    /// let back = IconButton::navigation(ctx, "left", |ctx: &mut Context| println!("Go Back!"));
+    /// let header = Header::stack(ctx, Some(back), "Select role", None);
+    /// ```
     pub fn stack(
         ctx: &mut Context, 
         left: Option<IconButton>, 
@@ -217,19 +279,28 @@ impl Header {
     pub fn content(&mut self) -> &mut HeaderContent {&mut self.2}
 }
 
+/// # Header Content
+///
+/// Middle portion of a header containing a column of the important
+/// content like Text and an optionally a [`Box<dyn Drawable>`].
+/// 
+/// This is only to be used inside [`Header`] component.
 #[derive(Debug, Component)]
-pub struct HeaderContent(Column, Option<AvatarRow>, Text);
+pub struct HeaderContent(Column, Option<Box<dyn Drawable>>, Text);
 impl OnEvent for HeaderContent {}
 
 impl HeaderContent {
-    pub fn new(avatar_row: Option<AvatarRow>, text: Text) -> Self {
+    /// Creates a new [`HeaderContent`] from an optional [`Box<dyn Drawable>`] and
+    /// [`Text`] component.
+    pub fn new(content: Option<Box<dyn Drawable>>, text: Text) -> Self {
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
         HeaderContent(
             Column::new(10.0, Offset::Center, width, Padding::default()), 
-            avatar_row, text
+            content, text
         )
     }
 
+    /// HeaderContent preset containing only H3 text.
     pub fn home(ctx: &mut Context, title: &str) -> Self {
         let text_size = ctx.theme.fonts.size.h3;
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
@@ -240,6 +311,7 @@ impl HeaderContent {
         )
     }
 
+    /// HeaderContent preset containing only H4 text.
     pub fn stack(ctx: &mut Context, title: &str) -> Self {
         let text_size = ctx.theme.fonts.size.h4;
         let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0, f32::MAX));
@@ -250,9 +322,14 @@ impl HeaderContent {
         )
     }
 
-    pub fn avatars(&mut self) -> &mut Option<AvatarRow> {&mut self.1}
+    /// Returns the content of the `HeaderContent`
+    pub fn content(&mut self) -> &mut Option<Box<dyn Drawable>> {&mut self.1}
 }
 
+/// # Header Icon
+/// 
+/// Optionally contains an icon, otherwise just reserves the space.
+/// These are only to be used in [`Header`] components.
 #[derive(Debug, Component)]
 pub struct HeaderIcon(Stack, Option<IconButton>);
 impl OnEvent for HeaderIcon {}
@@ -266,11 +343,26 @@ impl HeaderIcon {
     }
 }
 
+/// # Bumper
+///
+/// A fixed container at the bottom of the screen, 
+/// usually holding key actions like buttons or text inputs, 
+/// ensuring important interactions stay accessible without scrolling.
+///
+/// Bumper components can only be used inside [`Page`] components.
+///
+/// ![Bumper Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/bumper.png)
+///
+///```rust
+/// let button = Button::primary(ctx, "Continue");
+/// let bumper = Bumper::single_button(ctx, button);
+///```
 #[derive(Debug, Component)]
 pub struct Bumper (Stack, Rectangle, BumperContent);
 impl OnEvent for Bumper {}
 
 impl Bumper {
+    /// Creates a new `Bumper` from a vector of boxed [`Drawables`](Drawable)
     pub fn new(ctx: &mut Context, content: Vec<Box<dyn Drawable>>) -> Self {
         let background = ctx.theme.colors.background.primary;
         let max = ctx.theme.layout.bumper_max;
@@ -281,26 +373,40 @@ impl Bumper {
         Bumper(layout, Rectangle::new(background), BumperContent::new(content))
     }
 
+    /// Creates a `Bumper` from two buttons.
     pub fn double_button(ctx: &mut Context, a: Button, b: Button) -> Self {
         Self::new(ctx, vec![Box::new(a), Box::new(b)])
     }
 
+    /// Creates a `Bumper` from a single button.
     pub fn single_button(ctx: &mut Context, a: Button) -> Self {
         Self::new(ctx, vec![Box::new(a)])
     }
 
+    /// Creates a `Bumper` from a text input.
     pub fn input(ctx: &mut Context, input: TextInput) -> Self {
         Self::new(ctx, vec![Box::new(input)])
     }
 
+    /// Returns the items in the `Bumper`.
     pub fn items(&mut self) -> &mut Vec<Box<dyn Drawable>> {
         &mut self.2.1
     }
 
+    /// Find an item in the bumper. Will return the first instance of the type.
+    ///
+    /// ```rust
+    /// let button = bumper.find::<Button>().expect("Could not find button in bumper");
+    /// ```
     pub fn find<T: std::any::Any>(&mut self) -> Option<&mut T> {
         self.items().iter_mut().find_map(|item| item.as_any_mut().downcast_mut::<T>())
     }
 
+    /// Find an item in the bumper at a specific index.
+    ///
+    /// ```rust
+    /// let button = bumper.find_at::<Button>(0).expect("Could not find button at the first index in the bumper");
+    /// ```
     pub fn find_at<T: std::any::Any>(&mut self, i: usize) -> Option<&mut T> {
         self.items().get_mut(i)?.as_any_mut().downcast_mut::<T>()
     }
@@ -317,45 +423,27 @@ impl BumperContent {
 
 impl OnEvent for BumperContent {}
 
+/// Button wrapper used for navigators.
 #[derive(Debug, Component)]
 pub struct NavigationButton(Stack, Option<Button>, Option<IconButton>, #[skip] ElementID);
-
 impl OnEvent for NavigationButton {}
-
 impl NavigationButton {
     pub fn new(id: ElementID, button: Option<Button>, icon_button: Option<IconButton>) -> Self {
         NavigationButton(Stack::default(), button, icon_button, id)
     }
 
+    /// Returns the id of the `NavigationButton`
     pub fn id(&self) -> ElementID {
         self.3
     }
 
+    /// Returns the inner `Button` component if it exists.
     pub fn button(&mut self) -> &mut Option<Button> {
         &mut self.1
     }
 
+    /// Returns the inner `IconButton` component if it exists.
     pub fn icon_button(&mut self) -> &mut Option<IconButton> {
         &mut self.2
     }
-}
-
-#[derive(Debug, Component)]
-pub struct AvatarRow(Row, Vec<Avatar>);
-
-impl OnEvent for AvatarRow {}
-
-impl AvatarRow {
-    pub fn new(ctx: &mut Context, avatars: Vec<AvatarContent>) -> Self {
-        AvatarRow(
-            Row::center(-16.0),
-            avatars.into_iter().take(5).map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0, None)).collect()
-        )
-    }
-
-    pub fn update(&mut self, ctx: &mut Context, avatars: Vec<AvatarContent>) {
-        self.1 = avatars.into_iter().take(5).map(|avatar| Avatar::new(ctx, avatar, None, true, 32.0, None)).collect()
-    }
-
-    pub fn count(&mut self) -> usize {self.1.len()}
 }

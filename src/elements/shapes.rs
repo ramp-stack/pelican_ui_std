@@ -30,7 +30,7 @@ pub struct RoundedRectangle(Shape);
 impl RoundedRectangle {
     pub fn shape(&mut self) -> &mut Shape { &mut self.0 }
     pub fn new(s: f32, r: f32, color: Color) -> Self {
-        RoundedRectangle(Shape{shape: ShapeType::RoundedRectangle(s, (0.0, 0.0), r), color})
+        RoundedRectangle(Shape{shape: ShapeType::RoundedRectangle(s, (0.0, 0.0), r, 0.0), color})
     }
 }
 
@@ -42,7 +42,7 @@ impl Component for RoundedRectangle {
         SizeRequest::fill()
     }
     fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
-        if let ShapeType::RoundedRectangle(_, s, _) = &mut self.0.shape {
+        if let ShapeType::RoundedRectangle(_, s, _, _) = &mut self.0.shape {
             *s = size;
         }
         vec![Area { offset: (0.0, 0.0), size }]
@@ -54,7 +54,7 @@ pub struct Rectangle(Shape);
 
 impl Rectangle {
     pub fn new(color: Color) -> Self {
-        Rectangle(Shape { shape: ShapeType::Rectangle(0.0, (0.0, 0.0)), color })
+        Rectangle(Shape { shape: ShapeType::Rectangle(0.0, (0.0, 0.0), 0.0), color })
     }
 
     pub fn shape(&mut self) -> &mut Shape { &mut self.0 }
@@ -68,7 +68,7 @@ impl Component for Rectangle {
         SizeRequest::fill()
     }
     fn build(&mut self, _ctx: &mut Context, size: (f32, f32), _children: Vec<SizeRequest>) -> Vec<Area> {
-        if let ShapeType::Rectangle(_, s) = &mut self.0.shape {
+        if let ShapeType::Rectangle(_, s, _) = &mut self.0.shape {
             *s = size;
         }
         vec![Area { offset: (0.0, 0.0), size }]
@@ -80,7 +80,7 @@ pub struct Outline;
 
 impl Outline {
     pub fn circle(s: f32, color: Color) -> Shape {
-        Shape { shape: ShapeType::Ellipse(s * 0.06, (s, s)), color }
+        Shape { shape: ShapeType::Ellipse(s * 0.06, (s, s), 0.0), color }
     }
 }
 
@@ -89,6 +89,6 @@ pub struct Circle;
 impl Circle {
     #[allow(clippy::new_ret_no_self)]
     pub fn new(s: f32, color: Color) -> Shape {
-        Shape { shape: ShapeType::Ellipse(0.0, (s, s)), color }
+        Shape { shape: ShapeType::Ellipse(0.0, (s, s), 0.0), color }
     }
 }

@@ -127,12 +127,15 @@ pub use components::{
     Header,
     Bumper,
     Content,
+    HeaderIcon,
+    HeaderContent
 };
 
 mod utils;
 pub use utils::{
     Timestamp, 
-    ElementID
+    ElementID,
+    Callback
 };
 
 mod pages;
@@ -142,6 +145,11 @@ pub use pages::{
     Splash, 
     PelicanHome
 };
+
+// mod themes;
+// pub use themes::{
+//     PelicanColorThemes
+// };
 
 /*
 How to create an app with Ramp

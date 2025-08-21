@@ -80,7 +80,7 @@ impl OnEvent for QRCodeScanner {
                         *self.2.background() = None;
                         let image = ctx.assets.add_image(raw_frame);
                         self.1 = Some(Image{
-                            shape: ShapeType::Rectangle(0.0, (300.0, 300.0)), 
+                            shape: ShapeType::Rectangle(0.0, (300.0, 300.0), 0.0), 
                             image, 
                             color: None
                         });

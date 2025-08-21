@@ -83,7 +83,7 @@ impl PrimaryAvatar {
         let black = ctx.theme.colors.shades.black;
 
         let (circle_icon, image) = match content {
-            AvatarContent::Image(image) => (None, Some(Image{shape: ShapeType::Ellipse(0.0, (size, size)), image, color: None})),
+            AvatarContent::Image(image) => (None, Some(Image{shape: ShapeType::Ellipse(0.0, (size, size), 0.0), image, color: None})),
             AvatarContent::Icon(name, style) => (Some(AvatarIcon::new(ctx, name, style, size)), None)
         };
 
@@ -100,7 +100,7 @@ impl PrimaryAvatar {
                     avatar_image.image = image;
                 } else {
                     let size = self.1.as_mut().unwrap().1.shape.size().0 + 2.0;
-                    self.2 = Some(Image{shape: ShapeType::Ellipse(0.0, (size, size)), image, color: None});
+                    self.2 = Some(Image{shape: ShapeType::Ellipse(0.0, (size, size), 0.0), image, color: None});
                 }
 
                 self.1 = None;

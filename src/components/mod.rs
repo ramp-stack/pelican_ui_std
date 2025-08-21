@@ -33,7 +33,11 @@ pub use common::{
 ///
 pub mod interface;
 pub use interface::{
-    Interface, Page,
-    Header, Bumper,
-    Content,
+    Interface, 
+    Page,
+    Bumper,
+    Content, 
+    Header, 
+    HeaderIcon,
+    HeaderContent,
 };

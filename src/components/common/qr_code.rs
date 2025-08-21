@@ -40,7 +40,7 @@ impl QRCode {
                 Stack(Offset::Center, Offset::Center, Size::Static(qr_size), Size::Static(qr_size), Padding::default()),
                 RoundedRectangle::new(0.0, 8.0, color),
             ),
-            Image{shape: ShapeType::RoundedRectangle(0.0, (qr_size - 16.0, qr_size - 16.0), 8.0), image: ctx.assets.add_image(img), color: None},
+            Image{shape: ShapeType::RoundedRectangle(0.0, (qr_size - 16.0, qr_size - 16.0), 8.0, 0.0), image: ctx.assets.add_image(img), color: None},
             // QRModules::new(ctx, data, qr_size, logo_size),  - NO CUSTOM STYLIZATION FOR THIS RELEASE
             AspectRatioImage::new(app_icon, (logo_size, logo_size))
         )

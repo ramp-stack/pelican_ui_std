@@ -23,6 +23,8 @@ use base64::{engine::general_purpose, Engine};
 ///
 /// If an Icon is built with an icon name that doesn't exist, it will default to the Pelican UI logo.
 ///
+/// For all available icons, [`go here`](pelican_ui::IconResources)
+///
 /// To learn how to add new icons to the registration, [`go here`](pelican_ui::IconResources)
 ///
 /// ![Icon Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/icon.png)
@@ -39,7 +41,7 @@ impl Icon {
     #[allow(clippy::new_ret_no_self)]
     pub fn new(ctx: &mut Context, name: &'static str, color: Color, size: f32) -> Image {
         let icon = ctx.theme.icons.get(name);
-        Image{shape: ShapeType::Rectangle(0.0, (size, size)), image: icon, color: Some(color)}
+        Image{shape: ShapeType::Rectangle(0.0, (size, size), 0.0), image: icon, color: Some(color)}
     }
 }
 
@@ -68,7 +70,7 @@ impl AspectRatioImage {
         let tw = size.0;
         let th = tw * r;
 
-        Image{shape: ShapeType::Rectangle(0.0, (tw, th)), image, color: None}
+        Image{shape: ShapeType::Rectangle(0.0, (tw, th), 0.0), image, color: None}
     }
 }
 
@@ -140,7 +142,7 @@ pub struct ExpandableImage(Image, Option<(f32, f32)>);
 impl ExpandableImage {
     pub fn new(image: resources::Image, size: Option<(f32, f32)>) -> Self {
         let dims = size.unwrap_or((0.0, 0.0));
-        ExpandableImage(Image{shape: ShapeType::Rectangle(0.0, dims), image, color: None}, size)
+        ExpandableImage(Image{shape: ShapeType::Rectangle(0.0, dims, 0.0), image, color: None}, size)
     }
 
     pub fn image(&mut self) -> &mut Image { &mut self.0 }
@@ -164,13 +166,13 @@ impl Component for ExpandableImage {
             let height = width * (orig_h / orig_w);
             self.1 = Some((width, height));
 
-            if let ShapeType::Rectangle(_, s) = &mut self.0.shape {
+            if let ShapeType::Rectangle(_, s, _) = &mut self.0.shape {
                 *s = (width, height);
             }
 
             vec![Area { offset: (0.0, 0.0), size: (width, height) }]
         } else {
-            if let ShapeType::Rectangle(_, s) = &mut self.0.shape {
+            if let ShapeType::Rectangle(_, s, _) = &mut self.0.shape {
                 *s = (size.0, size.1);
             }
 
