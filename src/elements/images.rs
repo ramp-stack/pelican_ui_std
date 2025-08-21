@@ -50,12 +50,14 @@ impl Icon {
 /// Displays an image that scales to fit within the given size
 /// while preserving its aspect ratio.
 ///
-/// ![Image Example](https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/image.png)
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/ar_image.png"
+///      alt="AsRa Image Example"
+///      width="400">
 ///
 /// ### Example
 /// ```rust
-/// let illustration = ctx.theme.brand.illustrations.get("splash_screen");
-/// let image = AspectRatioImage::new(illustration, (64.0, 112.0));
+/// let img = ctx.theme.brand.illustrations.get("fish_image");
+/// let image = AspectRatioImage::new(img, (100.0, 100.0));
 /// ```
 ///
 /// For adding a new image to the illustrtations go here: [`Illustrations`]
@@ -81,11 +83,8 @@ impl AspectRatioImage {
 ///
 /// ### Example
 /// ```rust
-/// let illustration = ctx.theme.brand.illustrations.get("splash_screen");
-/// let image = AspectRatioImage::new(illustration, (64.0, 112.0));
+/// let image = EncodedImage::encode(rgba.as_bytes(), ImageOrientation::Up);
 /// ```
-///
-/// For adding a new image to the illustrtations go here: [`Illustrations`]
 pub struct EncodedImage;
 impl EncodedImage {
     pub fn encode(bytes: Vec<u8>, orientation: ImageOrientation) -> Option<String> {
