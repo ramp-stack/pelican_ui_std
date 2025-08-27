@@ -202,6 +202,8 @@ impl Row {
     pub fn center(spacing: f32) -> Self {
         Row::new(spacing, Offset::Center, Size::Fit, Padding::default())
     }
+
+    pub fn padding(&mut self) -> &mut Padding {&mut self.3}
 }
 
 impl Layout for Row {

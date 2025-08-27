@@ -80,7 +80,8 @@ pub use layout::{
     ScrollAnchor, 
     Bin, 
     Opt, 
-    EitherOr
+    EitherOr,
+    UniformExpand
 };
 
 mod elements;

@@ -50,6 +50,8 @@ impl Icon {
 /// Displays an image that scales to fit within the given size
 /// while preserving its aspect ratio.
 ///
+/// This is the recommended way to display an image.
+///
 /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/ar_image.png"
 ///      alt="AsRa Image Example"
 ///      width="400">
@@ -60,7 +62,7 @@ impl Icon {
 /// let image = AspectRatioImage::new(img, (100.0, 100.0));
 /// ```
 ///
-/// For adding a new image to the illustrtations go here: [`Illustrations`]
+/// For adding a new image to the illustrations go here: [`Illustrations`](pelican_ui::Illustrations)
 #[derive(Clone, Debug)]
 pub struct AspectRatioImage;
 impl AspectRatioImage {

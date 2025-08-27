@@ -137,9 +137,9 @@ impl Component for Rectangle {
 ///
 /// Creates an outlined shape with a specified size and color.
 ///
-/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/outline.png"
+/// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/circle_outline.png"
 ///      alt="Outline Example"
-///      width="400">
+///      width="200">
 ///
 /// ## Example
 /// ```rust
@@ -162,7 +162,7 @@ impl Outline {
 ///
 /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/circle.png"
 ///      alt="Circle Example"
-///      width="400">  
+///      width="200">  
 ///
 /// ## Example
 /// ```rust
