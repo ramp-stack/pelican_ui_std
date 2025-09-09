@@ -27,6 +27,7 @@ pub struct Button(
     #[skip] Option<String>,
     #[skip] Option<Instant>,
     #[skip] Option<String>,
+    #[skip] bool,
 );
 
 impl Button {
@@ -62,7 +63,7 @@ impl Button {
         let background = OutlinedRectangle::new(colors.background, colors.outline, height/2.0, 1.0);
         let layout = Stack(offset, Offset::Center, width, Size::Static(height), Padding::default());
 
-        Button(layout, background, content, style, state, Box::new(on_click), label.map(|l| l.to_string()), None, active_label)
+        Button(layout, background, content, style, state, Box::new(on_click), label.map(|l| l.to_string()), None, active_label, true)
     }
 
     /// Update the button's colors.
@@ -94,6 +95,8 @@ impl Button {
     pub fn status(&mut self) -> &mut ButtonState {&mut self.4}
     /// Returns a mutable reference to the button's optional label.
     pub fn label(&mut self) -> &mut Option<Text> {&mut self.2.3}
+    /// Sets the trigger of the on_click to either `On Press` or `On Release`
+    pub fn set_trigger_on_press(&mut self, on_press: bool) {self.9 = on_press;}
 }
 
 impl OnEvent for Button {
@@ -111,20 +114,21 @@ impl OnEvent for Button {
         } else if let Some(event) = event.downcast_ref::<MouseEvent>() {
             if self.4.handle(ctx, *event).is_some() { self.color(ctx); }
 
-            if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
-                match self.4 {
-                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
-                        if let Some(label) = self.8.clone() {
-                            self.7 = Some(Instant::now());
-                            *self.status() = ButtonState::Selected;
-                            if let Some(l) = self.label().as_mut() { l.text().spans[0].text = label.to_string(); }
-                        }
-                        ctx.hardware.haptic();
-                        (self.5)(ctx)
-                    },
-                    _ => {}
+            if (matches!(event, MouseEvent { state: MouseState::Pressed, position: Some(_) }) && self.9
+            || matches!(event, MouseEvent { state: MouseState::Released, .. }) && !self.9) 
+            && matches!(self.4, ButtonState::Default | ButtonState::Hover | ButtonState::Pressed) {
+                if let Some(label) = self.8.clone() {
+                    self.7 = Some(Instant::now());
+                    *self.status() = ButtonState::Selected;
+                    if let Some(l) = self.label().as_mut() {
+                        l.text().spans[0].text = label.to_string();
+                    }
                 }
+                ctx.hardware.haptic();
+                (self.5)(ctx);
+            
             }
+
         }
         false
     }

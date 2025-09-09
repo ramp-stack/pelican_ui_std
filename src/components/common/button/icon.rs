@@ -14,7 +14,7 @@ use super::{ButtonSize, ButtonState, ButtonStyle};
 ///  
 /// See various examples below.
 #[derive(Debug, Component)]
-pub struct IconButton(Stack, IconButtonContent, Option<Opt<Image>>);
+pub struct IconButton(Stack, IconButtonContent, Option<Opt<Image>>, #[skip] bool);
 impl IconButton {
     pub fn new(
         ctx: &mut Context,
@@ -28,7 +28,7 @@ impl IconButton {
         let content = IconButtonContent::new(ctx, icon, size, style, state, on_click);
         let s = if size == ButtonSize::Large {52.0} else {36.0};
         let icon = flair.map(|(i, c, h)| Opt::new(Icon::new(ctx, i, c, s / 1.8), h));
-        IconButton(Stack(Offset::End, Offset::Start, Size::Fit, Size::Fit, Padding::default()), content, icon)
+        IconButton(Stack(Offset::End, Offset::Start, Size::Fit, Size::Fit, Padding::default()), content, icon, true)
     }
 
     pub fn color(&mut self, ctx: &mut Context, state: ButtonState) {
@@ -40,6 +40,9 @@ impl IconButton {
 
     pub fn show_flair(&mut self, hide: bool) {if let Some(i) = self.2.as_mut() {i.display(hide);}}
     pub fn status(&mut self) -> &mut ButtonState {&mut self.1.4}
+
+    /// Sets the trigger of the on_click to either `On Press` or `On Release`
+    pub fn set_trigger_on_press(&mut self, on_press: bool) {self.3 = on_press;}
 }
 
 impl OnEvent for IconButton {
@@ -48,15 +51,14 @@ impl OnEvent for IconButton {
             if let Some(state) = self.1.4.handle(ctx, *event) {
                 self.color(ctx, state);
             }
-            if let MouseEvent{state: MouseState::Pressed, position: Some(_)} = event {
-                match self.1.4 {
-                    ButtonState::Default | ButtonState::Hover | ButtonState::Pressed => {
-                        ctx.hardware.haptic();
-                        (self.1.5)(ctx)
-                    },
-                    _ => {}
-                }
+            
+            if (matches!(event, MouseEvent { state: MouseState::Pressed, position: Some(_) }) && self.3
+            || matches!(event, MouseEvent { state: MouseState::Released, position: Some(_)}) && !self.3)
+            && matches!(self.1.4, ButtonState::Default | ButtonState::Hover | ButtonState::Pressed) {
+                ctx.hardware.haptic();
+                (self.1.5)(ctx);
             }
+
             false
         } else {true}
     }

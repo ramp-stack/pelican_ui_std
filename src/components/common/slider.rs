@@ -45,6 +45,10 @@ impl Slider {
         let w = self.3.1.inner().shape().shape.size().0;
         self.3.2.adjust_scroll((i * w) / 100.0)
     }
+
+    pub fn trigger_event(&mut self, ctx: &mut Context, p: f32) {
+        (self.3.4)(ctx, p)
+    }
 }
 
 impl OnEvent for Slider {
