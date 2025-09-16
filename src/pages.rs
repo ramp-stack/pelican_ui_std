@@ -5,7 +5,7 @@ use pelican_ui::{Context, Component};
 
 use crate::components::{Page, Content, Header, Bumper, Button};
 use crate::layout::{Offset, Stack};
-use crate::elements::{TextStyle, Text, AspectRatioImage};
+use crate::elements::{TextStyle, Text, AspectRatioImage, Icon};
 use crate::events::NavigateEvent;
 
 /// This trait is used to define pages in the application.

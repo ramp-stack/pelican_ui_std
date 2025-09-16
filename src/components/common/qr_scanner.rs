@@ -68,8 +68,8 @@ impl OnEvent for QRCodeScanner {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref::<TickEvent>() {
             if let Some(ref mut camera) = self.3 {
-                match camera.get_frame() {
-                    Some(raw_frame) => {
+                match camera.frame() {
+                    Ok(raw_frame) => {
                         self.find_code(raw_frame.clone());
                         
                         if let Some(data) = &*self.4.lock().unwrap() {
@@ -85,7 +85,7 @@ impl OnEvent for QRCodeScanner {
                             color: None
                         });
                     },
-                    None => {
+                    Err(_) => {
                         let background = ctx.theme.colors.background.secondary;
                         *self.2.background() = Some(RoundedRectangle::new(0.0, 8.0, background));
                         *self.2.message() = Some(Message::new(ctx, "camera", "Waiting for raw camera frame."));

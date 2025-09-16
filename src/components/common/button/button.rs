@@ -415,6 +415,7 @@ impl Button {
         )
     }
 }
+
 /// # Quick Actions
 ///
 /// A wrapped group of quick action buttons.
@@ -431,7 +432,6 @@ impl Button {
 ///
 /// let quick_actions = QuickActions::new(vec![button1, button2, button3]);
 /// ```
-
 #[derive(Debug, Component)]
 pub struct QuickActions(Wrap, Vec<Button>);
 

@@ -24,39 +24,42 @@ use crate::layout::{Column, Stack, Offset, Size, Padding, Bin};
 ///     }
 /// );
 /// ```
-
 #[derive(Debug, Component)]
-pub struct Slider(Column, Option<Text>, Option<ExpandableText>, SliderContent, #[skip] Option<f32>);
+pub struct Slider(Column, Option<Text>, Option<ExpandableText>, SliderContent, #[skip] f32); // last f32 = value 0.0..1.0
+
 impl Slider {
     pub fn new(
-        ctx: &mut Context, start: f32,
-        label: Option<&str>, description: Option<&str>,
+        ctx: &mut Context,
+        start: f32,
+        label: Option<&str>,
+        description: Option<&str>,
         on_release: impl FnMut(&mut Context, f32) + 'static,
     ) -> Self {
         let font_size = ctx.theme.fonts.size;
-        Slider(Column::new(8.0, Offset::Start, Size::Fit, Padding::default()), 
+        Slider(
+            Column::new(8.0, Offset::Start, Size::Fit, Padding::default()),
             label.map(|l| Text::new(ctx, l, TextStyle::Heading, font_size.h5, Align::Left)),
             description.map(|t| ExpandableText::new(ctx, t, TextStyle::Primary, font_size.md, Align::Left, None)),
-            SliderContent::new(ctx, on_release), Some(start)
+            SliderContent::new(ctx, start, on_release),
+            start.clamp(0.0, 1.0),
         )
     }
 
-    pub fn set_value(&mut self, i: f32) {
-        let w = self.3.1.inner().shape().shape.size().0;
-        self.3.2.adjust_scroll((i * w) / 100.0)
+    pub fn set_value(&mut self, value: f32) {
+        self.4 = value.clamp(0.0, 1.0);
+        let track_width = self.3.track_width();
+        self.3.3.adjust_position(self.4 * track_width, track_width);
     }
 
-    pub fn trigger_event(&mut self, ctx: &mut Context, p: f32) {
-        (self.3.4)(ctx, p)
+    pub fn trigger_event(&mut self, ctx: &mut Context) {
+        (self.3.5)(ctx, self.4);
     }
 }
 
 impl OnEvent for Slider {
-    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
-        if event.downcast_ref::<TickEvent>().is_some() {
-            if let Some(val) = self.4.take() {
-                self.set_value(val)
-            }
+    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        if let Some(TickEvent) = event.downcast_ref::<TickEvent>() {
+            self.set_value(self.4);
         }
         true
     }
@@ -65,64 +68,114 @@ impl OnEvent for Slider {
 type SliderClosure = Box<dyn FnMut(&mut Context, f32)>;
 
 #[derive(Component)]
-pub struct SliderContent(Stack, Bin<Stack, RoundedRectangle>, SliderKnob, #[skip] f32, #[skip] SliderClosure, #[skip] bool);
+pub struct SliderContent(Stack, Bin<Stack, RoundedRectangle>, Bin<Stack, RoundedRectangle>, SliderKnob, #[skip] f32, #[skip] SliderClosure, #[skip] bool);
+
 impl SliderContent {
-    pub fn new(ctx: &mut Context, on_release: impl FnMut(&mut Context, f32) + 'static) -> Self {
-        let width = Size::custom(move |widths: Vec<(f32, f32)>|(widths[0].0.min(300.0), 300.0));
-        let slider = Stack(Offset::Center, Offset::Center, width, Size::Static(12.0), Padding::default());
-        let layout = Stack(Offset::Start, Offset::Center, Size::Fit, Size::Static(48.0), Padding::default());
+    pub fn new(ctx: &mut Context, start: f32, on_release: impl FnMut(&mut Context, f32) + 'static) -> Self {
+        let width = Size::custom(move |widths: Vec<(f32, f32)>| (widths[0].0.min(300.0), f32::MAX));
+        let track = Stack(Offset::Start, Offset::Center, width, Size::Static(6.0), Padding::default());
+        let fill = Stack(Offset::Start, Offset::Start, Size::Static(30.0), Size::Static(6.0), Padding::default());
+        let layout = Stack(Offset::Start, Offset::Center, Size::Fit, Size::Fit, Padding::default());
         let color = ctx.theme.colors.brand.primary;
-        SliderContent(layout, Bin(slider, RoundedRectangle::new(0.0, 6.0, color)), SliderKnob::new(ctx), 0.0, Box::new(on_release), false)
+        let white = ctx.theme.colors.shades.white;
+
+        SliderContent(
+            layout,
+            Bin(track, RoundedRectangle::new(0.0, 3.0, white)),
+            Bin(fill, RoundedRectangle::new(0.0, 3.0, color)),
+            SliderKnob::new(ctx),
+            start, 
+            Box::new(on_release),
+            false,
+        )
     }
-    
-    pub fn value(&mut self) -> &mut f32 {&mut self.3}
-    
-    pub fn percentage(&mut self) -> f32 {
-        let w = self.1.inner().shape().shape.size().0;
-        (*self.value() / w) * 100.0
+
+    pub fn track_width(&mut self) -> f32 {
+        self.1.inner().shape().shape.size().0
+    }
+
+    pub fn value(&self) -> f32 {
+        self.4
+    }
+
+    pub fn set_value(&mut self, value: f32) {
+        self.4 = value.clamp(0.0, 1.0);
+        let width = self.track_width();
+        self.3.adjust_position(self.4 * width, width);
+    }
+
+    pub fn percentage(&self) -> f32 {
+        self.4 * 100.0
+    }
+
+    fn set_knob_pixel(&mut self, px: f32, track_width: f32) {
+        let clamped = px.clamp(0.0, track_width);
+        self.3.adjust_position(clamped, track_width);
+        self.2.layout().2 = Size::Static(clamped);
     }
 }
 
+impl std::fmt::Debug for SliderContent { 
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { 
+        write!(f, "SliderContent") 
+    } 
+}
 impl OnEvent for SliderContent {
     fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+        let width = self.track_width();
+
         if let Some(MouseEvent { state: MouseState::Pressed, position: Some((x, _)) }) = event.downcast_ref::<MouseEvent>() {
-            self.2.adjust_scroll(*x);
-            *self.value() = *x;
-            self.5 = true;
-        } else if let Some(MouseEvent { state: MouseState::Released, position: _}) = event.downcast_ref::<MouseEvent>() {
-            if self.5 {
-                self.5 = false;
-                let p = self.percentage();
-                (self.4)(ctx, p);
+            self.6 = true;
+
+            if width > 0.0 {
+                let clamped_x = x.clamp(0.0, width);
+                self.4 = (clamped_x / width).clamp(0.0, 1.0);
+                self.set_knob_pixel(clamped_x, width);
+                let p =  self.percentage() / 100.0;
+                (self.5)(ctx, p);
             }
         } else if let Some(MouseEvent { state: MouseState::Scroll(..), position: Some((x, _))}) = event.downcast_ref::<MouseEvent>() {
-            *self.value() = *x;
-            if self.5 { self.2.adjust_scroll(*x); }
+            if self.6 && width > 0.0 {
+                let clamped_x = x.clamp(0.0, width);
+                self.4 = (clamped_x / width).clamp(0.0, 1.0);
+                self.set_knob_pixel(clamped_x, width);
+                let p =  self.percentage() / 100.0;
+                (self.5)(ctx, p);
+            }
         } else if let Some(MouseEvent { state: MouseState::Moved, position: Some((x, _)) }) = event.downcast_ref::<MouseEvent>() {
-            *self.value() = *x;
-            if self.5 { self.2.adjust_scroll(*x); }
-        } else if event.downcast_ref::<TickEvent>().is_some() && self.5 {
-            let p = self.percentage();
-            (self.4)(ctx, p);
+            if self.6 && width > 0.0 {
+                let clamped_x = x.clamp(0.0, width);
+                self.4 = (clamped_x / width).clamp(0.0, 1.0);
+                self.set_knob_pixel(clamped_x, width);
+                let p =  self.percentage() / 100.0;
+                (self.5)(ctx, p);
+            }
+        } else if let Some(MouseEvent { state: MouseState::Released, .. }) = event.downcast_ref::<MouseEvent>() {
+            if self.6 {
+                self.6 = false;
+                let p =  self.percentage() / 100.0;
+                (self.5)(ctx, p);
+            }
+        } else if event.downcast_ref::<TickEvent>().is_some() && width > 0.0 {
+            self.set_knob_pixel(self.4 * width, width);
         }
-        true
-    }
-}
 
-impl std::fmt::Debug for SliderContent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SliderContent")
+        true
     }
 }
 
 #[derive(Debug, Component)]
 pub struct SliderKnob(Stack, Shape);
 impl OnEvent for SliderKnob {}
+
 impl SliderKnob {
     pub fn new(ctx: &mut Context) -> Self {
-        let background = ctx.theme.colors.text.heading;
-        SliderKnob(Stack::default(), Circle::new(18.0, background))
+        let color = ctx.theme.colors.brand.primary;
+        SliderKnob(Stack::default(), Circle::new(18.0, color))
     }
 
-    pub fn adjust_scroll(&mut self, i: f32) {self.0.0 = Offset::Static(i-9.0)}
+    pub fn adjust_position(&mut self, x: f32, track_width: f32) {
+        let clamped_x = x.clamp(9.0, track_width);
+        self.0.0 = Offset::Static(clamped_x - 9.0);
+    }
 }
