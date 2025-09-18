@@ -33,7 +33,7 @@ pub struct Button(
 impl Button {
     #[allow(clippy::too_many_arguments)]
     /// Creates a new button.
-    pub fn build(
+    pub fn new(
         ctx: &mut Context,
         avatar: Option<AvatarContent>,
         icon_l: Option<(&'static str, ButtonFlair)>,
