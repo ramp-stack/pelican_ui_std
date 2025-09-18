@@ -33,7 +33,7 @@ pub struct Button(
 impl Button {
     #[allow(clippy::too_many_arguments)]
     /// Creates a new button.
-    pub fn new(
+    pub fn build(
         ctx: &mut Context,
         avatar: Option<AvatarContent>,
         icon_l: Option<(&'static str, ButtonFlair)>,
@@ -88,7 +88,6 @@ impl Button {
     pub fn show_flair_left(&mut self, hide: bool) {self.2.2.as_mut().map(|b| b.flair().as_mut().map(|i| i.display(hide)));}
     /// Show or hide the flair on the right icon.
     pub fn show_flair_right(&mut self, hide: bool) {self.2.4.as_mut().map(|b| b.flair().as_mut().map(|i| i.display(hide)));}
-
     /// Returns a mutable reference to the optional avatar.
     pub fn avatar(&mut self) -> &mut Option<Avatar> { &mut self.2.1 }
     /// Returns a mutable reference to the ButtonState.
