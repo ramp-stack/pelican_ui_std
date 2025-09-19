@@ -1,12 +1,14 @@
-use pelican_ui::events::{OnEvent, MouseState, MouseEvent, Event};
-use pelican_ui::drawable::{Drawable, Component, Align};
-use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Context, Component};
+use pelican_ui::{
+    Align, Area, Component, Context,
+    Drawable, Event, Layout,
+    MouseEvent, MouseState, OnEvent,
+    SizeRequest,
+};
 
 use crate::elements::{Rectangle, TextStyle, Text};
 use crate::events::{TextInputSelect, AdjustScrollEvent};
 use crate::layout::{Column, Stack, Row, Padding, Offset, Size, Scroll, ScrollAnchor};
-use crate::components::{Avatar, AvatarContent, IconButton, Button, TextInput};
+use crate::components::{AvatarContent, IconButton, Button, TextInput};
 use crate::utils::ElementID;
 use crate::pages::AppPage;
 use std::fmt::Debug;

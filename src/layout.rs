@@ -1,7 +1,4 @@
-use pelican_ui::events::OnEvent;
-use pelican_ui::drawable::{Drawable, Component};
-use pelican_ui::layout::{Layout, Area, SizeRequest};
-use pelican_ui::{Context, Component};
+use pelican_ui::{Context, Component, OnEvent, Drawable, Layout, Area, SizeRequest};
 
 use std::sync::{Arc, Mutex};
 
@@ -374,7 +371,7 @@ impl Layout for Wrap {
         let mut ho = self.4.0;
         let mut lh = 0.0;
 
-        let mut flush = |line: &[(f32, f32)], tw: f32, lh: f32, ho: f32| {
+        let flush = |line: &[(f32, f32)], tw: f32, _: f32, ho: f32| {
             if line.is_empty() { return Vec::new(); }
             let line_w = tw - self.0 - self.4.1;
             let extra = (maximum_size.0 - line_w).max(0.0);

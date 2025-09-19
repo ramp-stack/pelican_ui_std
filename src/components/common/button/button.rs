@@ -1,7 +1,9 @@
-use pelican_ui::events::{MouseState, MouseEvent, OnEvent, Event, TickEvent};
-use pelican_ui::drawable::{Drawable, Component, Image, Color, Align};
-use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Context, Component};
+use pelican_ui::{
+    Align, Area, Color, Component, Context,
+    Drawable, Event, Image, Layout,
+    MouseEvent, MouseState, OnEvent,
+    SizeRequest, TickEvent,
+};
 
 use crate::components::common::{Avatar, AvatarContent};
 use crate::elements::{Icon, OutlinedRectangle, Text, TextStyle};

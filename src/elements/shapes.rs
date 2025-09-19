@@ -1,7 +1,4 @@
-use pelican_ui::events::OnEvent;
-use pelican_ui::drawable::{Drawable, Component, ShapeType, Shape, Color};
-use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Context, Component};
+use pelican_ui::{Shape, Area, Color, Component, Context, Drawable, Layout, OnEvent, SizeRequest, ShapeType};
 
 use crate::layout::Stack;
 

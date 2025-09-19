@@ -1,8 +1,5 @@
-use pelican_ui::events::{MouseState, MouseEvent, OnEvent, Event, TickEvent, Key, NamedKey};
-use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::drawable::{Drawable, Component, Shape, Color, Align, Span, Cursor};
-use pelican_ui::drawable::Text as BasicText;
-use pelican_ui::{Context, Component, resources};
+use pelican_ui::{resources, Key, NamedKey, Align, Area, Color, Component, Context, Drawable, Event, Layout, MouseEvent, MouseState, OnEvent, SizeRequest, TickEvent, Span, Cursor, Shape};
+use pelican_ui::Text as BasicText;
 
 use crate::layout::{Stack, Offset, Size, Padding, Opt, Row, Column};
 use crate::elements::shapes::{Rectangle, Circle};
