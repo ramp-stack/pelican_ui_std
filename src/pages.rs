@@ -1,11 +1,11 @@
-use pelican_ui::events::OnEvent;
-use pelican_ui::drawable::{Align, Drawable, Component};
-use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Context, Component};
+use pelican_ui::{
+    Align, Area, Component, Context,
+    Drawable, Layout, OnEvent, SizeRequest,
+};
 
 use crate::components::{Page, Content, Header, Bumper, Button};
 use crate::layout::{Offset, Stack};
-use crate::elements::{TextStyle, Text, AspectRatioImage, Icon};
+use crate::elements::{TextStyle, Text, AspectRatioImage};
 use crate::events::NavigateEvent;
 
 /// This trait is used to define pages in the application.

@@ -1,7 +1,4 @@
-use pelican_ui::events::{OnEvent, MouseState, Event, MouseEvent};
-use pelican_ui::drawable::{Drawable, Component, Image, Color, Shape, ShapeType};
-use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Context, Component, resources};
+use pelican_ui::{resources, ShapeType, Area, Color, Component, Context, Drawable, Event, Image, Layout, MouseEvent, MouseState, OnEvent, SizeRequest, Shape};
 
 use crate::elements::{Icon, Outline, Circle};
 use crate::layout::{Stack, Offset, Size, Padding};

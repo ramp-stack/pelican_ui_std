@@ -1,7 +1,4 @@
-use pelican_ui::events::{OnEvent, TickEvent, MouseState, MouseEvent, Event, KeyboardState, KeyboardEvent};
-use pelican_ui::drawable::{Drawable, Component, Align, Color};
-use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Context, Component};
+use pelican_ui::{Align, Area, Color, Component, Context, Drawable, Event, Layout, MouseEvent, MouseState, OnEvent, SizeRequest, TickEvent, KeyboardState, KeyboardEvent};
 
 use crate::elements::{OutlinedRectangle, ExpandableText, Text, TextStyle, TextEditor};
 use crate::components::IconButton;

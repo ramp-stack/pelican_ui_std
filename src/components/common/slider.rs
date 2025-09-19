@@ -1,7 +1,4 @@
-use pelican_ui::events::{OnEvent, MouseState, Event, MouseEvent, TickEvent};
-use pelican_ui::drawable::{Drawable, Align, Component, Shape};
-use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Context, Component};
+use pelican_ui::{ Align, Area, Component, Context, Drawable, Event, Layout, MouseEvent, MouseState, OnEvent, SizeRequest, TickEvent, Shape};
 
 use crate::elements::{Text, ExpandableText, TextStyle, Circle, RoundedRectangle};
 use crate::layout::{Column, Stack, Offset, Size, Padding, Bin};
@@ -57,7 +54,7 @@ impl Slider {
 }
 
 impl OnEvent for Slider {
-    fn on_event(&mut self, ctx: &mut Context, event: &mut dyn Event) -> bool {
+    fn on_event(&mut self, _ctx: &mut Context, event: &mut dyn Event) -> bool {
         if let Some(TickEvent) = event.downcast_ref::<TickEvent>() {
             self.set_value(self.4);
         }
@@ -92,16 +89,6 @@ impl SliderContent {
 
     pub fn track_width(&mut self) -> f32 {
         self.1.inner().shape().shape.size().0
-    }
-
-    pub fn value(&self) -> f32 {
-        self.4
-    }
-
-    pub fn set_value(&mut self, value: f32) {
-        self.4 = value.clamp(0.0, 1.0);
-        let width = self.track_width();
-        self.3.adjust_position(self.4 * width, width);
     }
 
     pub fn percentage(&self) -> f32 {

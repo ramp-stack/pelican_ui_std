@@ -1,7 +1,9 @@
-use pelican_ui::events::{MouseState, MouseEvent, OnEvent, Event, TickEvent};
-use pelican_ui::drawable::{Drawable, Component, Image, Color, Align};
-use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Context, Component};
+use pelican_ui::{
+    Align, Area, Color, Component, Context,
+    Drawable, Event, Image, Layout,
+    MouseEvent, MouseState, OnEvent,
+    SizeRequest, TickEvent,
+};
 
 use crate::components::common::{Avatar, AvatarContent};
 use crate::elements::{Icon, OutlinedRectangle, Text, TextStyle};
@@ -88,7 +90,6 @@ impl Button {
     pub fn show_flair_left(&mut self, hide: bool) {self.2.2.as_mut().map(|b| b.flair().as_mut().map(|i| i.display(hide)));}
     /// Show or hide the flair on the right icon.
     pub fn show_flair_right(&mut self, hide: bool) {self.2.4.as_mut().map(|b| b.flair().as_mut().map(|i| i.display(hide)));}
-
     /// Returns a mutable reference to the optional avatar.
     pub fn avatar(&mut self) -> &mut Option<Avatar> { &mut self.2.1 }
     /// Returns a mutable reference to the ButtonState.

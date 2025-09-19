@@ -1,7 +1,9 @@
-use pelican_ui::events::{MouseState, MouseEvent, OnEvent, Event};
-use pelican_ui::drawable::{Drawable, Component, Image, Color};
-use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Context, Component};
+use pelican_ui::{
+    Area, Color, Component, Context,
+    Drawable, Event, Image, Layout,
+    MouseEvent, MouseState, OnEvent,
+    SizeRequest,
+};
 
 use crate::utils::Callback;
 use crate::elements::{Icon, OutlinedRectangle};
@@ -129,7 +131,33 @@ impl IconButton {
         )
     }
 
-    /// ## Secondary Icon Button
+    /// ## Secondary Medium Icon Button
+    ///
+    /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/secondary_icons.png"
+    ///      alt="Secondary Icon Example"
+    ///      width="250">
+    ///
+    /// ### Example
+    /// ```rust
+    /// let button = IconButton::secondary_medium(ctx, "info", |ctx: &mut Context| println!("This button has been clicked!"));
+    /// ```
+    pub fn secondary_medium(
+        ctx: &mut Context, 
+        icon: &'static str, 
+        on_click: Callback
+    ) -> Self {
+        IconButton::new(
+            ctx,
+            icon,
+            ButtonSize::Medium,
+            ButtonStyle::Secondary,
+            ButtonState::Default,
+            on_click,
+            None,
+        )
+    }
+
+    /// ## Ghost Icon Button
     ///
     /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/ghost_icons.png"
     ///      alt="Ghost Icons Example"
@@ -148,6 +176,33 @@ impl IconButton {
             ctx,
             icon,
             ButtonSize::Large,
+            ButtonStyle::Ghost,
+            ButtonState::Default,
+            on_click,
+            None,
+        )
+    }
+
+
+    /// ## Medium Ghost Icon Button
+    ///
+    /// <img src="https://raw.githubusercontent.com/ramp-stack/pelican_ui_std/main/src/examples/ghost_icons.png"
+    ///      alt="Ghost Icons Example"
+    ///      width="250">
+    ///
+    /// ### Example
+    /// ```rust
+    /// let button = IconButton::ghost_medium(ctx, "explore", |ctx: &mut Context| println!("This button has been clicked!"));
+    /// ```
+    pub fn ghost_medium(
+        ctx: &mut Context, 
+        icon: &'static str, 
+        on_click: Callback
+    ) -> Self {
+        IconButton::new(
+            ctx,
+            icon,
+            ButtonSize::Medium,
             ButtonStyle::Ghost,
             ButtonState::Default,
             on_click,

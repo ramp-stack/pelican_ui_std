@@ -1,7 +1,4 @@
-use pelican_ui::events::OnEvent;
-use pelican_ui::drawable::{Drawable, Component, Align, Shape};
-use pelican_ui::layout::{Area, SizeRequest, Layout};
-use pelican_ui::{Context, Component};
+use pelican_ui::{Shape, Align, Area, Component, Context, Drawable, Layout, OnEvent, SizeRequest};
 
 use crate::elements::{Text, ExpandableText, TextStyle, Circle, Rectangle};
 use crate::components::Button;

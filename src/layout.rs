@@ -1,7 +1,4 @@
-use pelican_ui::events::OnEvent;
-use pelican_ui::drawable::{Drawable, Component};
-use pelican_ui::layout::{Layout, Area, SizeRequest};
-use pelican_ui::{Context, Component};
+use pelican_ui::{Context, Component, OnEvent, Drawable, Layout, Area, SizeRequest};
 
 use std::sync::{Arc, Mutex};
 
@@ -338,10 +335,9 @@ pub struct Wrap(pub f32, pub f32, pub Offset, pub Offset, pub Padding, Arc<Mutex
 
 impl Wrap {
     pub fn new(w_spacing: f32, h_spacing: f32) -> Self {
-        Wrap(w_spacing, h_spacing, Offset::Start, Offset::Center, Padding::default(), Arc::new(Mutex::new(0.0)))
+        Wrap(w_spacing, h_spacing, Offset::Center, Offset::Center, Padding::default(), Arc::new(Mutex::new(0.0)))
     }
 }
-
 impl Layout for Wrap {
     fn request_size(&self, _ctx: &mut Context, children: Vec<SizeRequest>) -> SizeRequest {
         let mut lw = self.4.1;
@@ -368,25 +364,49 @@ impl Layout for Wrap {
 
     fn build(&self, _ctx: &mut Context, maximum_size: (f32, f32), children: Vec<SizeRequest>) -> Vec<Area> {
         *self.5.lock().unwrap() = maximum_size.0;
+
+        let mut areas = Vec::new();
+        let mut line = Vec::new();
         let mut tw = self.4.1;
         let mut ho = self.4.0;
         let mut lh = 0.0;
-        let mut areas: Vec<Area> = Vec::new();
 
-        children.into_iter().for_each(|child| {
+        let flush = |line: &[(f32, f32)], tw: f32, _: f32, ho: f32| {
+            if line.is_empty() { return Vec::new(); }
+            let line_w = tw - self.0 - self.4.1;
+            let extra = (maximum_size.0 - line_w).max(0.0);
+            let start_x = match self.2 {
+                Offset::Start => self.4.1,
+                Offset::End => self.4.1 + extra,
+                Offset::Center => self.4.1 + extra / 2.0,
+                Offset::Static(_) => 0.0,
+            };
+            let mut x = start_x;
+            line.iter().map(|&(w, h)| {
+                let a = Area { offset: (x, ho), size: (w, h) };
+                x += w + self.0;
+                a
+            }).collect()
+        };
+
+        for child in children {
             let (w, h) = (child.min_width(), child.min_height());
-            if (tw + w) > maximum_size.0 && tw > self.4.1 {
+            if tw + w > maximum_size.0 && tw > self.4.1 {
+                areas.extend(flush(&line, tw, lh, ho));
                 ho += lh + self.1;
                 tw = self.4.1;
                 lh = 0.0;
+                line.clear();
             }
-            areas.push(Area {offset: (tw, ho), size: (w, h)});
+            line.push((w, h));
             tw += w + self.0;
             lh = lh.max(h);
-        });
+        }
+        areas.extend(flush(&line, tw, lh, ho));
         areas
     }
 }
+
 
 /// Defines the reference point for scrolling content.
 #[derive(Debug, Clone, Copy)]
